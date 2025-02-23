@@ -82,7 +82,7 @@ func Render(ctx *markup.RenderContext, input io.Reader, output io.Writer) error 
 			}
 		} else {
 			lexer = chroma.Coalesce(lexer)
-			if _, err := w.WriteString(string(highlight.CodeFromLexer(lexer, source, false))); err != nil {
+			if _, err := w.WriteString(string(highlight.CodeFromLexer(lexer, source))); err != nil {
 				return ""
 			}
 		}

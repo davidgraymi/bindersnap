@@ -56,7 +56,7 @@ func NewContext() {
 }
 
 // Code returns a HTML version of code string with chroma syntax highlighting classes and the matched lexer name
-func Code(fileName, language, code string, escape bool) (output template.HTML, lexerName string) {
+func Code(fileName, language, code string) (output template.HTML, lexerName string) {
 	NewContext()
 
 	// diff view newline will be passed as empty, change to literal '\n' so it can be copied
@@ -66,13 +66,7 @@ func Code(fileName, language, code string, escape bool) (output template.HTML, l
 	}
 
 	if len(code) > sizeLimit {
-		if escape {
-			print(" Code() return escaped code.")
-			return template.HTML(template.HTMLEscapeString(code)), ""
-		} else {
-			print(" Code() return html.")
-			return template.HTML(code), ""
-		}
+		return template.HTML(template.HTMLEscapeString(code)), ""
 	}
 
 	var lexer chroma.Lexer
@@ -109,11 +103,11 @@ func Code(fileName, language, code string, escape bool) (output template.HTML, l
 		cache.Add(fileName, lexer)
 	}
 
-	return CodeFromLexer(lexer, code, escape), formatLexerName(lexer.Config().Name)
+	return CodeFromLexer(lexer, code), formatLexerName(lexer.Config().Name)
 }
 
 // CodeFromLexer returns a HTML version of code string with chroma syntax highlighting classes
-func CodeFromLexer(lexer chroma.Lexer, code string, escape bool) template.HTML {
+func CodeFromLexer(lexer chroma.Lexer, code string) template.HTML {
 	formatter := html.New(html.WithClasses(true),
 		html.WithLineNumbers(false),
 		html.PreventSurroundingPre(true),
@@ -125,21 +119,13 @@ func CodeFromLexer(lexer chroma.Lexer, code string, escape bool) template.HTML {
 	iterator, err := lexer.Tokenise(nil, code)
 	if err != nil {
 		log.Error("Can't tokenize code: %v", err)
-		if escape {
-			return template.HTML(template.HTMLEscapeString(code))
-		} else {
-			return template.HTML(code)
-		}
+		return template.HTML(template.HTMLEscapeString(code))
 	}
 	// style not used for live site but need to pass something
 	err = formatter.Format(htmlw, githubStyles, iterator)
 	if err != nil {
 		log.Error("Can't format code: %v", err)
-		if escape {
-			return template.HTML(template.HTMLEscapeString(code))
-		} else {
-			return template.HTML(code)
-		}
+		return template.HTML(template.HTMLEscapeString(code))
 	}
 
 	_ = htmlw.Flush()

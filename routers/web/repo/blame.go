@@ -296,7 +296,7 @@ func renderBlame(ctx *context.Context, blameParts []*git.BlamePart, commitNames 
 				line += "\n"
 			}
 			fileName := fmt.Sprintf("%v", ctx.Data["FileName"])
-			line, lexerNameForLine := highlight.Code(fileName, language, line, true)
+			line, lexerNameForLine := highlight.Code(fileName, language, line)
 
 			// set lexer name to the first detected lexer. this is certainly suboptimal and
 			// we should instead highlight the whole file at once

@@ -90,8 +90,8 @@ func (hcd *highlightCodeDiff) diffWithHighlight(filename, language, codeA, codeB
 	hcd.collectUsedRunes(codeA)
 	hcd.collectUsedRunes(codeB)
 
-	highlightCodeA, _ := highlight.Code(filename, language, codeA, true)
-	highlightCodeB, _ := highlight.Code(filename, language, codeB, true)
+	highlightCodeA, _ := highlight.Code(filename, language, codeA)
+	highlightCodeB, _ := highlight.Code(filename, language, codeB)
 
 	convertedCodeA := hcd.convertToPlaceholders(string(highlightCodeA))
 	convertedCodeB := hcd.convertToPlaceholders(string(highlightCodeB))
