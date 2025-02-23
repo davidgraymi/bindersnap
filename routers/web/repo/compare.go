@@ -188,7 +188,6 @@ func setCsvCompareContext(ctx *context.Context) {
 	}
 }
 
-// TODO!: create pdoc services like csv
 func setPdocCompareContext(ctx *context.Context) {
 	ctx.Data["IsPdocFile"] = func(diffFile *gitdiff.DiffFile) bool {
 		extension := strings.ToLower(filepath.Ext(diffFile.Name))

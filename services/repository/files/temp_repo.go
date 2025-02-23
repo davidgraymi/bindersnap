@@ -346,7 +346,7 @@ func (t *TemporaryUploadRepository) DiffIndex() (*gitdiff.Diff, error) {
 	}()
 	stderr := new(bytes.Buffer)
 	var diff *gitdiff.Diff
-	err = git.NewCommand(t.ctx, "diff-index", "--src-prefix=\\a/", "--dst-prefix=\\b/", "--cached", "-p", "HEAD").
+	err = git.NewCommand(t.ctx, "diff-index", "--src-prefix=\\a/", "--dst-prefix=\\b/", "-W", "--cached", "-p", "HEAD").
 		Run(&git.RunOpts{
 			Timeout: 30 * time.Second,
 			Dir:     t.basePath,

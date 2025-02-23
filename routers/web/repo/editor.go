@@ -424,6 +424,8 @@ func DiffPreviewPost(ctx *context.Context) {
 		ctx.Data["File"] = diff.Files[0]
 	}
 
+	setPdocCompareContext(ctx)
+
 	ctx.HTML(http.StatusOK, tplEditDiffPreview)
 }
 
