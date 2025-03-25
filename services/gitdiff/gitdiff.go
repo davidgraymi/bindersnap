@@ -381,21 +381,22 @@ outer:
 		// try to find equivalent diff line. ignore, otherwise
 		switch diffLine.Type {
 		case DiffLineSection:
-			if len(diffLine.Content[1:]) > 0 {
-				left.Write(divTagPrefix)
-				left.WriteString(diffLine.Content[1:])
-				left.Write(divTagSuffix)
-				left.WriteString("\n")
-				right.Write(divTagPrefix)
-				right.WriteString(diffLine.Content[1:])
-				right.Write(divTagSuffix)
-				right.WriteString("\n")
-			} else {
-				left.WriteString(`<br>`)
-				left.WriteString("\n")
-				right.WriteString(`<br>`)
-				right.WriteString("\n")
-			}
+			// This is the section of a git diff with metadata about the diff. We're not using it.
+			// if len(diffLine.Content[1:]) > 0 {
+			// 	left.Write(divTagPrefix)
+			// 	left.WriteString(diffLine.Content[1:])
+			// 	left.Write(divTagSuffix)
+			// 	left.WriteString("\n")
+			// 	right.Write(divTagPrefix)
+			// 	right.WriteString(diffLine.Content[1:])
+			// 	right.Write(divTagSuffix)
+			// 	right.WriteString("\n")
+			// } else {
+			// 	left.WriteString(`<br>`)
+			// 	left.WriteString("\n")
+			// 	right.WriteString(`<br>`)
+			// 	right.WriteString("\n")
+			// }
 			continue outer
 		case DiffLineAdd:
 			compareDiffLine = diffSection.GetLine(DiffLineDel, diffLine.RightIdx)

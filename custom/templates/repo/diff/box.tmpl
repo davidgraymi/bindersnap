@@ -183,7 +183,11 @@
 						</h4>
 						<div class="diff-file-body ui attached unstackable table segment" {{if and $file.IsViewed $.IsShowingAllCommits}}data-folded="true"{{end}}>
 							<div id="diff-source-{{$file.NameHash}}" class="{{if not $isPdoc}}file-body file-code unicode-escaped{{end}} code-diff{{if $.IsSplitStyle}} code-diff-split{{else}} code-diff-unified{{end}}{{if $showFileViewToggle}} tw-hidden{{end}}">
-								{{if or $file.IsIncomplete $file.IsBin}}
+								{{if $isPdoc}}
+                  <div id="diff-rendered-{{$file.NameHash}}" class="file-view markup pdiff {{if $.IsSplitStyle}}code-diff-split{{else}}code-diff-unified{{end}}">
+                    <div hx-get="{{$.Link}}/{{$file.Name}}" hx-trigger="load"></div>
+                  </div>
+                {{else if or $file.IsIncomplete $file.IsBin}}
 									<div class="diff-file-body binary">
 										{{if $file.IsIncomplete}}
 											{{if $file.IsIncompleteLineTooLong}}
@@ -196,10 +200,6 @@
 											{{ctx.Locale.Tr "repo.diff.bin_not_shown"}}
 										{{end}}
 									</div>
-                {{else if $isPdoc}}
-                  <div id="diff-rendered-{{$file.NameHash}}" class="file-view markup pdiff {{if $.IsSplitStyle}}code-diff-split{{else}}code-diff-unified{{end}}">
-                    {{template "repo/diff/pdoc_diff" dict "file" . "root" $}}
-                  </div>
 								{{else}}
 									<table class="chroma" data-new-comment-url="{{$.Issue.Link}}/files/reviews/new_comment" data-path="{{$file.Name}}">
 										{{if $.IsSplitStyle}}

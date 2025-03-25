@@ -49,9 +49,10 @@ import (
 )
 
 const (
-	tplCompareDiff templates.TplName = "repo/diff/compare"
-	tplPullCommits templates.TplName = "repo/pulls/commits"
-	tplPullFiles   templates.TplName = "repo/pulls/files"
+	tplCompareDiff  templates.TplName = "repo/diff/compare"
+	tplPullCommits  templates.TplName = "repo/pulls/commits"
+	tplPullFiles    templates.TplName = "repo/pulls/files"
+	tplPullPdocFile templates.TplName = "repo/diff/pdoc_diff"
 
 	pullRequestTemplateKey = "PullRequestTemplate"
 )
@@ -908,6 +909,132 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 	ctx.HTML(http.StatusOK, tplPullFiles)
 }
 
+// ViewPullFile render a single file diff
+func viewPullFile(ctx *context.Context, filename, specifiedStartCommit, specifiedEndCommit string, willShowSpecifiedCommitRange, willShowSpecifiedCommit bool) {
+	issue, ok := getPullInfo(ctx)
+	if !ok {
+		return
+	}
+	pull := issue.PullRequest
+
+	var (
+		startCommitID string
+		endCommitID   string
+		gitRepo       = ctx.Repo.GitRepo
+	)
+
+	prInfo := preparePullViewPullInfo(ctx, issue)
+	if ctx.Written() {
+		return
+	} else if prInfo == nil {
+		ctx.NotFound("ViewPullFile", nil)
+		return
+	}
+
+	// Validate the given commit sha to show (if any passed)
+	if willShowSpecifiedCommit || willShowSpecifiedCommitRange {
+		foundStartCommit := len(specifiedStartCommit) == 0
+		foundEndCommit := len(specifiedEndCommit) == 0
+
+		if !(foundStartCommit && foundEndCommit) {
+			for _, commit := range prInfo.Commits {
+				if commit.ID.String() == specifiedStartCommit {
+					foundStartCommit = true
+				}
+				if commit.ID.String() == specifiedEndCommit {
+					foundEndCommit = true
+				}
+
+				if foundStartCommit && foundEndCommit {
+					break
+				}
+			}
+		}
+
+		if !(foundStartCommit && foundEndCommit) {
+			ctx.NotFound("Given SHA1 not found for this PR", nil)
+			return
+		}
+	}
+
+	if ctx.Written() {
+		return
+	}
+
+	headCommitID, err := gitRepo.GetRefCommitID(pull.GetGitRefName())
+	if err != nil {
+		ctx.ServerError("GetRefCommitID", err)
+		return
+	}
+
+	if willShowSpecifiedCommit || willShowSpecifiedCommitRange {
+		if len(specifiedEndCommit) > 0 {
+			endCommitID = specifiedEndCommit
+		} else {
+			endCommitID = headCommitID
+		}
+		if len(specifiedStartCommit) > 0 {
+			startCommitID = specifiedStartCommit
+		} else {
+			startCommitID = prInfo.MergeBase
+		}
+	} else {
+		endCommitID = headCommitID
+		startCommitID = prInfo.MergeBase
+	}
+
+	fileOnly := ctx.FormBool("file-only")
+
+	maxLines, maxFiles := setting.Git.MaxGitDiffLines, setting.Git.MaxGitDiffFiles
+	files := ctx.FormStrings("files")
+	if fileOnly && (len(files) == 2 || len(files) == 1) {
+		maxLines, maxFiles = -1, -1
+	}
+
+	diffOptions := &gitdiff.DiffOptions{
+		AfterCommitID:      endCommitID,
+		SkipTo:             ctx.FormString("skip-to"),
+		MaxLines:           maxLines,
+		MaxLineCharacters:  setting.Git.MaxGitDiffLineCharacters,
+		MaxFiles:           maxFiles,
+		WhitespaceBehavior: gitdiff.GetWhitespaceFlag(ctx.Data["WhitespaceBehavior"].(string)),
+		FileOnly:           fileOnly,
+	}
+
+	if !willShowSpecifiedCommit {
+		diffOptions.BeforeCommitID = startCommitID
+	}
+
+	var methodWithError string
+	var diff *gitdiff.Diff
+
+	// if we're not logged in or only a single commit (or commit range) is shown we
+	// have to load only the diff and not get the viewed information
+	// as the viewed information is designed to be loaded only on latest PR
+	// diff and if you're signed in.
+	if !ctx.IsSigned || willShowSpecifiedCommit || willShowSpecifiedCommitRange {
+		diff, err = gitdiff.GetDiff(ctx, gitRepo, diffOptions, files...)
+		methodWithError = "GetDiff"
+	} else {
+		diff, err = gitdiff.SyncAndGetUserSpecificDiff(ctx, ctx.Doer.ID, pull, gitRepo, diffOptions, files...)
+		methodWithError = "SyncAndGetUserSpecificDiff"
+	}
+	if err != nil {
+		ctx.ServerError(methodWithError, err)
+		return
+	}
+
+	for _, file := range diff.Files {
+		if file.Name == filename {
+			ctx.Data["FileDiff"] = file
+			ctx.HTML(http.StatusOK, tplPullPdocFile)
+			return
+		}
+	}
+
+	ctx.ServerError("File not found", nil)
+}
+
 func ViewPullFilesForSingleCommit(ctx *context.Context) {
 	viewPullFiles(ctx, "", ctx.PathParam("sha"), true, true)
 }
@@ -922,6 +1049,10 @@ func ViewPullFilesStartingFromCommit(ctx *context.Context) {
 
 func ViewPullFilesForAllCommitsOfPr(ctx *context.Context) {
 	viewPullFiles(ctx, "", "", false, false)
+}
+
+func ViewPullFileForAllCommitsOfPr(ctx *context.Context) {
+	viewPullFile(ctx, ctx.PathParam("filename"), "", "", false, false)
 }
 
 // UpdatePullRequest merge PR's baseBranch into headBranch

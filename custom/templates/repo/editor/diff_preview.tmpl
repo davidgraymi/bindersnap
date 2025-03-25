@@ -4,7 +4,7 @@
 	<div class="ui attached table segment">
     {{if $isPdoc}}
       <div class="markup pdiff file-view code-diff-unified unicode-escaped">
-        {{template "repo/diff/pdoc_diff" dict "file" .File "root" $}}
+        {{template "repo/diff/pdoc_diff" dict "FileDiff" .File}}
       </div>
     {{else}}
       <div class="file-body file-code code-diff code-diff-unified unicode-escaped">
