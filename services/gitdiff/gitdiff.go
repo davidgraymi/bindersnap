@@ -16,6 +16,7 @@ import (
 	"html/template"
 	"io"
 	"net/url"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -365,11 +366,10 @@ var cfg = &htmldiff.Config{
 func (diffSection *DiffSection) GetComputedSectionDiffForPdoc(locale translation.Locale) template.HTML {
 	var left bytes.Buffer
 	var right bytes.Buffer
-	skip := false
+	var skipList []int
 outer:
-	for _, diffLine := range diffSection.Lines {
-		if skip {
-			skip = false
+	for i, diffLine := range diffSection.Lines {
+		if slices.Contains(skipList, i) {
 			continue outer
 		}
 		var (
@@ -399,6 +399,7 @@ outer:
 			// }
 			continue outer
 		case DiffLineAdd:
+			// TODO!: this seems unnecessary, can't we just use diffLine.Match?
 			compareDiffLine = diffSection.GetLine(DiffLineDel, diffLine.RightIdx)
 			if compareDiffLine == nil {
 				right.WriteString(diffLine.Content[1:])
@@ -408,6 +409,7 @@ outer:
 			diff1 = compareDiffLine.Content
 			diff2 = diffLine.Content
 		case DiffLineDel:
+			// TODO!: this seems unnecessary, can't we just use diffLine.Match?
 			compareDiffLine = diffSection.GetLine(DiffLineAdd, diffLine.LeftIdx)
 			if compareDiffLine == nil {
 				left.WriteString(diffLine.Content[1:])
@@ -434,7 +436,7 @@ outer:
 		left.WriteString("\n")
 		right.WriteString(diff2[1:])
 		right.WriteString("\n")
-		skip = true
+		skipList = append(skipList, diffLine.Match)
 	}
 
 	var versions []string = []string{left.String(), right.String()}
