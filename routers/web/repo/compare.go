@@ -83,6 +83,7 @@ func setCompareContext(ctx *context.Context, before, head *git.Commit, headOwner
 	setPathsCompareContext(ctx, before, head, headOwner, headName)
 	setImageCompareContext(ctx)
 	setCsvCompareContext(ctx)
+	setPdocCompareContext(ctx)
 }
 
 // SourceCommitURL creates a relative URL for a commit in the given repository
@@ -184,6 +185,13 @@ func setCsvCompareContext(ctx *context.Context) {
 			return CsvDiffResult{nil, errMessage}
 		}
 		return CsvDiffResult{sections, ""}
+	}
+}
+
+func setPdocCompareContext(ctx *context.Context) {
+	ctx.Data["IsPdocFile"] = func(diffFile *gitdiff.DiffFile) bool {
+		extension := strings.ToLower(filepath.Ext(diffFile.Name))
+		return extension == ".pdoc"
 	}
 }
 

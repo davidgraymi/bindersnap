@@ -12,7 +12,6 @@
 {{range $j, $section := $file.Sections}}
 	{{range $k, $line := $section.Lines}}
 		<tr class="{{.GetHTMLDiffLineType}}-code nl-{{$k}} ol-{{$k}}" data-line-type="{{.GetHTMLDiffLineType}}">
-      <!-- TODO!: display html output like normal while keeping the comments and line diff the same -->
 			{{if eq .GetType 4}}
 				{{if $.root.AfterCommitID}}
 					{{$expandDirection := $line.GetExpandDirection}}

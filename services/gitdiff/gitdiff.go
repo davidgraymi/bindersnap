@@ -2,7 +2,7 @@
 // Copyright 2019 The Gitea Authors. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-// TODO!: This is where gitdiff's are generated. If it is possible to make a nicely formated
+// TODO!: This is where gitdiff's are generated. If it is possible to make a nicely formatted
 //        .pdoc these data structure and functions may be helpful.
 
 package gitdiff
@@ -16,6 +16,7 @@ import (
 	"html/template"
 	"io"
 	"net/url"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -39,6 +40,8 @@ import (
 	stdcharset "golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
+
+	htmldiff "github.com/davidgraymi/html-diff"
 )
 
 // DiffLineType represents the type of DiffLine.
@@ -203,6 +206,8 @@ var (
 	addedCodePrefix   = []byte(`<span class="added-code">`)
 	removedCodePrefix = []byte(`<span class="removed-code">`)
 	codeTagSuffix     = []byte(`</span>`)
+	// divTagPrefix      = []byte(`<div class="tag-code">`)
+	// divTagSuffix      = []byte(`</div>`)
 )
 
 func diffToHTML(lineWrapperTags []string, diffs []diffmatchpatch.Diff, lineType DiffLineType) string {
@@ -347,6 +352,100 @@ func (diffSection *DiffSection) GetComputedInlineDiffFor(diffLine *DiffLine, loc
 	// if the line wrappers are still needed in the future, it can be added back by "diffToHTML(hcd.lineWrapperTags. ...)"
 	diffHTML := diffToHTML(nil, diffRecord, diffLine.Type)
 	return DiffInlineWithUnicodeEscape(template.HTML(diffHTML), locale)
+}
+
+var cfg = &htmldiff.Config{
+	Granularity:  6,
+	InsertedSpan: []htmldiff.Attribute{{Key: "class", Val: "add"}},
+	DeletedSpan:  []htmldiff.Attribute{{Key: "class", Val: "rem"}},
+	ReplacedSpan: []htmldiff.Attribute{{Key: "class", Val: "spc"}},
+	CleanTags:    []string{""},
+}
+
+// GetComputedSectionDiffForPdoc computes inline diff for the given section in a pdoc.
+func (diffSection *DiffSection) GetComputedSectionDiffForPdoc(locale translation.Locale) template.HTML {
+	var left bytes.Buffer
+	var right bytes.Buffer
+	var skipList []int
+outer:
+	for i, diffLine := range diffSection.Lines {
+		if slices.Contains(skipList, i) {
+			continue outer
+		}
+		var (
+			compareDiffLine *DiffLine
+			diff1           string
+			diff2           string
+		)
+
+		// try to find equivalent diff line. ignore, otherwise
+		switch diffLine.Type {
+		case DiffLineSection:
+			// This is the section of a git diff with metadata about the diff. We're not using it.
+			// if len(diffLine.Content[1:]) > 0 {
+			// 	left.Write(divTagPrefix)
+			// 	left.WriteString(diffLine.Content[1:])
+			// 	left.Write(divTagSuffix)
+			// 	left.WriteString("\n")
+			// 	right.Write(divTagPrefix)
+			// 	right.WriteString(diffLine.Content[1:])
+			// 	right.Write(divTagSuffix)
+			// 	right.WriteString("\n")
+			// } else {
+			// 	left.WriteString(`<br>`)
+			// 	left.WriteString("\n")
+			// 	right.WriteString(`<br>`)
+			// 	right.WriteString("\n")
+			// }
+			continue outer
+		case DiffLineAdd:
+			// TODO!: this seems unnecessary, can't we just use diffLine.Match?
+			compareDiffLine = diffSection.GetLine(DiffLineDel, diffLine.RightIdx)
+			if compareDiffLine == nil {
+				right.WriteString(diffLine.Content[1:])
+				right.WriteString("\n")
+				continue outer
+			}
+			diff1 = compareDiffLine.Content
+			diff2 = diffLine.Content
+		case DiffLineDel:
+			// TODO!: this seems unnecessary, can't we just use diffLine.Match?
+			compareDiffLine = diffSection.GetLine(DiffLineAdd, diffLine.LeftIdx)
+			if compareDiffLine == nil {
+				left.WriteString(diffLine.Content[1:])
+				left.WriteString("\n")
+				continue outer
+			}
+			diff1 = diffLine.Content
+			diff2 = compareDiffLine.Content
+		default:
+			if strings.IndexByte(" +-", diffLine.Content[0]) > -1 {
+				left.WriteString(diffLine.Content[1:])
+				left.WriteString("\n")
+				right.WriteString(diffLine.Content[1:])
+				right.WriteString("\n")
+				continue outer
+			}
+			left.WriteString(diffLine.Content)
+			left.WriteString("\n")
+			right.WriteString(diffLine.Content)
+			right.WriteString("\n")
+			continue outer
+		}
+		left.WriteString(diff1[1:])
+		left.WriteString("\n")
+		right.WriteString(diff2[1:])
+		right.WriteString("\n")
+		skipList = append(skipList, diffLine.Match)
+	}
+
+	var versions = []string{left.String(), right.String()}
+	res, err := cfg.HTMLdiff(versions)
+	if err != nil {
+		return template.HTML(err.Error())
+	}
+
+	return template.HTML(res[0])
 }
 
 // DiffFile represents a file diff.
@@ -1117,7 +1216,7 @@ func GetDiff(ctx context.Context, gitRepo *git.Repository, opts *DiffOptions, fi
 	}
 
 	if (len(opts.BeforeCommitID) == 0 || opts.BeforeCommitID == objectFormat.EmptyObjectID().String()) && commit.ParentCount() == 0 {
-		cmdDiff.AddArguments("diff", "--src-prefix=\\a/", "--dst-prefix=\\b/", "-M").
+		cmdDiff.AddArguments("diff", "--src-prefix=\\a/", "--dst-prefix=\\b/", "-M", "-W").
 			AddArguments(opts.WhitespaceBehavior...).
 			AddDynamicArguments(objectFormat.EmptyTree().String()).
 			AddDynamicArguments(opts.AfterCommitID)
@@ -1128,7 +1227,7 @@ func GetDiff(ctx context.Context, gitRepo *git.Repository, opts *DiffOptions, fi
 			actualBeforeCommitID = parentCommit.ID.String()
 		}
 
-		cmdDiff.AddArguments("diff", "--src-prefix=\\a/", "--dst-prefix=\\b/", "-M").
+		cmdDiff.AddArguments("diff", "--src-prefix=\\a/", "--dst-prefix=\\b/", "-M", "-W").
 			AddArguments(opts.WhitespaceBehavior...).
 			AddDynamicArguments(actualBeforeCommitID, opts.AfterCommitID)
 		opts.BeforeCommitID = actualBeforeCommitID

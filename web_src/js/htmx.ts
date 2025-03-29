@@ -17,5 +17,6 @@ document.body.addEventListener('htmx:sendError', (event: Partial<HtmxEvent>) => 
 // https://htmx.org/events/#htmx:responseError
 document.body.addEventListener('htmx:responseError', (event: Partial<HtmxEvent>) => {
   // TODO: add translations
+  // TODO!: add custom link to report issue
   showErrorToast(`Error ${event.detail.xhr.status} when calling ${event.detail.requestConfig.path}`);
 });
