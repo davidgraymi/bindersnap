@@ -2,7 +2,7 @@
 // Copyright 2019 The Gitea Authors. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-// TODO!: This is where gitdiff's are generated. If it is possible to make a nicely formated
+// TODO!: This is where gitdiff's are generated. If it is possible to make a nicely formatted
 //        .pdoc these data structure and functions may be helpful.
 
 package gitdiff
@@ -206,8 +206,8 @@ var (
 	addedCodePrefix   = []byte(`<span class="added-code">`)
 	removedCodePrefix = []byte(`<span class="removed-code">`)
 	codeTagSuffix     = []byte(`</span>`)
-	divTagPrefix      = []byte(`<div class="tag-code">`)
-	divTagSuffix      = []byte(`</div>`)
+	// divTagPrefix      = []byte(`<div class="tag-code">`)
+	// divTagSuffix      = []byte(`</div>`)
 )
 
 func diffToHTML(lineWrapperTags []string, diffs []diffmatchpatch.Diff, lineType DiffLineType) string {
@@ -439,7 +439,7 @@ outer:
 		skipList = append(skipList, diffLine.Match)
 	}
 
-	var versions []string = []string{left.String(), right.String()}
+	var versions = []string{left.String(), right.String()}
 	res, err := cfg.HTMLdiff(versions)
 	if err != nil {
 		return template.HTML(err.Error())
