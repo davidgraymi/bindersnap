@@ -1051,6 +1051,19 @@ func ViewPullFilesForAllCommitsOfPr(ctx *context.Context) {
 	viewPullFiles(ctx, "", "", false, false)
 }
 
+// Functions to lazy load by file
+func ViewPullFileForSingleCommit(ctx *context.Context) {
+	viewPullFile(ctx, ctx.PathParam("filename"), "", ctx.PathParam("sha"), true, true)
+}
+
+func ViewPullFileForRange(ctx *context.Context) {
+	viewPullFile(ctx, ctx.PathParam("filename"), ctx.PathParam("shaFrom"), ctx.PathParam("shaTo"), true, false)
+}
+
+func ViewPullFileStartingFromCommit(ctx *context.Context) {
+	viewPullFile(ctx, ctx.PathParam("filename"), "", ctx.PathParam("sha"), true, false)
+}
+
 func ViewPullFileForAllCommitsOfPr(ctx *context.Context) {
 	viewPullFile(ctx, ctx.PathParam("filename"), "", "", false, false)
 }
