@@ -206,8 +206,8 @@ var (
 	addedCodePrefix   = []byte(`<span class="added-code">`)
 	removedCodePrefix = []byte(`<span class="removed-code">`)
 	codeTagSuffix     = []byte(`</span>`)
-	// divTagPrefix      = []byte(`<div class="tag-code">`)
-	// divTagSuffix      = []byte(`</div>`)
+	divTagPrefix      = []byte(`<div class="tag-code">`)
+	divTagSuffix      = []byte(`</div>`)
 )
 
 func diffToHTML(lineWrapperTags []string, diffs []diffmatchpatch.Diff, lineType DiffLineType) string {
@@ -382,21 +382,21 @@ outer:
 		switch diffLine.Type {
 		case DiffLineSection:
 			// This is the section of a git diff with metadata about the diff. We're not using it.
-			// if len(diffLine.Content[1:]) > 0 {
-			// 	left.Write(divTagPrefix)
-			// 	left.WriteString(diffLine.Content[1:])
-			// 	left.Write(divTagSuffix)
-			// 	left.WriteString("\n")
-			// 	right.Write(divTagPrefix)
-			// 	right.WriteString(diffLine.Content[1:])
-			// 	right.Write(divTagSuffix)
-			// 	right.WriteString("\n")
-			// } else {
-			// 	left.WriteString(`<br>`)
-			// 	left.WriteString("\n")
-			// 	right.WriteString(`<br>`)
-			// 	right.WriteString("\n")
-			// }
+			if len(diffLine.Content[1:]) > 0 {
+				left.Write(divTagPrefix)
+				left.WriteString(diffLine.Content[1:])
+				left.Write(divTagSuffix)
+				left.WriteString("\n")
+				right.Write(divTagPrefix)
+				right.WriteString(diffLine.Content[1:])
+				right.Write(divTagSuffix)
+				right.WriteString("\n")
+			} else {
+				left.WriteString(`<br>`)
+				left.WriteString("\n")
+				right.WriteString(`<br>`)
+				right.WriteString("\n")
+			}
 			continue outer
 		case DiffLineAdd:
 			// TODO!: this seems unnecessary, can't we just use diffLine.Match?

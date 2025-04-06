@@ -135,6 +135,16 @@ func prepareRepoCommit(ctx context.Context, repo *repo_model.Repository, tmpDir,
 		}
 	}
 
+	// .gitattributes
+	var buf bytes.Buffer
+	buf.WriteString("*.pdoc diff=html\n")
+	buf.WriteString("*.pdoc funcname=html\n")
+	if buf.Len() > 0 {
+		if err = os.WriteFile(filepath.Join(tmpDir, ".gitattributes"), buf.Bytes(), 0o644); err != nil {
+			return fmt.Errorf("write .gitattributes: %w", err)
+		}
+	}
+
 	return nil
 }
 
