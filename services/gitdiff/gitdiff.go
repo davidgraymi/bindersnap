@@ -36,12 +36,11 @@ import (
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/translation"
 
+	htmldiff "github.com/davidgraymi/html-diff"
 	"github.com/sergi/go-diff/diffmatchpatch"
 	stdcharset "golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
-
-	htmldiff "github.com/davidgraymi/html-diff"
 )
 
 // DiffLineType represents the type of DiffLine.
@@ -439,7 +438,7 @@ outer:
 		skipList = append(skipList, diffLine.Match)
 	}
 
-	var versions = []string{left.String(), right.String()}
+	versions := []string{left.String(), right.String()}
 	res, err := cfg.HTMLdiff(versions)
 	if err != nil {
 		return template.HTML(err.Error())

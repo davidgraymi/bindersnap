@@ -25,7 +25,7 @@
 
   {{range $result := .SearchResults}}
     {{$repo := or $.Repo (index $.RepoMaps .RepoID)}}
-    <a rel="nofollow" href="{{$repo.Link}}/hub/{{.Filename | PathEscapeSegments}}">{{.Filename}}</a>
+    <a rel="nofollow" href="{{$repo.Link}}/hub/{{.Filename | PathEscapeSegments}}">{{FriendlyFilename .Filename}}</a>
     <div></div>
   {{end}}
 </div>

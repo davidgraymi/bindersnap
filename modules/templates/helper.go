@@ -165,6 +165,7 @@ func NewFuncMap() template.FuncMap {
 		"IsMultilineCommitMessage": isMultilineCommitMessage,
 		"CommentMustAsDiff":        gitdiff.CommentMustAsDiff,
 		"MirrorRemoteAddress":      mirrorRemoteAddress,
+		"FriendlyFilename":         friendlyFilename,
 
 		"FilenameIsImage": filenameIsImage,
 		"TabSizeClass":    tabSizeClass,
