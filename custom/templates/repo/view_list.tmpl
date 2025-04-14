@@ -39,7 +39,7 @@
 						</a>
 					{{else}}
 						{{svg (printf "octicon-%s" (EntryIcon $entry))}}
-						<a class="muted" href="{{$.TreeLink}}/{{PathEscapeSegments $entry.Name}}" title="{{$entry.Name}}">{{$entry.Name}}</a>
+						<a class="muted" href="{{$.TreeLink}}/{{PathEscapeSegments $entry.Name}}" title="{{$entry.Name}}">{{FriendlyFilename $entry.Name}}</a>
 					{{end}}
 				{{end}}
 			</div>

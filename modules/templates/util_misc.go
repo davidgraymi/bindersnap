@@ -191,3 +191,7 @@ func tabSizeClass(ec *editorconfig.Editorconfig, filename string) string {
 	}
 	return "tab-size-4"
 }
+
+func friendlyFilename(filename string) string {
+	return strings.TrimSuffix(strings.Replace(filename, "_", " ", -1), filepath.Ext(filename))
+}
