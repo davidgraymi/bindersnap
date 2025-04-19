@@ -1,0 +1,4 @@
+{{range $j, $section := .FileDiff.Sections}}
+  {{$sectionDiff := $section.GetComputedSectionDiffForSnap ctx.Locale -}}
+  {{$sectionDiff}}
+{{end}}

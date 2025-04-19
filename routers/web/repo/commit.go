@@ -407,7 +407,7 @@ func Diff(ctx *context.Context) {
 	ctx.HTML(http.StatusOK, tplCommitPage)
 }
 
-func PdocFileDiff(ctx *context.Context) {
+func SnapFileDiff(ctx *context.Context) {
 	commitID := ctx.PathParam("sha")
 	filename := ctx.PathParam("filename")
 	var (
@@ -463,7 +463,7 @@ func PdocFileDiff(ctx *context.Context) {
 	for _, file := range diff.Files {
 		if file.Name == filename {
 			ctx.Data["FileDiff"] = file
-			ctx.HTML(http.StatusOK, tplPullPdocFile)
+			ctx.HTML(http.StatusOK, tplPullSnapFile)
 			return
 		}
 	}

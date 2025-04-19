@@ -43,6 +43,7 @@ const (
 	frmCommitChoiceNewBranch string = "commit-to-new-branch"
 	snapExt                  string = ".snap"
 	docxExt                  string = ".docx"
+	pdocExt                  string = ".pdoc"
 )
 
 func canCreateBasePullRequest(ctx *context.Context) bool {

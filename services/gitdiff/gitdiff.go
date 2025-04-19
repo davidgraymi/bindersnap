@@ -2,9 +2,6 @@
 // Copyright 2019 The Gitea Authors. All rights reserved.
 // SPDX-License-Identifier: MIT
 
-// TODO!: This is where gitdiff's are generated. If it is possible to make a nicely formatted
-//        .pdoc these data structure and functions may be helpful.
-
 package gitdiff
 
 import (
@@ -361,8 +358,8 @@ var cfg = &htmldiff.Config{
 	CleanTags:    []string{""},
 }
 
-// GetComputedSectionDiffForPdoc computes inline diff for the given section in a pdoc.
-func (diffSection *DiffSection) GetComputedSectionDiffForPdoc(locale translation.Locale) template.HTML {
+// GetComputedSectionDiffForSnap computes inline diff for the given section in a snap.
+func (diffSection *DiffSection) GetComputedSectionDiffForSnap(locale translation.Locale) template.HTML {
 	var left bytes.Buffer
 	var right bytes.Buffer
 	var skipList []int

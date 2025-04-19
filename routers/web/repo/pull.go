@@ -52,7 +52,7 @@ const (
 	tplCompareDiff  templates.TplName = "repo/diff/compare"
 	tplPullCommits  templates.TplName = "repo/pulls/commits"
 	tplPullFiles    templates.TplName = "repo/pulls/files"
-	tplPullPdocFile templates.TplName = "repo/diff/pdoc_diff"
+	tplPullSnapFile templates.TplName = "repo/diff/snap_diff"
 
 	pullRequestTemplateKey = "PullRequestTemplate"
 )
@@ -1027,7 +1027,7 @@ func viewPullFile(ctx *context.Context, filename, specifiedStartCommit, specifie
 	for _, file := range diff.Files {
 		if file.Name == filename {
 			ctx.Data["FileDiff"] = file
-			ctx.HTML(http.StatusOK, tplPullPdocFile)
+			ctx.HTML(http.StatusOK, tplPullSnapFile)
 			return
 		}
 	}

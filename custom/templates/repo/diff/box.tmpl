@@ -103,7 +103,7 @@
 					{{$sniffedTypeHead := call $.GetSniffedTypeForBlob $blobHead}}
 					{{$isImage:= or (call $.IsSniffedTypeAnImage $sniffedTypeBase) (call $.IsSniffedTypeAnImage $sniffedTypeHead)}}
 					{{$isCsv := (call $.IsCsvFile $file)}}
-					{{$isPdoc := (call $.IsPdocFile $file)}}
+					{{$isSnap := (call $.IsSnapFile $file)}}
 					{{$showFileViewToggle := or $isImage (and (not $file.IsIncomplete) $isCsv)}}
 					{{$isExpandable := or (gt $file.Addition 0) (gt $file.Deletion 0) $file.IsBin}}
 					{{$isReviewFile := and $.IsSigned $.PageIsPullFiles (not $.IsArchived) $.IsShowingAllCommits}}
@@ -164,7 +164,7 @@
 								{{end}}
 								<button class="btn diff-header-popup-btn tw-p-1">{{svg "octicon-kebab-horizontal" 18}}</button>
 								<div class="tippy-target">
-									{{if not (or $file.IsIncomplete $file.IsBin $file.IsSubmodule $isPdoc)}}
+									{{if not (or $file.IsIncomplete $file.IsBin $file.IsSubmodule $isSnap)}}
 										<button class="unescape-button item" data-unicode-content-selector="#diff-{{$file.NameHash}}">{{ctx.Locale.Tr "repo.unescape_control_characters"}}</button>
 										<button class="escape-button tw-hidden item" data-unicode-content-selector="#diff-{{$file.NameHash}}">{{ctx.Locale.Tr "repo.escape_control_characters"}}</button>
 									{{end}}
@@ -182,8 +182,8 @@
 							</div>
 						</h4>
 						<div class="diff-file-body ui attached unstackable table segment" {{if and $file.IsViewed $.IsShowingAllCommits}}data-folded="true"{{end}}>
-							<div id="diff-source-{{$file.NameHash}}" class="{{if not $isPdoc}}file-body file-code unicode-escaped{{end}} code-diff{{if $.IsSplitStyle}} code-diff-split{{else}} code-diff-unified{{end}}{{if $showFileViewToggle}} tw-hidden{{end}}">
-								{{if $isPdoc}}
+							<div id="diff-source-{{$file.NameHash}}" class="{{if not $isSnap}}file-body file-code unicode-escaped{{end}} code-diff{{if $.IsSplitStyle}} code-diff-split{{else}} code-diff-unified{{end}}{{if $showFileViewToggle}} tw-hidden{{end}}">
+								{{if $isSnap}}
                   <div id="diff-rendered-{{$file.NameHash}}" class="file-view markup pdiff {{if $.IsSplitStyle}}code-diff-split{{else}}code-diff-unified{{end}}">
                     <div hx-get="{{$.Link}}/{{$file.Name}}" hx-trigger="load"></div>
                   </div>
@@ -265,3 +265,4 @@
 		{{template "shared/user/block_user_dialog" .}}
 	{{end}}
 </div>
+{{ DumpVar $ }}
