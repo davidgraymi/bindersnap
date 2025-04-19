@@ -191,7 +191,7 @@ func setCsvCompareContext(ctx *context.Context) {
 func setPdocCompareContext(ctx *context.Context) {
 	ctx.Data["IsPdocFile"] = func(diffFile *gitdiff.DiffFile) bool {
 		extension := strings.ToLower(filepath.Ext(diffFile.Name))
-		return extension == ".pdoc"
+		return extension == pdocExt || extension == snapExt
 	}
 }
 
