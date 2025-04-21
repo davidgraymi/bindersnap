@@ -185,7 +185,7 @@
 							<div id="diff-source-{{$file.NameHash}}" class="{{if not $isSnap}}file-body file-code unicode-escaped{{end}} code-diff{{if $.IsSplitStyle}} code-diff-split{{else}} code-diff-unified{{end}}{{if $showFileViewToggle}} tw-hidden{{end}}">
 								{{if $isSnap}}
                   <div id="diff-rendered-{{$file.NameHash}}" class="file-view markup pdiff {{if $.IsSplitStyle}}code-diff-split{{else}}code-diff-unified{{end}}">
-                    <div hx-get="{{$.Link}}/{{$file.Name}}" hx-trigger="load"></div>
+                    <div hx-get="{{$.Link}}?files={{$file.Name}}&fetch=true&file-only=true" hx-trigger="load"></div>
                   </div>
                 {{else if or $file.IsIncomplete $file.IsBin}}
 									<div class="diff-file-body binary">
@@ -265,4 +265,3 @@
 		{{template "shared/user/block_user_dialog" .}}
 	{{end}}
 </div>
-{{ DumpVar $ }}

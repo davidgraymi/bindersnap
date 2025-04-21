@@ -641,6 +641,19 @@ func PrepareCompareDiff(
 	ctx.Data["Diff"] = diff
 	ctx.Data["DiffNotAvailable"] = diff.NumFiles == 0
 
+	isFetch := ctx.FormBool("fetch")
+	if isFetch {
+		if len(diff.Files) < 1 {
+			ctx.NotFound(fmt.Sprintf("No diff found for %s", files), nil)
+			return false
+		} else if len(diff.Files) > 1 {
+			ctx.NotFound(fmt.Sprintf("Many diffs found for %s", files), nil)
+			return false
+		}
+		ctx.Data["FileDiff"] = diff.Files[0]
+		ctx.HTML(http.StatusOK, tplPullSnapFile)
+	}
+
 	headCommit, err := ci.HeadGitRepo.GetCommit(headCommitID)
 	if err != nil {
 		ctx.ServerError("GetCommit", err)

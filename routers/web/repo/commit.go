@@ -333,6 +333,19 @@ func Diff(ctx *context.Context) {
 		return
 	}
 
+	isFetch := ctx.FormBool("fetch")
+	if isFetch {
+		if len(diff.Files) < 1 {
+			ctx.NotFound(fmt.Sprintf("No diff found for %s", files), nil)
+			return
+		} else if len(diff.Files) > 1 {
+			ctx.NotFound(fmt.Sprintf("Many diffs found for %s", files), nil)
+			return
+		}
+		ctx.Data["FileDiff"] = diff.Files[0]
+		ctx.HTML(http.StatusOK, tplPullSnapFile)
+	}
+
 	parents := make([]string, commit.ParentCount())
 	for i := 0; i < commit.ParentCount(); i++ {
 		sha, err := commit.ParentID(i)
@@ -405,70 +418,6 @@ func Diff(ctx *context.Context) {
 	}
 
 	ctx.HTML(http.StatusOK, tplCommitPage)
-}
-
-func SnapFileDiff(ctx *context.Context) {
-	commitID := ctx.PathParam("sha")
-	filename := ctx.PathParam("filename")
-	var (
-		gitRepo *git.Repository
-		err     error
-	)
-
-	if ctx.Data["PageIsWiki"] != nil {
-		gitRepo, err = gitrepo.OpenWikiRepository(ctx, ctx.Repo.Repository)
-		if err != nil {
-			ctx.ServerError("Repo.GitRepo.GetCommit", err)
-			return
-		}
-		defer gitRepo.Close()
-	} else {
-		gitRepo = ctx.Repo.GitRepo
-	}
-
-	commit, err := gitRepo.GetCommit(commitID)
-	if err != nil {
-		if git.IsErrNotExist(err) {
-			ctx.NotFound("Repo.GitRepo.GetCommit", err)
-		} else {
-			ctx.ServerError("Repo.GitRepo.GetCommit", err)
-		}
-		return
-	}
-	if len(commitID) != commit.ID.Type().FullLength() {
-		commitID = commit.ID.String()
-	}
-
-	fileOnly := ctx.FormBool("file-only")
-	maxLines, maxFiles := setting.Git.MaxGitDiffLines, setting.Git.MaxGitDiffFiles
-	files := ctx.FormStrings("files")
-	if fileOnly && (len(files) == 2 || len(files) == 1) {
-		maxLines, maxFiles = -1, -1
-	}
-
-	diff, err := gitdiff.GetDiff(ctx, gitRepo, &gitdiff.DiffOptions{
-		AfterCommitID:      commitID,
-		SkipTo:             ctx.FormString("skip-to"),
-		MaxLines:           maxLines,
-		MaxLineCharacters:  setting.Git.MaxGitDiffLineCharacters,
-		MaxFiles:           maxFiles,
-		WhitespaceBehavior: gitdiff.GetWhitespaceFlag(ctx.Data["WhitespaceBehavior"].(string)),
-		FileOnly:           fileOnly,
-	}, files...)
-	if err != nil {
-		ctx.NotFound("GetDiff", err)
-		return
-	}
-
-	for _, file := range diff.Files {
-		if file.Name == filename {
-			ctx.Data["FileDiff"] = file
-			ctx.HTML(http.StatusOK, tplPullSnapFile)
-			return
-		}
-	}
-
-	ctx.ServerError("File not found", nil)
 }
 
 // RawDiff dumps diff results of repository in given commit ID to io.Writer
