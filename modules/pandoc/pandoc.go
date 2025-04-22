@@ -47,14 +47,7 @@ func InitSimple(ctx context.Context) error {
 		return err
 	}
 
-	// var err error
-	// defaultFeatures, err = loadGitVersionFeatures()
-	// if err != nil {
-	// 	return err
-	// }
-	// if err = ensureGitVersion(); err != nil {
-	// 	return err
-	// }
+	// TODO: check pandoc version
 	return nil
 }
 
@@ -71,23 +64,3 @@ func ConvertDocxToSnap(ctx context.Context, in io.Reader, out io.Writer) error {
 	}
 	return nil
 }
-
-// GetRemoteAddress returns remote url of git repository in the repoPath with special remote name
-// func GetRemoteAddress(ctx context.Context, repoPath, remoteName string) (string, error) {
-// 	var cmd *Command
-// 	if DefaultFeatures().CheckVersionAtLeast("2.7") {
-// 		cmd = NewCommand(ctx, "remote", "get-url").AddDynamicArguments(remoteName)
-// 	} else {
-// 		cmd = NewCommand(ctx, "config", "--get").AddDynamicArguments("remote." + remoteName + ".url")
-// 	}
-
-// 	result, _, err := cmd.RunStdString(&RunOpts{Dir: repoPath})
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	if len(result) > 0 {
-// 		result = result[:len(result)-1]
-// 	}
-// 	return result, nil
-// }

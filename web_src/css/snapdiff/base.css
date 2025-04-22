@@ -1,11 +1,11 @@
-.pdiff .add {
+.snapdiff .add {
   background-color:var(--color-diff-added-word-bg);
 }
 
-.pdiff .rem {
+.snapdiff .rem {
   background-color:var(--color-diff-removed-word-bg);
 }
 
-.pdiff .spc {
+.snapdiff .spc {
   background-color:var(--color-diff-moved-row-bg);
 }

@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -164,17 +165,17 @@ func (c *Command) LogString() string {
 }
 
 func logArgSanitize(arg string) string {
-	// if strings.Contains(arg, "://") && strings.Contains(arg, "@") {
-	// 	return util.SanitizeCredentialURLs(arg)
-	// } else if filepath.IsAbs(arg) {
-	// 	base := filepath.Base(arg)
-	// 	dir := filepath.Dir(arg)
-	// 	return filepath.Join(filepath.Base(dir), base)
-	// }
+	if strings.Contains(arg, "://") && strings.Contains(arg, "@") {
+		return util.SanitizeCredentialURLs(arg)
+	} else if filepath.IsAbs(arg) {
+		base := filepath.Base(arg)
+		dir := filepath.Dir(arg)
+		return filepath.Join(filepath.Base(dir), base)
+	}
 	return arg
 }
 
-// NewCommand creates and returns a new Git Command based on given command and arguments.
+// NewCommand creates and returns a new Pandoc Command based on given command and arguments.
 // Each argument should be safe to be trusted. User-provided arguments should be passed to AddArgumentValues instead.
 func NewCommand(ctx context.Context, args ...internal.CmdArg) *Command {
 	// Make an explicit copy of globalCommandArgs, otherwise append might overwrite it
@@ -190,7 +191,7 @@ func NewCommand(ctx context.Context, args ...internal.CmdArg) *Command {
 	}
 }
 
-// AddArguments adds new git arguments (option/value) to the command. It only accepts string literals, or trusted CmdArg.
+// AddArguments adds new pandoc arguments (option/value) to the command. It only accepts string literals, or trusted CmdArg.
 // Type CmdArg is in the internal package, so it can not be used outside of this package directly,
 // it makes sure that user-provided arguments won't cause RCE risks.
 // User-provided arguments should be passed by other AddXxx functions

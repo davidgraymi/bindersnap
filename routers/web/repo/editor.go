@@ -826,11 +826,7 @@ func UploadFileToServer(ctx *context.Context) {
 	var upload *repo_model.Upload
 	if nameExt == docxExt {
 		snapBuf := new(bytes.Buffer)
-		// err = pandoc.InitSimple(ctx)
-		// if err != nil {
-		// 	ctx.Error(http.StatusBadRequest, err.Error())
-		// 	return
-		// }
+		// Do we need to init pandoc?
 		file.Seek(0, io.SeekStart)
 		err = pandoc.ConvertDocxToSnap(ctx, file, snapBuf)
 		file.Close()
@@ -859,7 +855,6 @@ func UploadFileToServer(ctx *context.Context) {
 	log.Trace("New file uploaded: %s", upload.UUID)
 	ctx.JSON(http.StatusOK, map[string]string{
 		"uuid": upload.UUID,
-		"name": upload.Name,
 	})
 }
 
