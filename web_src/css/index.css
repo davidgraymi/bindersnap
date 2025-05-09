@@ -84,7 +84,7 @@
 
 @import "./search.css";
 @import "./tiptap.css";
-@import "./pdiff/base.css";
+@import "./snapdiff/base.css";
 
 @import "./helpers.css";
 

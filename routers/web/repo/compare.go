@@ -83,7 +83,7 @@ func setCompareContext(ctx *context.Context, before, head *git.Commit, headOwner
 	setPathsCompareContext(ctx, before, head, headOwner, headName)
 	setImageCompareContext(ctx)
 	setCsvCompareContext(ctx)
-	setPdocCompareContext(ctx)
+	setSnapCompareContext(ctx)
 }
 
 // SourceCommitURL creates a relative URL for a commit in the given repository
@@ -188,10 +188,10 @@ func setCsvCompareContext(ctx *context.Context) {
 	}
 }
 
-func setPdocCompareContext(ctx *context.Context) {
-	ctx.Data["IsPdocFile"] = func(diffFile *gitdiff.DiffFile) bool {
+func setSnapCompareContext(ctx *context.Context) {
+	ctx.Data["IsSnapFile"] = func(diffFile *gitdiff.DiffFile) bool {
 		extension := strings.ToLower(filepath.Ext(diffFile.Name))
-		return extension == ".pdoc"
+		return extension == pdocExt || extension == snapExt
 	}
 }
 
@@ -640,6 +640,19 @@ func PrepareCompareDiff(
 	}
 	ctx.Data["Diff"] = diff
 	ctx.Data["DiffNotAvailable"] = diff.NumFiles == 0
+
+	isFetch := ctx.FormBool("fetch")
+	if isFetch {
+		if len(diff.Files) < 1 {
+			ctx.NotFound(fmt.Sprintf("No diff found for %s", files), nil)
+			return false
+		} else if len(diff.Files) > 1 {
+			ctx.NotFound(fmt.Sprintf("Many diffs found for %s", files), nil)
+			return false
+		}
+		ctx.Data["FileDiff"] = diff.Files[0]
+		ctx.HTML(http.StatusOK, tplPullSnapFile)
+	}
 
 	headCommit, err := ci.HeadGitRepo.GetCommit(headCommitID)
 	if err != nil {

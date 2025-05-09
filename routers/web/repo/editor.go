@@ -4,10 +4,12 @@
 package repo
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
 	"path"
+	"path/filepath"
 	"strings"
 
 	git_model "code.gitea.io/gitea/models/git"
@@ -18,6 +20,7 @@ import (
 	"code.gitea.io/gitea/modules/json"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/markup"
+	"code.gitea.io/gitea/modules/pandoc"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/typesniffer"
@@ -38,6 +41,9 @@ const (
 
 	frmCommitChoiceDirect    string = "direct"
 	frmCommitChoiceNewBranch string = "commit-to-new-branch"
+	snapExt                  string = ".snap"
+	docxExt                  string = ".docx"
+	pdocExt                  string = ".pdoc"
 )
 
 func canCreateBasePullRequest(ctx *context.Context) bool {
@@ -422,7 +428,7 @@ func DiffPreviewPost(ctx *context.Context) {
 		ctx.Data["File"] = diff.Files[0]
 	}
 
-	setPdocCompareContext(ctx)
+	setSnapCompareContext(ctx)
 
 	ctx.HTML(http.StatusOK, tplEditDiffPreview)
 }
@@ -797,7 +803,6 @@ func UploadFileToServer(ctx *context.Context) {
 		ctx.Error(http.StatusInternalServerError, fmt.Sprintf("FormFile: %v", err))
 		return
 	}
-	defer file.Close()
 
 	buf := make([]byte, 1024)
 	n, _ := util.ReadAtMost(file, buf)
@@ -817,7 +822,31 @@ func UploadFileToServer(ctx *context.Context) {
 		return
 	}
 
-	upload, err := repo_model.NewUpload(ctx, name, buf, file)
+	nameExt := filepath.Ext(name)
+	var upload *repo_model.Upload
+	if nameExt == docxExt {
+		snapBuf := new(bytes.Buffer)
+		// Do we need to init pandoc?
+		file.Seek(0, io.SeekStart)
+		err = pandoc.ConvertDocxToSnap(ctx, file, snapBuf)
+		file.Close()
+		if err != nil {
+			ctx.Error(http.StatusBadRequest, err.Error())
+			return
+		}
+
+		n, _ = util.ReadAtMost(snapBuf, buf)
+		if n > 0 {
+			buf = buf[:n]
+		}
+
+		name = strings.TrimSuffix(name, nameExt) + snapExt
+		upload, err = repo_model.NewUpload(ctx, name, buf, snapBuf)
+	} else {
+		defer file.Close()
+		upload, err = repo_model.NewUpload(ctx, name, buf, file)
+	}
+
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, fmt.Sprintf("NewUpload: %v", err))
 		return

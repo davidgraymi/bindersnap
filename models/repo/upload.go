@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"os"
 	"path"
 
@@ -62,7 +61,7 @@ func (upload *Upload) LocalPath() string {
 }
 
 // NewUpload creates a new upload object.
-func NewUpload(ctx context.Context, name string, buf []byte, file multipart.File) (_ *Upload, err error) {
+func NewUpload(ctx context.Context, name string, buf []byte, file io.Reader) (_ *Upload, err error) {
 	upload := &Upload{
 		UUID: gouuid.New().String(),
 		Name: name,
