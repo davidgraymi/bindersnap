@@ -1,46 +1,193 @@
-.home .logo {
-  max-width: 220px;
+.home .hero h1.ui.header,
+.home .hero h2 {
+  color: var(--color-white);
 }
 
 @media (max-width: 767.98px) {
-  .home .hero h1 {
-    font-size: 3.5em;
+
+  .home .hero h1.ui.header,
+  .home .alternative-cta h1.ui.header {
+    font-size: 3em;
+    margin-top: 2em;
+    font-weight: 700;
+    line-height: 120%;
+    letter-spacing: -3%;
   }
-  .home .hero h2 {
-    font-size: 2em;
+
+  .home .alternative-cta h1.ui.header {
+    margin-top: 0em;
+  }
+
+  .home .hero h2,
+  .home .alternative-cta h2 {
+    font-size: 1.5em;
+    line-height: 1.3em;
+    letter-spacing: 0.15px;
+    font-weight: 500;
+  }
+
+  .landing-cta-container {
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    gap: 2em;
+    margin-top: 2em;
+  }
+
+  .landing-cta-input-container {
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    border-radius: 6px;
+    background: var(--color-white);
+    gap: 3px;
+    align-items: center;
+    justify-content: center;
+    padding: 3px;
+  }
+
+  .landing-email {
+    width: 100%;
+    height: 47px;
+    border-radius: 6px;
+    padding: 0 16px;
+    font-size: 16px;
+  }
+
+  .home .ui.cta {
+    background-color: #1A8037;
+    color: var(--color-white);
+    width: 100%;
+    height: 47px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    margin: 0;
+  }
+
+  .landing-secondary-cta {
+    color: var(--color-white);
+    font-size: 16px;
+    font-weight: 600;
+    background-color: transparent;
+    text-underline-offset: 2px;
+    width: 100%;
+  }
+
+  .landing-benefits {
+    display: flex;
+    flex-direction: column;
+    margin: 10vh 1em;
+    height: fit-content;
+    gap: 60px;
+  }
+
+  .landing-price-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 30px
   }
 }
+
+/* @media (min-width: 768px) and (max-width: 991.98px) {
+
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+
+} */
+
+/* @media (min-width: 1200px) { */
 
 @media (min-width: 768px) {
-  .home .hero h1 {
-    font-size: 5.5em;
+
+  .home .hero h1.ui.header,
+  .home .alternative-cta h1.ui.header {
+    font-size: 4.5em;
+    margin-top: 2.5em;
+    font-weight: 700;
+    line-height: 120%;
+    letter-spacing: -3%;
   }
-  .home .hero h2 {
-    font-size: 3em;
+
+  .home .alternative-cta h1.ui.header {
+    margin-top: 0em;
   }
-}
 
-.home .hero .svg {
-  color: var(--color-green);
-  height: 40px;
-  width: 50px;
-  vertical-align: bottom;
-}
+  .home .hero h2,
+  .home .alternative-cta h2 {
+    font-size: 1.5em;
+    line-height: 1.3em;
+    letter-spacing: 0.15px;
+    font-weight: 500;
+  }
 
-.home .hero.header {
-  font-size: 20px;
-}
+  .landing-cta-container {
+    display: flex;
+    flex-direction: row;
+    height: fit-content;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    vertical-align: middle;
+    margin-top: 3em;
+  }
 
-.home p.large {
-  font-size: 16px;
-}
+  .landing-cta-input-container {
+    display: flex;
+    flex-direction: row;
+    height: fit-content;
+    border-radius: 6px;
+    background: var(--color-white);
+    gap: 3px;
+    align-items: center;
+    justify-content: center;
+    padding: 3px;
+  }
 
-.home .stackable {
-  padding-top: 30px;
-}
+  .landing-email {
+    width: 285px;
+    height: 47px;
+    border-radius: 6px;
+    padding: 0 16px;
+    font-size: 16px;
+  }
 
-.home a {
-  color: var(--color-green);
+  .home .ui.cta {
+    background-color: #1A8037;
+    color: var(--color-white);
+    width: 218px;
+    height: 47px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    margin: 0;
+  }
+
+  .landing-secondary-cta {
+    margin-left: 32px;
+    color: var(--color-white);
+    font-size: 16px;
+    font-weight: 600;
+    background-color: transparent;
+    text-underline-offset: 2px;
+  }
+
+  .landing-benefits {
+    display: flex;
+    flex-direction: column;
+    width: 1014px;
+    margin: 10vh auto;
+    height: fit-content;
+    gap: 60px;
+  }
+
+  .landing-price-tiers {
+    display: flex;
+    flex-direction: row;
+    width: 1156px;
+    gap: 30px
+  }
 }
 
 .page-footer {
@@ -60,14 +207,15 @@
 }
 
 .page-footer .right-links {
-  min-width: 180px; /* make sure the menu dropdown doesn't overflow horizontally when language name is short */
+  min-width: 180px;
+  /* make sure the menu dropdown doesn't overflow horizontally when language name is short */
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
 }
 
-.page-footer .right-links > a {
+.page-footer .right-links>a {
   border-left: 1px solid var(--color-secondary-dark-1);
   padding-left: 8px;
   margin-left: 5px;
@@ -84,4 +232,213 @@
     flex-direction: column;
     gap: 0.5em;
   }
+}
+
+.home .landing-intro {
+  width: 100%;
+  height: 150vh;
+  background: linear-gradient(#F88379, #F4A261 50%);
+  display: flex;
+}
+
+.landing-email:focus {
+  outline: 1px solid var(--color-primary);
+  outline-offset: -1px;
+}
+
+.landing-secondary-cta svg {
+  margin-left: 2px;
+  vertical-align: middle;
+  text-align: center;
+  /* transition: transform .2s ease-in-out; */
+}
+
+/* .landing-secondary-cta svg:hover {
+  transform: translateX(5px);
+} */
+
+.landing-secondary-cta:link {
+  color: var(--color-white);
+}
+
+/* visited link */
+.landing-secondary-cta:visited {
+  color: var(--color-white);
+}
+
+/* mouse over link */
+.landing-secondary-cta:hover {
+  color: var(--color-white);
+}
+
+/* selected link */
+.landing-secondary-cta:active {
+  color: var(--color-white);
+}
+
+.landing-benefits-item {
+  display: flex;
+  flex-direction: row;
+  border-radius: 15px;
+  box-shadow: 0px 1px 12px #0000001e;
+  height: 470px;
+  overflow: hidden;
+}
+
+.landing-benefits-item h3 {
+  font-size: 32px;
+  line-height: 40px;
+}
+
+.landing-benefits-item p {
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.5px;
+}
+
+.landing-benefits-text-container {
+  padding: 30px;
+  align-content: center;
+  background-color: var(--color-white);
+  width: calc(100% - 60px);
+  height: 100%;
+}
+
+.landing-benefits-image-container {
+  background-color: #F4F7FA;
+  width: 100%;
+  height: 100%;
+}
+
+.home .landing-price {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 8em;
+}
+
+.home .landing-price h1 {
+  font-size: 4.1em;
+  line-height: 1.15em;
+  letter-spacing: -0.25px;
+  text-align: center;
+}
+
+.home .landing-price h2 {
+  font-size: 1.4em;
+  line-height: 1.6em;
+  margin-bottom: 2.5em;
+  text-align: center;
+}
+
+.tier-container-free,
+.tier-container-premium,
+.tier-container-ultimate {
+  flex: 1;
+  padding: 20px;
+  overflow: hidden;
+  border-radius: 24px;
+  box-shadow: 0px 1px 3px #0000001e,
+    0px 4px 8px 3px #0000000f;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: fit-content;
+}
+
+.tier-container-free h3,
+.tier-container-premium h3,
+.tier-container-ultimate h3 {
+  font-size: 45px;
+  line-height: 52px;
+  margin-bottom: 0;
+}
+
+.tier-container-free {
+  border: 1px solid #E2E2E2;
+}
+
+.tier-container-premium {
+  border: 1px solid #2188FF;
+}
+
+.tier-container-ultimate {
+  box-shadow: 0px 4px 8px #0000001e;
+  background: linear-gradient(white, white) padding-box,
+    linear-gradient(141deg, #8179F8 31%, #C05696 61%, #FF3333) border-box;
+
+  border: 1px solid transparent;
+}
+
+.landing-price-row {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  height: fit-content;
+}
+
+.landing-price-row-pad {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  height: 58px;
+}
+
+.landing-price-bold-text,
+.landing-price-bold-old-text {
+  font-size: 48px;
+  line-height: 120%;
+  letter-spacing: -2%;
+  font-weight: 700;
+}
+
+.landing-price-bold-old-text {
+  color: #808080;
+  /* text-decoration: line-through; */
+  text-decoration-line: line-through;
+  text-decoration-thickness: 5px;
+}
+
+.landing-price-info-text {
+  font-size: 20px;
+  line-height: 120%;
+}
+
+.landing-price-talk-text {
+  font-size: 24px;
+  line-height: 120%;
+  letter-spacing: -2%;
+  font-weight: 600;
+}
+
+.tier-spacer {
+  height: 1px;
+  width: 100%;
+  background-color: #D9D9D9;
+}
+
+.landing-price-feature-label {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 140%;
+}
+
+.landing-price-feature {
+  font-size: 20px;
+  line-height: 120%;
+  font-weight: 400;
+}
+
+.home .outro {
+  width: 100%;
+  background: #8179F8;
+  display: flex;
+  margin-bottom: -80px;
+}
+
+.home .alternative-cta {
+  margin-top: 5em;
+  margin-bottom: 5em;
 }

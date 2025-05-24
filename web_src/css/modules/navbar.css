@@ -141,6 +141,16 @@
   white-space: nowrap;
 }
 
+#navbar a.item.sign_up {
+  border-radius: 8px;
+  border: 2px solid var(--color-primary);
+  transition: border 0.3s;
+}
+
+.landing #navbar a.item.sign_up {
+  border: 2px solid var(--color-black);
+}
+
 .secondary-nav {
   background: var(--color-secondary-nav-bg) !important; /* important because of .ui.secondary.menu */
 }
