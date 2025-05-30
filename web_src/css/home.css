@@ -3,6 +3,16 @@
   color: var(--color-white);
 }
 
+@keyframes scale-benefits-item {
+  0% {
+    transform: scale(.9)
+  }
+
+  to {
+    transform: scale(1)
+  }
+}
+
 @media (max-width: 767.98px) {
 
   .home .hero h1.ui.header,
@@ -74,12 +84,31 @@
     width: 100%;
   }
 
+  .home .landing-splash {
+    position: absolute;
+    z-index: 2;
+    height: 100vh;
+    width: 100%;
+    background: radial-gradient(circle at 50% calc(154px - 35%), #4b6bec62, transparent 35%),
+      radial-gradient(circle at 65% calc(154px - 20%), #4bbcec62, transparent 25%);
+    background-color: transparent;
+  }
+
   .landing-benefits {
     display: flex;
     flex-direction: column;
     margin: 10vh 1em;
     height: fit-content;
-    gap: 60px;
+  }
+
+  .landing-benefits-left {
+    padding: 30px;
+    align-content: center;
+    width: 100%;
+  }
+
+  .landing-benefits-right {
+    display: none;
   }
 
   .landing-price-tiers {
@@ -173,19 +202,46 @@
     text-underline-offset: 2px;
   }
 
+  .home .landing-splash {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    transform: translate(-50%, 0);
+    height: 548px;
+    width: 1014px;
+    background: radial-gradient(circle at 50% calc(154px - 20%), #4b6bec62, transparent 35%),
+      radial-gradient(circle at 65% calc(154px - 10%), #4bbcec62, transparent 25%);
+    background-color: transparent;
+  }
+
   .landing-benefits {
     display: flex;
     flex-direction: column;
-    width: 1014px;
+    width: calc(100% - 2em);
+    max-width: 1014px;
     margin: 10vh auto;
     height: fit-content;
-    gap: 60px;
+  }
+
+  .landing-benefits-right {
+    flex: 1 1 50%;
+    max-width: 50%;
+    display: block;
+    position: relative;
+  }
+
+  .landing-benefits-left {
+    padding: 30px;
+    align-content: center;
+    flex: 1 1 50%;
+    max-width: 50%;
   }
 
   .landing-price-tiers {
     display: flex;
     flex-direction: row;
-    width: 1156px;
+    width: calc(100% - 2em);
+    max-width: 1156px;
     gap: 30px
   }
 }
@@ -236,9 +292,14 @@
 
 .home .landing-intro {
   width: 100%;
-  height: 150vh;
+  position: relative;
+  top: 0;
+  left: 0;
   background: linear-gradient(#F88379, #F4A261 50%);
+  background-color: transparent;
   display: flex;
+  padding-bottom: 10em;
+  z-index: 1;
 }
 
 .landing-email:focus {
@@ -279,14 +340,64 @@
 .landing-benefits-item {
   display: flex;
   flex-direction: row;
-  border-radius: 15px;
-  box-shadow: 0px 1px 12px #0000001e;
-  height: 470px;
+  border-radius: 16px;
+  box-shadow: 0 -8px 10px #0000001a;
+  height: 548px;
   overflow: hidden;
+  position: sticky;
+  transform-origin: center top;
+  animation: scale-benefits-item linear both;
+  will-change: transform;
+  background-color: var(--color-white);
+}
+
+.landing-benefits-item.item-1 {
+  top: calc(64px + 10vh);
+  z-index: 4;
+  margin-bottom: 154px;
+  background: radial-gradient(circle at 50% -20%, #4b6bec62, transparent 35%),
+    radial-gradient(circle at 65% -10%, #4bbcec62, transparent 25%);
+  background-color: var(--color-white);
+}
+
+.landing-benefits-item.item-2 {
+  top: calc(94px + 10vh);
+  z-index: 5;
+  margin-bottom: 124px;
+  background: radial-gradient(circle at 40% -20%, #ecd14b62, transparent 35%),
+    radial-gradient(circle at 25% -10%, #a9ec4b62, transparent 25%);
+  background-color: var(--color-white);
+}
+
+.landing-benefits-item.item-3 {
+  top: calc(124px + 10vh);
+  z-index: 6;
+  margin-bottom: 94px;
+  background: radial-gradient(circle at 70% -20%, #ec4b5362, transparent 35%),
+    radial-gradient(circle at 60% -10%, #bc4bec42, transparent 25%);
+  background-color: var(--color-white);
+}
+
+.landing-benefits-item.item-4 {
+  top: calc(154px + 10vh);
+  z-index: 7;
+  margin-bottom: 64px;
+  background: radial-gradient(circle at 40% -20%, #794bec5a, transparent 35%),
+    radial-gradient(circle at 50% -10%, #6232c34d, transparent 25%);
+  background-color: var(--color-white);
+}
+
+.landing-benefits-item.item-5 {
+  top: calc(204px + 10vh);
+  z-index: 8;
+  margin-bottom: 12px;
+  background: radial-gradient(circle at 15% -20%, #ecd64b62, transparent 35%),
+    radial-gradient(circle at 25% -10%, #eca34b62, transparent 25%);
+  background-color: var(--color-white);
 }
 
 .landing-benefits-item h3 {
-  font-size: 32px;
+  font-size: 48px;
   line-height: 40px;
 }
 
@@ -296,18 +407,54 @@
   letter-spacing: 0.5px;
 }
 
-.landing-benefits-text-container {
-  padding: 30px;
-  align-content: center;
-  background-color: var(--color-white);
-  width: calc(100% - 60px);
+.landing-benefits-item.item-1 .landing-benefits-right img {
+  border-radius: 16px;
+  box-shadow: 0 -8px 10px #0000001a;
+  position: relative;
+  top: 5em;
+  left: 3em;
   height: 100%;
+  width: auto;
 }
 
-.landing-benefits-image-container {
-  background-color: #F4F7FA;
-  width: 100%;
+.landing-benefits-item.item-2 .landing-benefits-right img {
+  border-radius: 28px;
+  box-shadow: 0 -8px 10px #0000001a;
+  position: relative;
+  top: 3em;
+  left: 15%;
+  height: 115%;
+  width: auto;
+}
+
+.landing-benefits-item.item-3 .landing-benefits-right img {
+  border-radius: 16px;
+  box-shadow: 0 -8px 10px #0000001a;
+  position: relative;
+  top: 5em;
+  left: 3em;
   height: 100%;
+  width: auto;
+}
+
+.landing-benefits-item.item-4 .landing-benefits-right img {
+  border-radius: 16px;
+  box-shadow: 0 -8px 10px #0000001a;
+  position: relative;
+  top: 5em;
+  left: 3em;
+  height: 100%;
+  width: auto;
+}
+
+.landing-benefits-item.item-5 .landing-benefits-right img {
+  border-radius: 16px;
+  box-shadow: 0 -8px 10px #0000001a;
+  position: relative;
+  top: 5em;
+  left: 3em;
+  height: 100%;
+  width: auto;
 }
 
 .home .landing-price {
@@ -349,7 +496,7 @@
 .tier-container-free h3,
 .tier-container-premium h3,
 .tier-container-ultimate h3 {
-  font-size: 45px;
+  font-size: 3.2em;
   line-height: 52px;
   margin-bottom: 0;
 }
@@ -378,6 +525,11 @@
   height: fit-content;
 }
 
+.landing-inner-price-row {
+  display: flex;
+  flex-direction: row;
+}
+
 .landing-price-row-pad {
   display: flex;
   flex-direction: row;
@@ -388,7 +540,7 @@
 
 .landing-price-bold-text,
 .landing-price-bold-old-text {
-  font-size: 48px;
+  font-size: 3.3em;
   line-height: 120%;
   letter-spacing: -2%;
   font-weight: 700;
@@ -402,7 +554,7 @@
 }
 
 .landing-price-info-text {
-  font-size: 20px;
+  font-size: 1.4em;
   line-height: 120%;
 }
 

@@ -344,6 +344,7 @@ func Diff(ctx *context.Context) {
 		}
 		ctx.Data["FileDiff"] = diff.Files[0]
 		ctx.HTML(http.StatusOK, tplPullSnapFile)
+		return
 	}
 
 	parents := make([]string, commit.ParentCount())

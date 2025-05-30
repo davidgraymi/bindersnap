@@ -1,5 +1,6 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}" class="home">
+<div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr " dashboard"}}{{else}}{{ctx.Locale.Tr "home" }}{{end}}"
+  class="home">
   <div class="landing-intro">
     <div class="ui center aligned container hero">
       <h1 class="ui header">Replace shared drives with a single, collaborative platform.</h1>
@@ -18,46 +19,57 @@
 
   </div>
 
+  <div class="landing-splash"></div>
+
   <div class="landing-benefits">
-    <div class="landing-benefits-item">
-      <div class="landing-benefits-text-container">
+    <div class="landing-benefits-item item-1">
+      <div class="landing-benefits-left">
         <h3>Securely store your documents</h3>
         <p>Every document is tracked, creating a tamper-proof audit trail to support legal compliance and protect your
           work.
         </p>
       </div>
-      <div class="landing-benefits-image-container">
-
+      <div class="landing-benefits-right">
+        <img src="{{AssetUrlPrefix}}/img/commits_laptop.png" alt="{{ctx.Locale.Tr " logo"}}"
+          aria-hidden="true">
       </div>
     </div>
-    <div class="landing-benefits-item">
-      <div class="landing-benefits-text-container">
+    <div class="landing-benefits-item item-2">
+      <div class="landing-benefits-left">
         <h3>Work from anywhere</h3>
         <p>Access and edit documents from any browser. No installs, no compatibility issues, no excuses.</p>
       </div>
-      <div class="landing-benefits-image-container"></div>
+      <div class="landing-benefits-right">
+        <img src="{{AssetUrlPrefix}}/img/iphone_review.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
+      </div>
     </div>
-    <div class="landing-benefits-item">
-      <div class="landing-benefits-text-container">
-        <h3>Collaborate effortlessly with conversation and comments</h3>
+    <div class="landing-benefits-item item-3">
+      <div class="landing-benefits-left">
+        <h3>Collaborate effortlessly</h3>
         <p>Discuss changes, ask questions, and make decisions without leaving the platform — no extra tools or lost
           context.</p>
       </div>
-      <div class="landing-benefits-image-container"></div>
+      <div class="landing-benefits-right">
+        <img src="{{AssetUrlPrefix}}/img/collab_laptop.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
+      </div>
     </div>
-    <div class="landing-benefits-item">
-      <div class="landing-benefits-text-container">
+    <div class="landing-benefits-item item-4">
+      <div class="landing-benefits-left">
         <h3>Streamline reviews</h3>
         <p>Enforce approvals, catch issues early, and eliminate bottlenecks — without endless back-and-forth emails.</p>
       </div>
-      <div class="landing-benefits-image-container"></div>
+      <div class="landing-benefits-right">
+        <img src="{{AssetUrlPrefix}}/img/approval_laptop.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
+      </div>
     </div>
-    <div class="landing-benefits-item">
-      <div class="landing-benefits-text-container">
+    <div class="landing-benefits-item item-5">
+      <div class="landing-benefits-left">
         <h3>Meet deadlines</h3>
         <p>Create issues, assign tasks, resolve blockers and never lose sight of your goals with projects.</p>
       </div>
-      <div class="landing-benefits-image-container"></div>
+      <div class="landing-benefits-right">
+        <img src="{{AssetUrlPrefix}}/img/project_laptop.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
+      </div>
     </div>
   </div>
 
@@ -69,7 +81,7 @@
         <h3>Free</h3>
         <div class="landing-price-row">
           <div class="landing-price-bold-text">$0</div>
-          <div class="landing-price-info-text">per user/month,<br />credit card required</div>
+          <div class="landing-price-info-text">per user/month</div>
         </div>
         <div class="tier-spacer"></div>
         <div class="landing-price-feature-label">Features include:</div>
@@ -80,11 +92,11 @@
       <div class="tier-container-premium">
         <h3>Premium</h3>
         <div class="landing-price-row">
-          <div>
+          <div class="landing-inner-price-row">
             <span class="landing-price-bold-old-text">$15</span>
             <span class="landing-price-bold-text">$5</span>
           </div>
-          <div class="landing-price-info-text">per user/month,<br />billed annually</div>
+          <div class="landing-price-info-text">per user / month,<br />billed annually</div>
         </div>
         <div class="tier-spacer"></div>
         <div class="landing-price-feature-label">Everything from Free, plus:</div>

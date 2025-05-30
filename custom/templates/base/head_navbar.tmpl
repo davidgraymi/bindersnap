@@ -4,11 +4,10 @@
 {{end}}
 
 <div class="{{if not .IsSigned}}landing{{end}}">
-  <nav id="navbar" aria-label="{{ctx.Locale.Tr " aria.navbar"}}">
+  <nav id="navbar" aria-label="{{ctx.Locale.Tr "aria.navbar"}}">
     <div class="navbar-left">
       <!-- the logo -->
-      <a class="item" id="navbar-logo" href="{{AppSubUrl}}/" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "
-        dashboard"}}{{else}}{{ctx.Locale.Tr "home" }}{{end}}">
+      <a class="item" id="navbar-logo" href="{{AppSubUrl}}/" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home" }}{{end}}">
         <img width="30" height="30" src="{{AssetUrlPrefix}}/img/logo.svg" alt="{{ctx.Locale.Tr " logo"}}"
           aria-hidden="true">
       </a>
@@ -34,8 +33,7 @@
           </div>
         </a>
         {{end}}
-        <button class="item ui icon mini button tw-m-0" id="navbar-expand-toggle" aria-label="{{ctx.Locale.Tr "
-          home.nav_menu"}}">{{svg "octicon-three-bars"}}</button>
+        <button class="item ui icon mini button tw-m-0" id="navbar-expand-toggle" aria-label="{{ctx.Locale.Tr "home.nav_menu"}}">{{svg "octicon-three-bars"}}</button>
       </div>
 
       <!-- navbar links non-mobile -->
@@ -51,8 +49,7 @@
       {{if not (and ctx.Consts.RepoUnitTypeIssues.UnitGlobalDisabled
       ctx.Consts.RepoUnitTypePullRequests.UnitGlobalDisabled)}}
       {{if .ShowMilestonesDashboardPage}}
-      <a class="item{{if .PageIsMilestonesDashboard}} active{{end}}" href="{{AppSubUrl}}/milestones">{{ctx.Locale.Tr
-        "milestones"}}</a>
+      <a class="item{{if .PageIsMilestonesDashboard}} active{{end}}" href="{{AppSubUrl}}/milestones">{{ctx.Locale.Tr "milestones"}}</a>
       {{end}}
       {{end}}
       <!-- <a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a> -->
@@ -93,8 +90,7 @@
       </div><!-- end dropdown avatar menu -->
       {{else if .IsSigned}}
       {{if and EnableTimetracking .ActiveStopwatch}}
-      <a class="item not-mobile active-stopwatch" href="{{.ActiveStopwatch.IssueLink}}" title="{{ctx.Locale.Tr "
-        active_stopwatch"}}" data-seconds="{{.ActiveStopwatch.Seconds}}">
+      <a class="item not-mobile active-stopwatch" href="{{.ActiveStopwatch.IssueLink}}" title="{{ctx.Locale.Tr "active_stopwatch"}}" data-seconds="{{.ActiveStopwatch.Seconds}}">
         <div class="tw-relative">
           {{svg "octicon-stopwatch"}}
           <span class="header-stopwatch-dot"></span>
@@ -102,8 +98,7 @@
       </a>
       {{end}}
 
-      <a class="item not-mobile" href="{{AppSubUrl}}/notifications" data-tooltip-content="{{ctx.Locale.Tr "
-        notifications"}}" aria-label="{{ctx.Locale.Tr " notifications"}}">
+      <a class="item not-mobile" href="{{AppSubUrl}}/notifications" data-tooltip-content="{{ctx.Locale.Tr "notifications"}}" aria-label="{{ctx.Locale.Tr " notifications"}}">
         <div class="tw-relative">
           {{svg "octicon-bell"}}
           <span
