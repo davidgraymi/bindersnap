@@ -1,6 +1,11 @@
+.home .hero {
+  position: relative;
+  z-index: 2;
+}
+
 .home .hero h1.ui.header,
 .home .hero h2 {
-  color: var(--color-white);
+  color: #080707;
 }
 
 @keyframes scale-benefits-item {
@@ -62,6 +67,7 @@
     border-radius: 6px;
     padding: 0 16px;
     font-size: 16px;
+    border: #070707e8 solid;
   }
 
   .home .ui.cta {
@@ -82,16 +88,7 @@
     background-color: transparent;
     text-underline-offset: 2px;
     width: 100%;
-  }
-
-  .home .landing-splash {
-    position: absolute;
-    z-index: 2;
-    height: 100vh;
-    width: 100%;
-    background: radial-gradient(circle at 50% calc(154px - 35%), #4b6bec62, transparent 35%),
-      radial-gradient(circle at 65% calc(154px - 20%), #4bbcec62, transparent 25%);
-    background-color: transparent;
+    display: none;
   }
 
   .landing-benefits {
@@ -129,6 +126,19 @@
 /* @media (min-width: 1200px) { */
 
 @media (min-width: 768px) {
+
+  .home .landing-intro {
+    width: 100%;
+    height: 200vh;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    background: radial-gradient(circle at 50% 425px, #4b6bec62, transparent 300px),
+      radial-gradient(circle at calc(50% + 180px) 515px, #4bbcec62, transparent 190px),
+      radial-gradient(circle at calc(50% - 220px) 360px, #894bec50, transparent 190px);
+    background-color: transparent;
+    z-index: 1;
+  }
 
   .home .hero h1.ui.header,
   .home .alternative-cta h1.ui.header {
@@ -172,6 +182,7 @@
     align-items: center;
     justify-content: center;
     padding: 3px;
+    box-shadow: 8px 8px 0px 0px rgb(0, 0, 0);
   }
 
   .landing-email {
@@ -200,18 +211,7 @@
     font-weight: 600;
     background-color: transparent;
     text-underline-offset: 2px;
-  }
-
-  .home .landing-splash {
-    position: absolute;
-    z-index: 2;
-    left: 50%;
-    transform: translate(-50%, 0);
-    height: 548px;
-    width: 1014px;
-    background: radial-gradient(circle at 50% calc(154px - 20%), #4b6bec62, transparent 35%),
-      radial-gradient(circle at 65% calc(154px - 10%), #4bbcec62, transparent 25%);
-    background-color: transparent;
+    display: none;
   }
 
   .landing-benefits {
@@ -290,18 +290,6 @@
   }
 }
 
-.home .landing-intro {
-  width: 100%;
-  position: relative;
-  top: 0;
-  left: 0;
-  background: linear-gradient(#F88379, #F4A261 50%);
-  background-color: transparent;
-  display: flex;
-  padding-bottom: 10em;
-  z-index: 1;
-}
-
 .landing-email:focus {
   outline: 1px solid var(--color-primary);
   outline-offset: -1px;
@@ -319,22 +307,22 @@
 } */
 
 .landing-secondary-cta:link {
-  color: var(--color-white);
+  color: var(--color-black);
 }
 
 /* visited link */
 .landing-secondary-cta:visited {
-  color: var(--color-white);
+  color: var(--color-black);
 }
 
 /* mouse over link */
 .landing-secondary-cta:hover {
-  color: var(--color-white);
+  color: var(--color-black);
 }
 
 /* selected link */
 .landing-secondary-cta:active {
-  color: var(--color-white);
+  color: var(--color-black);
 }
 
 .landing-benefits-item {
@@ -585,7 +573,7 @@
 
 .home .outro {
   width: 100%;
-  background: #8179F8;
+  background-color: #8179F8;
   display: flex;
   margin-bottom: -80px;
 }

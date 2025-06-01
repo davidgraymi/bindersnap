@@ -1,25 +1,19 @@
 {{template "base/head" .}}
 <div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr " dashboard"}}{{else}}{{ctx.Locale.Tr "home" }}{{end}}"
   class="home">
-  <div class="landing-intro">
-    <div class="ui center aligned container hero">
-      <h1 class="ui header">Replace shared drives with a single, collaborative platform.</h1>
-      <h2>Join the headache free, all-in-one document management platform.</h2>
-      <div class="landing-cta-container">
-        <div class="landing-cta-input-container">
-          <input class="landing-email" type="email" id="email" pattern=".+@example\.com" size="30"
-            placeholder="Enter your email" required />
-          <button class="ui button cta"><span>Sign up for Bindersnap</span></button>
-        </div>
-        <a href="#learn" class="landing-secondary-cta">Learn more{{svg "octicon-chevron-right"}}</a>
+  <div class="landing-intro"></div>
+  <div class="ui center aligned container hero">
+    <h1 class="ui header">Replace shared drives with a single, collaborative platform.</h1>
+    <h2>Join the headache free, all-in-one document management platform.</h2>
+    <div class="landing-cta-container">
+      <div class="landing-cta-input-container">
+        <input class="landing-email" type="email" id="email" pattern=".+@example\.com" size="30"
+          placeholder="Enter your email" required />
+        <button class="ui button cta"><span>Sign up for Bindersnap</span></button>
       </div>
+      <a href="#learn" class="landing-secondary-cta">Learn more{{svg "octicon-chevron-right"}}</a>
     </div>
-
-    <!-- TODO: add video here -->
-
   </div>
-
-  <div class="landing-splash"></div>
 
   <div class="landing-benefits">
     <div class="landing-benefits-item item-1">
@@ -30,8 +24,7 @@
         </p>
       </div>
       <div class="landing-benefits-right">
-        <img src="{{AssetUrlPrefix}}/img/commits_laptop.png" alt="{{ctx.Locale.Tr " logo"}}"
-          aria-hidden="true">
+        <img src="{{AssetUrlPrefix}}/img/commits_laptop.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
       </div>
     </div>
     <div class="landing-benefits-item item-2">
