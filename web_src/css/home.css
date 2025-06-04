@@ -27,6 +27,7 @@
     font-weight: 700;
     line-height: 120%;
     letter-spacing: -3%;
+    color: #080707;
   }
 
   .home .alternative-cta h1.ui.header {
@@ -39,6 +40,7 @@
     line-height: 1.3em;
     letter-spacing: 0.15px;
     font-weight: 500;
+    color: #080707;
   }
 
   .landing-cta-container {
@@ -147,6 +149,7 @@
     font-weight: 700;
     line-height: 120%;
     letter-spacing: -3%;
+    color: #080707;
   }
 
   .home .alternative-cta h1.ui.header {
@@ -159,6 +162,7 @@
     line-height: 1.3em;
     letter-spacing: 0.15px;
     font-weight: 500;
+    color: #080707;
   }
 
   .landing-cta-container {
@@ -307,22 +311,22 @@
 } */
 
 .landing-secondary-cta:link {
-  color: var(--color-black);
+  color: #080707;
 }
 
 /* visited link */
 .landing-secondary-cta:visited {
-  color: var(--color-black);
+  color: #080707;
 }
 
 /* mouse over link */
 .landing-secondary-cta:hover {
-  color: var(--color-black);
+  color: #080707;
 }
 
 /* selected link */
 .landing-secondary-cta:active {
-  color: var(--color-black);
+  color: #080707;
 }
 
 .landing-benefits-item {
@@ -337,6 +341,7 @@
   animation: scale-benefits-item linear both;
   will-change: transform;
   background-color: var(--color-white);
+  color: #080707;
 }
 
 .landing-benefits-item.item-1 {
@@ -479,6 +484,8 @@
   flex-direction: column;
   gap: 20px;
   height: fit-content;
+  background-color: var(--color-white);
+  color: #080707;
 }
 
 .tier-container-free h3,
@@ -576,9 +583,11 @@
   background-color: #8179F8;
   display: flex;
   margin-bottom: -80px;
+  color: var(--color-white);
 }
 
 .home .alternative-cta {
   margin-top: 5em;
   margin-bottom: 5em;
+  color: var(--color-white);
 }
