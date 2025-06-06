@@ -215,24 +215,67 @@ func prepareRecentlyPushedNewBranches(ctx *context.Context) {
 		if !opts.Repo.IsMirror && !opts.BaseRepo.IsMirror &&
 			opts.BaseRepo.UnitEnabled(ctx, unit_model.TypePullRequests) &&
 			baseRepoPerm.CanRead(unit_model.TypePullRequests) {
-			ctx.Data["RecentlyPushedNewBranches"], err = git_model.FindRecentlyPushedNewBranches(ctx, ctx.Doer, opts)
+			var finalBranches []*git_model.RecentlyPushedNewBranch
+			branches, err := git_model.FindRecentlyPushedNewBranches(ctx, ctx.Doer, opts)
 			if err != nil {
 				log.Error("FindRecentlyPushedNewBranches failed: %v", err)
 			}
+
+			for _, branch := range branches {
+				divergingInfo, err := repo_service.GetBranchDivergingInfo(ctx,
+					branch.BranchRepo, branch.BranchName, // "base" repo for diverging info
+					opts.BaseRepo, opts.BaseRepo.DefaultBranch, // "head" repo for diverging info
+				)
+				if err != nil {
+					log.Error("GetBranchDivergingInfo failed: %v", err)
+					continue
+				}
+				branchRepoHasNewCommits := divergingInfo.BaseHasNewCommits
+				baseRepoCommitsBehind := divergingInfo.HeadCommitsBehind
+				if branchRepoHasNewCommits || baseRepoCommitsBehind > 0 {
+					finalBranches = append(finalBranches, branch)
+				}
+			}
+			ctx.Data["RecentlyPushedNewBranches"] = finalBranches
 		}
+	}
+}
+
+func updateContextRepoEmptyAndStatus(ctx *context.Context, empty bool, status repo_model.RepositoryStatus) {
+	if ctx.Repo.Repository.IsEmpty == empty && ctx.Repo.Repository.Status == status {
+		return
+	}
+	ctx.Repo.Repository.IsEmpty = empty
+	if ctx.Repo.Repository.Status == repo_model.RepositoryReady || ctx.Repo.Repository.Status == repo_model.RepositoryBroken {
+		ctx.Repo.Repository.Status = status // only handle ready and broken status, leave other status as-is
+	}
+	if err := repo_model.UpdateRepositoryColsNoAutoTime(ctx, ctx.Repo.Repository, "is_empty", "status"); err != nil {
+		ctx.ServerError("updateContextRepoEmptyAndStatus: UpdateRepositoryCols", err)
+		return
 	}
 }
 
 func handleRepoEmptyOrBroken(ctx *context.Context) {
 	showEmpty := true
-	var err error
 	if ctx.Repo.GitRepo != nil {
-		showEmpty, err = ctx.Repo.GitRepo.IsEmpty()
+		reallyEmpty, err := ctx.Repo.GitRepo.IsEmpty()
 		if err != nil {
+			showEmpty = true // the repo is broken
+			updateContextRepoEmptyAndStatus(ctx, true, repo_model.RepositoryBroken)
 			log.Error("GitRepo.IsEmpty: %v", err)
-			ctx.Repo.Repository.Status = repo_model.RepositoryBroken
-			showEmpty = true
 			ctx.Flash.Error(ctx.Tr("error.occurred"), true)
+		} else if reallyEmpty {
+			showEmpty = true // the repo is really empty
+			updateContextRepoEmptyAndStatus(ctx, true, repo_model.RepositoryReady)
+		} else if branches, _, _ := ctx.Repo.GitRepo.GetBranches(0, 1); len(branches) == 0 {
+			showEmpty = true // it is not really empty, but there is no branch
+			// at the moment, other repo units like "actions" are not able to handle such case,
+			// so we just mark the repo as empty to prevent from displaying these units.
+			ctx.Data["RepoHasContentsWithoutBranch"] = true
+			updateContextRepoEmptyAndStatus(ctx, true, repo_model.RepositoryReady)
+		} else {
+			// the repo is actually not empty and has branches, need to update the database later
+			showEmpty = false
 		}
 	}
 	if showEmpty {
@@ -240,18 +283,11 @@ func handleRepoEmptyOrBroken(ctx *context.Context) {
 		return
 	}
 
-	// the repo is not really empty, so we should update the modal in database
-	// such problem may be caused by:
-	// 1) an error occurs during pushing/receiving.  2) the user replaces an empty git repo manually
-	// and even more: the IsEmpty flag is deeply broken and should be removed with the UI changed to manage to cope with empty repos.
-	// it's possible for a repository to be non-empty by that flag but still 500
-	// because there are no branches - only tags -or the default branch is non-extant as it has been 0-pushed.
-	ctx.Repo.Repository.IsEmpty = false
-	if err = repo_model.UpdateRepositoryCols(ctx, ctx.Repo.Repository, "is_empty"); err != nil {
-		ctx.ServerError("UpdateRepositoryCols", err)
-		return
-	}
-	if err = repo_module.UpdateRepoSize(ctx, ctx.Repo.Repository); err != nil {
+	// The repo is not really empty, so we should update the model in database, such problem may be caused by:
+	// 1) an error occurs during pushing/receiving.
+	// 2) the user replaces an empty git repo manually.
+	updateContextRepoEmptyAndStatus(ctx, false, repo_model.RepositoryReady)
+	if err := repo_module.UpdateRepoSize(ctx, ctx.Repo.Repository); err != nil {
 		ctx.ServerError("UpdateRepoSize", err)
 		return
 	}
@@ -276,7 +312,7 @@ func prepareToRenderDirOrFile(entry *git.TreeEntry) func(ctx *context.Context) {
 
 func handleRepoHomeFeed(ctx *context.Context) bool {
 	if setting.Other.EnableFeed {
-		isFeed, _, showFeedType := feed.GetFeedType(ctx.PathParam("reponame"), ctx.Req)
+		isFeed, _, showFeedType := feed.GetFeedType(ctx.PathParam(":reponame"), ctx.Req)
 		if isFeed {
 			switch {
 			case ctx.Link == fmt.Sprintf("%s.%s", ctx.Repo.RepoLink, showFeedType):

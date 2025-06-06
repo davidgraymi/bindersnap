@@ -12,9 +12,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"code.gitea.io/gitea/models"
 	git_model "code.gitea.io/gitea/models/git"
 	repo_model "code.gitea.io/gitea/models/repo"
 	"code.gitea.io/gitea/models/unit"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/charset"
 	"code.gitea.io/gitea/modules/git"
 	"code.gitea.io/gitea/modules/json"
@@ -22,7 +24,6 @@ import (
 	"code.gitea.io/gitea/modules/markup"
 	"code.gitea.io/gitea/modules/pandoc"
 	"code.gitea.io/gitea/modules/setting"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/typesniffer"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/modules/web"
@@ -34,10 +35,10 @@ import (
 )
 
 const (
-	tplEditFile        templates.TplName = "repo/editor/edit"
-	tplEditDiffPreview templates.TplName = "repo/editor/diff_preview"
-	tplDeleteFile      templates.TplName = "repo/editor/delete"
-	tplUploadFile      templates.TplName = "repo/editor/upload"
+	tplEditFile        base.TplName = "repo/editor/edit"
+	tplEditDiffPreview base.TplName = "repo/editor/diff_preview"
+	tplDeleteFile      base.TplName = "repo/editor/delete"
+	tplUploadFile      base.TplName = "repo/editor/upload"
 
 	frmCommitChoiceDirect    string = "direct"
 	frmCommitChoiceNewBranch string = "commit-to-new-branch"
@@ -308,12 +309,12 @@ func editFilePost(ctx *context.Context, form forms.EditRepoFileForm, isNewFile b
 		} else if git_model.IsErrLFSFileLocked(err) {
 			ctx.Data["Err_TreePath"] = true
 			ctx.RenderWithErr(ctx.Tr("repo.editor.upload_file_is_locked", err.(git_model.ErrLFSFileLocked).Path, err.(git_model.ErrLFSFileLocked).UserName), tplEditFile, &form)
-		} else if files_service.IsErrFilenameInvalid(err) {
+		} else if models.IsErrFilenameInvalid(err) {
 			ctx.Data["Err_TreePath"] = true
 			ctx.RenderWithErr(ctx.Tr("repo.editor.filename_is_invalid", form.TreePath), tplEditFile, &form)
-		} else if files_service.IsErrFilePathInvalid(err) {
+		} else if models.IsErrFilePathInvalid(err) {
 			ctx.Data["Err_TreePath"] = true
-			if fileErr, ok := err.(files_service.ErrFilePathInvalid); ok {
+			if fileErr, ok := err.(models.ErrFilePathInvalid); ok {
 				switch fileErr.Type {
 				case git.EntryModeSymlink:
 					ctx.RenderWithErr(ctx.Tr("repo.editor.file_is_a_symlink", fileErr.Path), tplEditFile, &form)
@@ -327,7 +328,7 @@ func editFilePost(ctx *context.Context, form forms.EditRepoFileForm, isNewFile b
 			} else {
 				ctx.Error(http.StatusInternalServerError, err.Error())
 			}
-		} else if files_service.IsErrRepoFileAlreadyExists(err) {
+		} else if models.IsErrRepoFileAlreadyExists(err) {
 			ctx.Data["Err_TreePath"] = true
 			ctx.RenderWithErr(ctx.Tr("repo.editor.file_already_exists", form.TreePath), tplEditFile, &form)
 		} else if git.IsErrBranchNotExist(err) {
@@ -345,7 +346,7 @@ func editFilePost(ctx *context.Context, form forms.EditRepoFileForm, isNewFile b
 			} else {
 				ctx.Error(http.StatusInternalServerError, err.Error())
 			}
-		} else if files_service.IsErrCommitIDDoesNotMatch(err) {
+		} else if models.IsErrCommitIDDoesNotMatch(err) {
 			ctx.RenderWithErr(ctx.Tr("repo.editor.commit_id_not_matching"), tplEditFile, &form)
 		} else if git.IsErrPushOutOfDate(err) {
 			ctx.RenderWithErr(ctx.Tr("repo.editor.push_out_of_date"), tplEditFile, &form)
@@ -513,14 +514,14 @@ func DeleteFilePost(ctx *context.Context) {
 		Signoff: form.Signoff,
 	}); err != nil {
 		// This is where we handle all the errors thrown by repofiles.DeleteRepoFile
-		if git.IsErrNotExist(err) || files_service.IsErrRepoFileDoesNotExist(err) {
+		if git.IsErrNotExist(err) || models.IsErrRepoFileDoesNotExist(err) {
 			ctx.RenderWithErr(ctx.Tr("repo.editor.file_deleting_no_longer_exists", ctx.Repo.TreePath), tplDeleteFile, &form)
-		} else if files_service.IsErrFilenameInvalid(err) {
+		} else if models.IsErrFilenameInvalid(err) {
 			ctx.Data["Err_TreePath"] = true
 			ctx.RenderWithErr(ctx.Tr("repo.editor.filename_is_invalid", ctx.Repo.TreePath), tplDeleteFile, &form)
-		} else if files_service.IsErrFilePathInvalid(err) {
+		} else if models.IsErrFilePathInvalid(err) {
 			ctx.Data["Err_TreePath"] = true
-			if fileErr, ok := err.(files_service.ErrFilePathInvalid); ok {
+			if fileErr, ok := err.(models.ErrFilePathInvalid); ok {
 				switch fileErr.Type {
 				case git.EntryModeSymlink:
 					ctx.RenderWithErr(ctx.Tr("repo.editor.file_is_a_symlink", fileErr.Path), tplDeleteFile, &form)
@@ -548,7 +549,7 @@ func DeleteFilePost(ctx *context.Context) {
 			} else {
 				ctx.Error(http.StatusInternalServerError, err.Error())
 			}
-		} else if files_service.IsErrCommitIDDoesNotMatch(err) || git.IsErrPushOutOfDate(err) {
+		} else if models.IsErrCommitIDDoesNotMatch(err) || git.IsErrPushOutOfDate(err) {
 			ctx.RenderWithErr(ctx.Tr("repo.editor.file_changed_while_deleting", ctx.Repo.RepoLink+"/compare/"+util.PathEscapeSegments(form.LastCommit)+"..."+util.PathEscapeSegments(ctx.Repo.CommitID)), tplDeleteFile, &form)
 		} else if git.IsErrPushRejected(err) {
 			errPushRej := err.(*git.ErrPushRejected)
@@ -722,12 +723,12 @@ func UploadFilePost(ctx *context.Context) {
 		if git_model.IsErrLFSFileLocked(err) {
 			ctx.Data["Err_TreePath"] = true
 			ctx.RenderWithErr(ctx.Tr("repo.editor.upload_file_is_locked", err.(git_model.ErrLFSFileLocked).Path, err.(git_model.ErrLFSFileLocked).UserName), tplUploadFile, &form)
-		} else if files_service.IsErrFilenameInvalid(err) {
+		} else if models.IsErrFilenameInvalid(err) {
 			ctx.Data["Err_TreePath"] = true
 			ctx.RenderWithErr(ctx.Tr("repo.editor.filename_is_invalid", form.TreePath), tplUploadFile, &form)
-		} else if files_service.IsErrFilePathInvalid(err) {
+		} else if models.IsErrFilePathInvalid(err) {
 			ctx.Data["Err_TreePath"] = true
-			fileErr := err.(files_service.ErrFilePathInvalid)
+			fileErr := err.(models.ErrFilePathInvalid)
 			switch fileErr.Type {
 			case git.EntryModeSymlink:
 				ctx.RenderWithErr(ctx.Tr("repo.editor.file_is_a_symlink", fileErr.Path), tplUploadFile, &form)
@@ -738,7 +739,7 @@ func UploadFilePost(ctx *context.Context) {
 			default:
 				ctx.Error(http.StatusInternalServerError, err.Error())
 			}
-		} else if files_service.IsErrRepoFileAlreadyExists(err) {
+		} else if models.IsErrRepoFileAlreadyExists(err) {
 			ctx.Data["Err_TreePath"] = true
 			ctx.RenderWithErr(ctx.Tr("repo.editor.file_already_exists", form.TreePath), tplUploadFile, &form)
 		} else if git.IsErrBranchNotExist(err) {
@@ -827,7 +828,9 @@ func UploadFileToServer(ctx *context.Context) {
 	if nameExt == docxExt {
 		snapBuf := new(bytes.Buffer)
 		// Do we need to init pandoc?
-		file.Seek(0, io.SeekStart)
+		if _, err := file.Seek(0, io.SeekStart); err != nil {
+			log.Error("Failed to reset seek on pandoc output. %s", err)
+		}
 		err = pandoc.ConvertDocxToSnap(ctx, file, snapBuf)
 		file.Close()
 		if err != nil {

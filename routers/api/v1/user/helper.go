@@ -10,9 +10,8 @@ import (
 	"code.gitea.io/gitea/services/context"
 )
 
-// GetUserByPathParam get user by the path param name
-// it will redirect to the user's new name if the user's name has been changed
-func GetUserByPathParam(ctx *context.APIContext, name string) *user_model.User {
+// GetUserByParamsName get user by name
+func GetUserByParamsName(ctx *context.APIContext, name string) *user_model.User {
 	username := ctx.PathParam(name)
 	user, err := user_model.GetUserByName(ctx, username)
 	if err != nil {
@@ -30,7 +29,7 @@ func GetUserByPathParam(ctx *context.APIContext, name string) *user_model.User {
 	return user
 }
 
-// GetContextUserByPathParam returns user whose name is presented in URL (path param "username").
-func GetContextUserByPathParam(ctx *context.APIContext) *user_model.User {
-	return GetUserByPathParam(ctx, "username")
+// GetUserByParams returns user whose name is presented in URL (":username").
+func GetUserByParams(ctx *context.APIContext) *user_model.User {
+	return GetUserByParamsName(ctx, ":username")
 }

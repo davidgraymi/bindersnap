@@ -1,3 +1,6 @@
+// Copyright 2025 The Bindersnap Authors. All rights reserved.
+// SPDX-License-Identifier: LicenseRef-License
+
 package pandoc
 
 import (

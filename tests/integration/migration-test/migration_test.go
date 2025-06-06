@@ -21,11 +21,11 @@ import (
 	"code.gitea.io/gitea/models/migrations"
 	migrate_base "code.gitea.io/gitea/models/migrations/base"
 	"code.gitea.io/gitea/models/unittest"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/charset"
 	"code.gitea.io/gitea/modules/git"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/setting"
-	"code.gitea.io/gitea/modules/test"
 	"code.gitea.io/gitea/modules/testlogger"
 	"code.gitea.io/gitea/modules/util"
 	"github.com/stretchr/testify/assert"
@@ -37,7 +37,12 @@ var currentEngine *xorm.Engine
 
 func initMigrationTest(t *testing.T) func() {
 	testlogger.Init()
-	giteaRoot := test.SetupGiteaRoot()
+
+	deferFn := testlogger.PrintCurrentTest(t, 2)
+	giteaRoot := base.SetupGiteaRoot()
+	if giteaRoot == "" {
+		testlogger.Fatalf("Environment variable $GITEA_ROOT not set\n")
+	}
 	setting.AppPath = path.Join(giteaRoot, "gitea")
 	if _, err := os.Stat(setting.AppPath); err != nil {
 		testlogger.Fatalf(fmt.Sprintf("Could not find gitea binary at %s\n", setting.AppPath))
@@ -59,8 +64,7 @@ func initMigrationTest(t *testing.T) func() {
 	assert.NoError(t, git.InitFull(context.Background()))
 	setting.LoadDBSetting()
 	setting.InitLoggersForTest()
-
-	return testlogger.PrintCurrentTest(t, 2)
+	return deferFn
 }
 
 func availableVersions() ([]string, error) {

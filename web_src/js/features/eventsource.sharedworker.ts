@@ -1,10 +1,13 @@
+const sourcesByUrl = {};
+const sourcesByPort = {};
+
 class Source {
   url: string;
   eventSource: EventSource;
-  listening: Record<string, boolean>;
-  clients: Array<MessagePort>;
+  listening: Record<string, any>;
+  clients: Array<any>;
 
-  constructor(url: string) {
+  constructor(url) {
     this.url = url;
     this.eventSource = new EventSource(url);
     this.listening = {};
@@ -17,7 +20,7 @@ class Source {
     this.listen('error');
   }
 
-  register(port: MessagePort) {
+  register(port) {
     if (this.clients.includes(port)) return;
 
     this.clients.push(port);
@@ -28,7 +31,7 @@ class Source {
     });
   }
 
-  deregister(port: MessagePort) {
+  deregister(port) {
     const portIdx = this.clients.indexOf(port);
     if (portIdx < 0) {
       return this.clients.length;
@@ -44,7 +47,7 @@ class Source {
     this.eventSource = null;
   }
 
-  listen(eventType: string) {
+  listen(eventType) {
     if (this.listening[eventType]) return;
     this.listening[eventType] = true;
     this.eventSource.addEventListener(eventType, (event) => {
@@ -55,13 +58,13 @@ class Source {
     });
   }
 
-  notifyClients(event: {type: string, data: any}) {
+  notifyClients(event) {
     for (const client of this.clients) {
       client.postMessage(event);
     }
   }
 
-  status(port: MessagePort) {
+  status(port) {
     port.postMessage({
       type: 'status',
       message: `url: ${this.url} readyState: ${this.eventSource.readyState}`,
@@ -69,11 +72,7 @@ class Source {
   }
 }
 
-const sourcesByUrl: Map<string, Source | null> = new Map();
-const sourcesByPort: Map<MessagePort, Source | null> = new Map();
-
-// @ts-expect-error: typescript bug?
-self.addEventListener('connect', (e: MessageEvent) => {
+self.addEventListener('connect', (e: Event & {ports: Array<any>}) => {
   for (const port of e.ports) {
     port.addEventListener('message', (event) => {
       if (!self.EventSource) {
@@ -85,14 +84,14 @@ self.addEventListener('connect', (e: MessageEvent) => {
       }
       if (event.data.type === 'start') {
         const url = event.data.url;
-        if (sourcesByUrl.get(url)) {
+        if (sourcesByUrl[url]) {
           // we have a Source registered to this url
-          const source = sourcesByUrl.get(url);
+          const source = sourcesByUrl[url];
           source.register(port);
-          sourcesByPort.set(port, source);
+          sourcesByPort[port] = source;
           return;
         }
-        let source = sourcesByPort.get(port);
+        let source = sourcesByPort[port];
         if (source) {
           if (source.eventSource && source.url === url) return;
 
@@ -102,30 +101,30 @@ self.addEventListener('connect', (e: MessageEvent) => {
           // Clean-up
           if (count === 0) {
             source.close();
-            sourcesByUrl.set(source.url, null);
+            sourcesByUrl[source.url] = null;
           }
         }
         // Create a new Source
         source = new Source(url);
         source.register(port);
-        sourcesByUrl.set(url, source);
-        sourcesByPort.set(port, source);
+        sourcesByUrl[url] = source;
+        sourcesByPort[port] = source;
       } else if (event.data.type === 'listen') {
-        const source = sourcesByPort.get(port);
+        const source = sourcesByPort[port];
         source.listen(event.data.eventType);
       } else if (event.data.type === 'close') {
-        const source = sourcesByPort.get(port);
+        const source = sourcesByPort[port];
 
         if (!source) return;
 
         const count = source.deregister(port);
         if (count === 0) {
           source.close();
-          sourcesByUrl.set(source.url, null);
-          sourcesByPort.set(port, null);
+          sourcesByUrl[source.url] = null;
+          sourcesByPort[port] = null;
         }
       } else if (event.data.type === 'status') {
-        const source = sourcesByPort.get(port);
+        const source = sourcesByPort[port];
         if (!source) {
           port.postMessage({
             type: 'status',

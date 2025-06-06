@@ -1,18 +1,18 @@
 .tiptap {
-    padding: 8px;
+  padding: 8px;
 }
 
 .ProseMirror:focus {
-    outline: none;
+  outline: none;
 }
 
 .sticky-editor-menu {
-    position: sticky;
-    top: 10px;
-    z-index: 1;
-    background: transparent;
-    padding: 6px;
-    /* align-content: center;
+  position: sticky;
+  top: 10px;
+  z-index: 1;
+  background: transparent;
+  padding: 6px;
+  /* align-content: center;
     display: flex;
     justify-content: center; */
 }

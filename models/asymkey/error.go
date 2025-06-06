@@ -217,7 +217,6 @@ func (err ErrGPGKeyAccessDenied) Unwrap() error {
 // ErrKeyAccessDenied represents a "KeyAccessDenied" kind of error.
 type ErrKeyAccessDenied struct {
 	UserID int64
-	RepoID int64
 	KeyID  int64
 	Note   string
 }
@@ -229,8 +228,8 @@ func IsErrKeyAccessDenied(err error) bool {
 }
 
 func (err ErrKeyAccessDenied) Error() string {
-	return fmt.Sprintf("user does not have access to the key [user_id: %d, repo_id: %d, key_id: %d, note: %s]",
-		err.UserID, err.RepoID, err.KeyID, err.Note)
+	return fmt.Sprintf("user does not have access to the key [user_id: %d, key_id: %d, note: %s]",
+		err.UserID, err.KeyID, err.Note)
 }
 
 func (err ErrKeyAccessDenied) Unwrap() error {

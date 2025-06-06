@@ -11,13 +11,14 @@ import (
 	"strings"
 	"time"
 
-	actions_model "code.gitea.io/gitea/models/actions"
+	"code.gitea.io/gitea/models"
 	"code.gitea.io/gitea/models/db"
 	"code.gitea.io/gitea/models/organization"
 	"code.gitea.io/gitea/models/perm"
 	repo_model "code.gitea.io/gitea/models/repo"
 	unit_model "code.gitea.io/gitea/models/unit"
 	user_model "code.gitea.io/gitea/models/user"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/git"
 	"code.gitea.io/gitea/modules/indexer/code"
 	issue_indexer "code.gitea.io/gitea/modules/indexer/issues"
@@ -26,7 +27,6 @@ import (
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/structs"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/modules/validation"
 	"code.gitea.io/gitea/modules/web"
@@ -41,12 +41,12 @@ import (
 )
 
 const (
-	tplSettingsOptions templates.TplName = "repo/settings/options"
-	tplCollaboration   templates.TplName = "repo/settings/collaboration"
-	tplBranches        templates.TplName = "repo/settings/branches"
-	tplGithooks        templates.TplName = "repo/settings/githooks"
-	tplGithookEdit     templates.TplName = "repo/settings/githook_edit"
-	tplDeployKeys      templates.TplName = "repo/settings/deploy_keys"
+	tplSettingsOptions base.TplName = "repo/settings/options"
+	tplCollaboration   base.TplName = "repo/settings/collaboration"
+	tplBranches        base.TplName = "repo/settings/branches"
+	tplGithooks        base.TplName = "repo/settings/githooks"
+	tplGithookEdit     base.TplName = "repo/settings/githook_edit"
+	tplDeployKeys      base.TplName = "repo/settings/deploy_keys"
 )
 
 // SettingsCtxData is a middleware that sets all the general context data for the
@@ -222,7 +222,7 @@ func SettingsPost(ctx *context.Context) {
 			form.MirrorPassword, _ = u.User.Password()
 		}
 
-		address, err := git.ParseRemoteAddr(form.MirrorAddress, form.MirrorUsername, form.MirrorPassword)
+		address, err := forms.ParseRemoteAddr(form.MirrorAddress, form.MirrorUsername, form.MirrorPassword)
 		if err == nil {
 			err = migrations.IsMigrateURLAllowed(address, ctx.Doer)
 		}
@@ -384,7 +384,7 @@ func SettingsPost(ctx *context.Context) {
 			return
 		}
 
-		address, err := git.ParseRemoteAddr(form.PushMirrorAddress, form.PushMirrorUsername, form.PushMirrorPassword)
+		address, err := forms.ParseRemoteAddr(form.PushMirrorAddress, form.PushMirrorUsername, form.PushMirrorPassword)
 		if err == nil {
 			err = migrations.IsMigrateURLAllowed(address, ctx.Doer)
 		}
@@ -787,7 +787,7 @@ func SettingsPost(ctx *context.Context) {
 		if err := repo_service.StartRepositoryTransfer(ctx, ctx.Doer, newOwner, repo, nil); err != nil {
 			if repo_model.IsErrRepoAlreadyExist(err) {
 				ctx.RenderWithErr(ctx.Tr("repo.settings.new_owner_has_same_repo"), tplSettingsOptions, nil)
-			} else if repo_model.IsErrRepoTransferInProgress(err) {
+			} else if models.IsErrRepoTransferInProgress(err) {
 				ctx.RenderWithErr(ctx.Tr("repo.settings.transfer_in_progress"), tplSettingsOptions, nil)
 			} else if errors.Is(err, user_model.ErrBlockedUser) {
 				ctx.RenderWithErr(ctx.Tr("repo.settings.transfer.blocked_user"), tplSettingsOptions, nil)
@@ -813,9 +813,9 @@ func SettingsPost(ctx *context.Context) {
 			return
 		}
 
-		repoTransfer, err := repo_model.GetPendingRepositoryTransfer(ctx, ctx.Repo.Repository)
+		repoTransfer, err := models.GetPendingRepositoryTransfer(ctx, ctx.Repo.Repository)
 		if err != nil {
-			if repo_model.IsErrNoPendingTransfer(err) {
+			if models.IsErrNoPendingTransfer(err) {
 				ctx.Flash.Error("repo.settings.transfer_abort_invalid")
 				ctx.Redirect(repo.Link() + "/settings")
 			} else {
@@ -901,7 +901,7 @@ func SettingsPost(ctx *context.Context) {
 			return
 		}
 
-		if err := actions_model.CleanRepoScheduleTasks(ctx, repo); err != nil {
+		if err := actions_service.CleanRepoScheduleTasks(ctx, repo); err != nil {
 			log.Error("CleanRepoScheduleTasks for archived repo %s/%s: %v", ctx.Repo.Owner.Name, repo.Name, err)
 		}
 
@@ -979,8 +979,8 @@ func SettingsPost(ctx *context.Context) {
 }
 
 func handleSettingRemoteAddrError(ctx *context.Context, err error, form *forms.RepoSettingForm) {
-	if git.IsErrInvalidCloneAddr(err) {
-		addrErr := err.(*git.ErrInvalidCloneAddr)
+	if models.IsErrInvalidCloneAddr(err) {
+		addrErr := err.(*models.ErrInvalidCloneAddr)
 		switch {
 		case addrErr.IsProtocolInvalid:
 			ctx.RenderWithErr(ctx.Tr("repo.mirror_address_protocol_invalid"), tplSettingsOptions, form)

@@ -4,6 +4,7 @@
 package web
 
 import (
+	gocontext "context"
 	"net/http"
 	"strings"
 
@@ -36,6 +37,7 @@ import (
 	"code.gitea.io/gitea/routers/web/repo"
 	"code.gitea.io/gitea/routers/web/repo/actions"
 	repo_setting "code.gitea.io/gitea/routers/web/repo/setting"
+	shared_actions "code.gitea.io/gitea/routers/web/shared/actions"
 	"code.gitea.io/gitea/routers/web/shared/project"
 	"code.gitea.io/gitea/routers/web/user"
 	user_setting "code.gitea.io/gitea/routers/web/user/setting"
@@ -283,23 +285,23 @@ func Routes() *web.Router {
 	mid = append(mid, repo.GetActiveStopwatch)
 	mid = append(mid, goGet)
 
-	others := web.NewRouter()
-	others.Use(mid...)
-	registerRoutes(others)
-	routes.Mount("", others)
+	webRoutes := web.NewRouter()
+	webRoutes.Use(mid...)
+	webRoutes.Group("", func() { registerWebRoutes(webRoutes) }, common.BlockExpensive())
+	routes.Mount("", webRoutes)
 	return routes
 }
 
 var optSignInIgnoreCsrf = verifyAuthWithOptions(&common.VerifyOptions{DisableCSRF: true})
 
-// registerRoutes register routes
-func registerRoutes(m *web.Router) {
+// registerWebRoutes register routes
+func registerWebRoutes(m *web.Router) {
 	// required to be signed in or signed out
 	reqSignIn := verifyAuthWithOptions(&common.VerifyOptions{SignInRequired: true})
 	reqSignOut := verifyAuthWithOptions(&common.VerifyOptions{SignOutRequired: true})
 	// optional sign in (if signed in, use the user as doer, if not, no doer)
-	optSignIn := verifyAuthWithOptions(&common.VerifyOptions{SignInRequired: setting.Service.RequireSignInView})
-	optExploreSignIn := verifyAuthWithOptions(&common.VerifyOptions{SignInRequired: setting.Service.RequireSignInView || setting.Service.Explore.RequireSigninView})
+	optSignIn := verifyAuthWithOptions(&common.VerifyOptions{SignInRequired: setting.Service.RequireSignInViewStrict})
+	optExploreSignIn := verifyAuthWithOptions(&common.VerifyOptions{SignInRequired: setting.Service.RequireSignInViewStrict || setting.Service.Explore.RequireSigninView})
 
 	validation.AddBindingRules()
 
@@ -441,10 +443,10 @@ func registerRoutes(m *web.Router) {
 
 	addSettingsVariablesRoutes := func() {
 		m.Group("/variables", func() {
-			m.Get("", repo_setting.Variables)
-			m.Post("/new", web.Bind(forms.EditVariableForm{}), repo_setting.VariableCreate)
-			m.Post("/{variable_id}/edit", web.Bind(forms.EditVariableForm{}), repo_setting.VariableUpdate)
-			m.Post("/{variable_id}/delete", repo_setting.VariableDelete)
+			m.Get("", shared_actions.Variables)
+			m.Post("/new", web.Bind(forms.EditVariableForm{}), shared_actions.VariableCreate)
+			m.Post("/{variable_id}/edit", web.Bind(forms.EditVariableForm{}), shared_actions.VariableUpdate)
+			m.Post("/{variable_id}/delete", shared_actions.VariableDelete)
 		})
 	}
 
@@ -458,11 +460,11 @@ func registerRoutes(m *web.Router) {
 
 	addSettingsRunnersRoutes := func() {
 		m.Group("/runners", func() {
-			m.Get("", repo_setting.Runners)
-			m.Combo("/{runnerid}").Get(repo_setting.RunnersEdit).
-				Post(web.Bind(forms.EditRunnerForm{}), repo_setting.RunnersEditPost)
-			m.Post("/{runnerid}/delete", repo_setting.RunnerDeletePost)
-			m.Post("/reset_registration_token", repo_setting.ResetRunnerRegistrationToken)
+			m.Get("", shared_actions.Runners)
+			m.Combo("/{runnerid}").Get(shared_actions.RunnersEdit).
+				Post(web.Bind(forms.EditRunnerForm{}), shared_actions.RunnersEditPost)
+			m.Post("/{runnerid}/delete", shared_actions.RunnerDeletePost)
+			m.Post("/reset_registration_token", shared_actions.ResetRunnerRegistrationToken)
 		})
 	}
 
@@ -680,7 +682,7 @@ func registerRoutes(m *web.Router) {
 		m.Get("/activate", auth.Activate)
 		m.Post("/activate", auth.ActivatePost)
 		m.Any("/activate_email", auth.ActivateEmail)
-		m.Get("/avatar/{username}/{size}", user.AvatarByUserName)
+		m.Get("/avatar/{username}/{size}", user.AvatarByUsernameSize)
 		m.Get("/recover_account", auth.ResetPasswd)
 		m.Post("/recover_account", auth.ResetPasswdPost)
 		m.Get("/forgot_password", auth.ForgotPasswd)
@@ -876,11 +878,6 @@ func registerRoutes(m *web.Router) {
 			m.Post("", org.TeamInvitePost)
 		})
 
-		// require member permissions
-		m.Group("/{org}/view", func() {
-			m.Get("", org.View)
-		}, context.OrgAssignment(false, false, false, false))
-
 		m.Group("/{org}", func() {
 			m.Get("/dashboard", user.Dashboard)
 			m.Get("/dashboard/{team}", user.Dashboard)
@@ -1024,15 +1021,14 @@ func registerRoutes(m *web.Router) {
 				m.Get("/new", org.RenderNewProject)
 				m.Post("/new", web.Bind(forms.CreateProjectForm{}), org.NewProjectPost)
 				m.Group("/{id}", func() {
+					m.Post("", web.Bind(forms.EditProjectColumnForm{}), org.AddColumnToProjectPost)
+					m.Post("/move", project.MoveColumns)
 					m.Post("/delete", org.DeleteProject)
 
 					m.Get("/edit", org.RenderEditProject)
 					m.Post("/edit", web.Bind(forms.CreateProjectForm{}), org.EditProjectPost)
 					m.Post("/{action:open|close}", org.ChangeProjectStatus)
 
-					// TODO: improper name. Others are "delete project", "edit project", but this one is "move columns"
-					m.Post("/move", project.MoveColumns)
-					m.Post("/columns/new", web.Bind(forms.EditProjectColumnForm{}), org.AddColumnToProjectPost)
 					m.Group("/{columnID}", func() {
 						m.Put("", web.Bind(forms.EditProjectColumnForm{}), org.EditProjectColumn)
 						m.Delete("", org.DeleteProjectColumn)
@@ -1137,7 +1133,7 @@ func registerRoutes(m *web.Router) {
 			})
 		})
 		m.Group("/actions", func() {
-			m.Get("", repo_setting.RedirectToDefaultSetting)
+			m.Get("", shared_actions.RedirectToDefaultSetting)
 			addSettingsRunnersRoutes()
 			addSettingsSecretsRoutes()
 			addSettingsVariablesRoutes()
@@ -1176,7 +1172,7 @@ func registerRoutes(m *web.Router) {
 			Get(repo.SetDiffViewStyle, repo.SetWhitespaceBehavior, repo.CompareDiff).
 			Post(reqSignIn, context.RepoMustNotBeArchived(), reqRepoPullsReader, repo.MustAllowPulls, web.Bind(forms.CreateIssueForm{}), repo.SetWhitespaceBehavior, repo.CompareAndPullRequestPost)
 	}, optSignIn, context.RepoAssignment, reqRepoCodeReader)
-	// end "/{username}/{reponame}": repo code: find, compare, list
+	// end "/{username}/{reponame}": find, compare, list (code related)
 
 	m.Group("/{username}/{reponame}", func() {
 		m.Get("/issues/posters", repo.IssuePosters) // it can't use {type:issues|pulls} because it would conflict with other routes like "/pulls/{index}"
@@ -1345,8 +1341,7 @@ func registerRoutes(m *web.Router) {
 			m.Get(".atom", feedEnabled, repo.TagsListFeedAtom)
 		}, ctxDataSet("EnableFeed", setting.Other.EnableFeed),
 			repo.MustBeNotEmpty, context.RepoRefByType(context.RepoRefTag, context.RepoRefByTypeOptions{IgnoreNotExistErr: true}))
-		m.Post("/tags/delete", repo.DeleteTag, reqSignIn,
-			repo.MustBeNotEmpty, context.RepoMustNotBeArchived(), reqRepoCodeWriter, context.RepoRef())
+		m.Post("/tags/delete", reqSignIn, repo.MustBeNotEmpty, context.RepoMustNotBeArchived(), reqRepoCodeWriter, repo.DeleteTag)
 	}, optSignIn, context.RepoAssignment, reqRepoCodeReader)
 	// end "/{username}/{reponame}": repo tags
 
@@ -1397,15 +1392,14 @@ func registerRoutes(m *web.Router) {
 			m.Get("/new", repo.RenderNewProject)
 			m.Post("/new", web.Bind(forms.CreateProjectForm{}), repo.NewProjectPost)
 			m.Group("/{id}", func() {
+				m.Post("", web.Bind(forms.EditProjectColumnForm{}), repo.AddColumnToProjectPost)
+				m.Post("/move", project.MoveColumns)
 				m.Post("/delete", repo.DeleteProject)
 
 				m.Get("/edit", repo.RenderEditProject)
 				m.Post("/edit", web.Bind(forms.CreateProjectForm{}), repo.EditProjectPost)
 				m.Post("/{action:open|close}", repo.ChangeProjectStatus)
 
-				// TODO: improper name. Others are "delete project", "edit project", but this one is "move columns"
-				m.Post("/move", project.MoveColumns)
-				m.Post("/columns/new", web.Bind(forms.EditProjectColumnForm{}), repo.AddColumnToProjectPost)
 				m.Group("/{columnID}", func() {
 					m.Put("", web.Bind(forms.EditProjectColumnForm{}), repo.EditProjectColumn)
 					m.Delete("", repo.DeleteProjectColumn)
@@ -1453,7 +1447,6 @@ func registerRoutes(m *web.Router) {
 		m.Combo("/*").
 			Get(repo.Wiki).
 			Post(context.RepoMustNotBeArchived(), reqSignIn, reqRepoWikiWriter, web.Bind(forms.NewWikiForm{}), repo.WikiPost)
-		m.Get("/blob_excerpt/{sha}", repo.SetEditorconfigIfExists, repo.SetDiffViewStyle, repo.ExcerptBlob)
 		m.Get("/commit/{sha:[a-f0-9]{7,64}}", repo.SetEditorconfigIfExists, repo.SetDiffViewStyle, repo.SetWhitespaceBehavior, repo.Diff)
 		m.Get("/commit/{sha:[a-f0-9]{7,64}}.{ext:patch|diff}", repo.RawDiff)
 		m.Get("/raw/*", repo.WikiRaw)
@@ -1466,20 +1459,23 @@ func registerRoutes(m *web.Router) {
 	m.Group("/{username}/{reponame}/activity", func() {
 		m.Get("", repo.Activity)
 		m.Get("/{period}", repo.Activity)
-		m.Group("/contributors", func() {
-			m.Get("", repo.Contributors)
-			m.Get("/data", repo.ContributorsData)
-		})
-		m.Group("/code-frequency", func() {
-			m.Get("", repo.CodeFrequency)
-			m.Get("/data", repo.CodeFrequencyData)
-		})
-		m.Group("/recent-commits", func() {
-			m.Get("", repo.RecentCommits)
-			m.Get("/data", repo.RecentCommitsData)
-		})
+
+		m.Group("", func() {
+			m.Group("/contributors", func() {
+				m.Get("", repo.Contributors)
+				m.Get("/data", repo.ContributorsData)
+			})
+			m.Group("/code-frequency", func() {
+				m.Get("", repo.CodeFrequency)
+				m.Get("/data", repo.CodeFrequencyData)
+			})
+			m.Group("/recent-commits", func() {
+				m.Get("", repo.RecentCommits)
+				m.Get("/data", repo.CodeFrequencyData) // "recent-commits" also uses the same data as "code-frequency"
+			})
+		}, reqRepoCodeReader)
 	},
-		optSignIn, context.RepoAssignment, context.RequireRepoReaderOr(unit.TypePullRequests, unit.TypeIssues, unit.TypeReleases),
+		optSignIn, context.RepoAssignment, context.RequireRepoReaderOr(unit.TypeCode, unit.TypePullRequests, unit.TypeIssues, unit.TypeReleases),
 		context.RepoRef(), repo.MustBeNotEmpty,
 	)
 	// end "/{username}/{reponame}/activity"
@@ -1529,6 +1525,28 @@ func registerRoutes(m *web.Router) {
 			m.Get("", repo.Branches)
 		}, repo.MustBeNotEmpty, context.RepoRef())
 
+		m.Group("/blob_excerpt", func() {
+			m.Get("/{sha}", repo.SetEditorconfigIfExists, repo.SetDiffViewStyle, repo.ExcerptBlob)
+		}, func(ctx *context.Context) gocontext.CancelFunc {
+			// FIXME: refactor this function, use separate routes for wiki/code
+			if ctx.FormBool("wiki") {
+				ctx.Data["PageIsWiki"] = true
+				repo.MustEnableWiki(ctx)
+				return nil
+			}
+
+			if ctx.Written() {
+				return nil
+			}
+			cancel := context.RepoRef()(ctx)
+			if ctx.Written() {
+				return cancel
+			}
+
+			repo.MustBeNotEmpty(ctx)
+			return cancel
+		})
+
 		m.Group("/media", func() {
 			m.Get("/branch/*", context.RepoRefByType(context.RepoRefBranch), repo.SingleDownloadOrLFS)
 			m.Get("/tag/*", context.RepoRefByType(context.RepoRefTag), repo.SingleDownloadOrLFS)
@@ -1567,8 +1585,6 @@ func registerRoutes(m *web.Router) {
 			m.Get("/tag/*", context.RepoRefByType(context.RepoRefTag), repo.RefBlame)
 			m.Get("/commit/*", context.RepoRefByType(context.RepoRefCommit), repo.RefBlame)
 		}, repo.MustBeNotEmpty)
-
-		m.Get("/blob_excerpt/{sha}", repo.SetEditorconfigIfExists, repo.SetDiffViewStyle, repo.ExcerptBlob)
 
 		m.Group("", func() {
 			m.Get("/graph", repo.Graph)
@@ -1627,7 +1643,7 @@ func registerRoutes(m *web.Router) {
 	}
 
 	m.NotFound(func(w http.ResponseWriter, req *http.Request) {
-		ctx := context.GetWebContext(req)
+		ctx := context.GetWebContext(req.Context())
 		routing.UpdateFuncInfo(ctx, routing.GetFuncInfo(ctx.NotFound, "WebNotFound"))
 		ctx.NotFound("", nil)
 	})

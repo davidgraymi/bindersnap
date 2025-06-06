@@ -10,15 +10,13 @@ import (
 	"net/http"
 	"time"
 
-	org_model "code.gitea.io/gitea/models/organization"
-	packages_model "code.gitea.io/gitea/models/packages"
-	repo_model "code.gitea.io/gitea/models/repo"
+	"code.gitea.io/gitea/models"
 	user_model "code.gitea.io/gitea/models/user"
 	"code.gitea.io/gitea/modules/auth/password"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/optional"
 	"code.gitea.io/gitea/modules/setting"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/timeutil"
 	"code.gitea.io/gitea/modules/web"
 	"code.gitea.io/gitea/services/auth"
@@ -31,7 +29,7 @@ import (
 )
 
 const (
-	tplSettingsAccount templates.TplName = "user/settings/account"
+	tplSettingsAccount base.TplName = "user/settings/account"
 )
 
 // Account renders change user's password, user's email and user suicide page
@@ -303,16 +301,16 @@ func DeleteAccount(ctx *context.Context) {
 
 	if err := user.DeleteUser(ctx, ctx.Doer, false); err != nil {
 		switch {
-		case repo_model.IsErrUserOwnRepos(err):
+		case models.IsErrUserOwnRepos(err):
 			ctx.Flash.Error(ctx.Tr("form.still_own_repo"))
 			ctx.Redirect(setting.AppSubURL + "/user/settings/account")
-		case org_model.IsErrUserHasOrgs(err):
+		case models.IsErrUserHasOrgs(err):
 			ctx.Flash.Error(ctx.Tr("form.still_has_org"))
 			ctx.Redirect(setting.AppSubURL + "/user/settings/account")
-		case packages_model.IsErrUserOwnPackages(err):
+		case models.IsErrUserOwnPackages(err):
 			ctx.Flash.Error(ctx.Tr("form.still_own_packages"))
 			ctx.Redirect(setting.AppSubURL + "/user/settings/account")
-		case user_model.IsErrDeleteLastAdminUser(err):
+		case models.IsErrDeleteLastAdminUser(err):
 			ctx.Flash.Error(ctx.Tr("auth.last_admin"))
 			ctx.Redirect(setting.AppSubURL + "/user/settings/account")
 		default:

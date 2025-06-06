@@ -126,10 +126,11 @@ func ArtifactsRoutes(prefix string) *web.Router {
 func ArtifactContexter() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-			base := context.NewBaseContext(resp, req)
+			base, baseCleanUp := context.NewBaseContext(resp, req)
+			defer baseCleanUp()
 
 			ctx := &ArtifactContext{Base: base}
-			ctx.SetContextValue(artifactContextKey, ctx)
+			ctx.AppendContextValue(artifactContextKey, ctx)
 
 			// action task call server api with Bearer ACTIONS_RUNTIME_TOKEN
 			// we should verify the ACTIONS_RUNTIME_TOKEN

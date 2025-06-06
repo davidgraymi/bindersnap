@@ -1,3 +1,6 @@
+// Copyright 2025 The Bindersnap Authors. All rights reserved.
+// SPDX-License-Identifier: LicenseRef-License
+
 package repo
 
 import (
@@ -5,16 +8,16 @@ import (
 	"strings"
 
 	repo_model "code.gitea.io/gitea/models/repo"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/log"
 	repo_module "code.gitea.io/gitea/modules/repository"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/services/context"
 )
 
 const (
-	tplRepoHub      templates.TplName = "repo/hub/home"
-	tplRepoHubEmpty templates.TplName = "repo/hub/empty"
+	tplRepoHub      base.TplName = "repo/hub/home"
+	tplRepoHubEmpty base.TplName = "repo/hub/empty"
 )
 
 // Hub render repository customer view page

@@ -1,5 +1,5 @@
 import {decode, encode} from 'uint8-to-base64';
-import type {IssuePageInfo, IssuePathInfo} from './types.ts';
+import type {IssuePageInfo, IssuePathInfo, RepoOwnerPathInfo} from './types.ts';
 
 // transform /path/to/file.ext to file.ext
 export function basename(path: string): string {
@@ -32,15 +32,17 @@ export function stripTags(text: string): string {
 }
 
 export function parseIssueHref(href: string): IssuePathInfo {
+  // FIXME: it should use pathname and trim the appSubUrl ahead
   const path = (href || '').replace(/[#?].*$/, '');
   const [_, ownerName, repoName, pathType, indexString] = /([^/]+)\/([^/]+)\/(issues|pulls)\/([0-9]+)/.exec(path) || [];
   return {ownerName, repoName, pathType, indexString};
 }
 
-export function parseIssueNewHref(href: string): IssuePathInfo {
-  const path = (href || '').replace(/[#?].*$/, '');
-  const [_, ownerName, repoName, pathType, indexString] = /([^/]+)\/([^/]+)\/(issues|pulls)\/new/.exec(path) || [];
-  return {ownerName, repoName, pathType, indexString};
+export function parseRepoOwnerPathInfo(pathname: string): RepoOwnerPathInfo {
+  const appSubUrl = window.config.appSubUrl;
+  if (appSubUrl && pathname.startsWith(appSubUrl)) pathname = pathname.substring(appSubUrl.length);
+  const [_, ownerName, repoName] = /([^/]+)\/([^/]+)/.exec(pathname) || [];
+  return {ownerName, repoName};
 }
 
 export function parseIssuePageInfo(): IssuePageInfo {

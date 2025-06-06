@@ -140,7 +140,7 @@ func CheckCollations(x *xorm.Engine) (*CheckCollationsResult, error) {
 }
 
 func CheckCollationsDefaultEngine() (*CheckCollationsResult, error) {
-	return CheckCollations(xormEngine)
+	return CheckCollations(x)
 }
 
 func alterDatabaseCollation(x *xorm.Engine, collation string) error {

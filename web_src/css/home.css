@@ -31,7 +31,7 @@
   }
 
   .home .alternative-cta h1.ui.header {
-    margin-top: 0em;
+    margin-top: 0;
   }
 
   .home .hero h2,
@@ -73,7 +73,7 @@
   }
 
   .home .ui.cta {
-    background-color: #1A8037;
+    background-color: #1a8037;
     color: var(--color-white);
     width: 100%;
     height: 47px;
@@ -153,7 +153,7 @@
   }
 
   .home .alternative-cta h1.ui.header {
-    margin-top: 0em;
+    margin-top: 0;
   }
 
   .home .hero h2,
@@ -186,7 +186,7 @@
     align-items: center;
     justify-content: center;
     padding: 3px;
-    box-shadow: 8px 8px 0px 0px rgb(0, 0, 0);
+    box-shadow: 8px 8px 0 0 rgb(0, 0, 0);
   }
 
   .landing-email {
@@ -198,7 +198,7 @@
   }
 
   .home .ui.cta {
-    background-color: #1A8037;
+    background-color: #1a8037;
     color: var(--color-white);
     width: 218px;
     height: 47px;
@@ -267,15 +267,14 @@
 }
 
 .page-footer .right-links {
-  min-width: 180px;
-  /* make sure the menu dropdown doesn't overflow horizontally when language name is short */
+  min-width: 180px; /* make sure the menu dropdown doesn't overflow horizontally when language name is short */
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
 }
 
-.page-footer .right-links>a {
+.page-footer .right-links > a {
   border-left: 1px solid var(--color-secondary-dark-1);
   padding-left: 8px;
   margin-left: 5px;
@@ -478,8 +477,8 @@
   padding: 20px;
   overflow: hidden;
   border-radius: 24px;
-  box-shadow: 0px 1px 3px #0000001e,
-    0px 4px 8px 3px #0000000f;
+  box-shadow: 0 1px 3px #0000001e,
+    0 4px 8px 3px #0000000f;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -497,17 +496,17 @@
 }
 
 .tier-container-free {
-  border: 1px solid #E2E2E2;
+  border: 1px solid #e2e2e2;
 }
 
 .tier-container-premium {
-  border: 1px solid #2188FF;
+  border: 1px solid #2188ff;
 }
 
 .tier-container-ultimate {
-  box-shadow: 0px 4px 8px #0000001e;
+  box-shadow: 0 4px 8px #0000001e;
   background: linear-gradient(white, white) padding-box,
-    linear-gradient(141deg, #8179F8 31%, #C05696 61%, #FF3333) border-box;
+    linear-gradient(141deg, #8179f8 31%, #c05696 61%, #ff3333) border-box;
 
   border: 1px solid transparent;
 }
@@ -563,7 +562,7 @@
 .tier-spacer {
   height: 1px;
   width: 100%;
-  background-color: #D9D9D9;
+  background-color: #d9d9d9;
 }
 
 .landing-price-feature-label {
@@ -580,7 +579,7 @@
 
 .home .outro {
   width: 100%;
-  background-color: #8179F8;
+  background-color: #8179f8;
   display: flex;
   margin-bottom: -80px;
   color: var(--color-white);

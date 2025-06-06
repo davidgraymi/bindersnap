@@ -22,7 +22,6 @@ import (
 	"code.gitea.io/gitea/modules/optional"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/structs"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/services/context"
 	issue_service "code.gitea.io/gitea/services/issue"
@@ -30,9 +29,9 @@ import (
 )
 
 const (
-	tplNotification              templates.TplName = "user/notification/notification"
-	tplNotificationDiv           templates.TplName = "user/notification/notification_div"
-	tplNotificationSubscriptions templates.TplName = "user/notification/notification_subscriptions"
+	tplNotification              base.TplName = "user/notification/notification"
+	tplNotificationDiv           base.TplName = "user/notification/notification_div"
+	tplNotificationSubscriptions base.TplName = "user/notification/notification_subscriptions"
 )
 
 // GetNotificationCount is the middleware that sets the notification count in the context

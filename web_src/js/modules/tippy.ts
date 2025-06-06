@@ -42,16 +42,17 @@ export function createTippy(target: Element, opts: TippyOpts = {}): Instance {
       visibleInstances.add(instance);
       return onShow?.(instance);
     },
-    arrow: arrow || (theme === 'bare' ? false : arrowSvg),
+    arrow: arrow ?? (theme === 'bare' ? false : arrowSvg),
     // HTML role attribute, ideally the default role would be "popover" but it does not exist
     role: role || 'menu',
     // CSS theme, either "default", "tooltip", "menu", "box-with-header" or "bare"
     theme: theme || role || 'default',
+    offset: [0, arrow ? 10 : 6],
     plugins: [followCursor],
     ...other,
   } satisfies Partial<Props>);
 
-  if (role === 'menu') {
+  if (instance.props.role === 'menu') {
     target.setAttribute('aria-haspopup', 'true');
   }
 
@@ -121,14 +122,14 @@ function switchTitleToTooltip(target: Element): void {
  * Some browsers like PaleMoon don't support "addEventListener('mouseenter', capture)"
  * The tippy by default uses "mouseenter" event to show, so we use "mouseover" event to switch to tippy
  */
-function lazyTooltipOnMouseHover(e: Event): void {
+function lazyTooltipOnMouseHover(e: MouseEvent): void {
   e.target.removeEventListener('mouseover', lazyTooltipOnMouseHover, true);
   attachTooltip(this);
 }
 
 // Activate the tooltip for current element.
 // If the element has no aria-label, use the tooltip content as aria-label.
-function attachLazyTooltip(el: HTMLElement): void {
+function attachLazyTooltip(el: Element): void {
   el.addEventListener('mouseover', lazyTooltipOnMouseHover, {capture: true});
 
   // meanwhile, if the element has no aria-label, use the tooltip content as aria-label
@@ -141,8 +142,8 @@ function attachLazyTooltip(el: HTMLElement): void {
 }
 
 // Activate the tooltip for all children elements.
-function attachChildrenLazyTooltip(target: HTMLElement): void {
-  for (const el of target.querySelectorAll<HTMLElement>('[data-tooltip-content]')) {
+function attachChildrenLazyTooltip(target: Element): void {
+  for (const el of target.querySelectorAll<Element>('[data-tooltip-content]')) {
     attachLazyTooltip(el);
   }
 }
@@ -160,7 +161,7 @@ export function initGlobalTooltips(): void {
     for (const mutation of [...mutationList, ...pending]) {
       if (mutation.type === 'childList') {
         // mainly for Vue components and AJAX rendered elements
-        for (const el of mutation.addedNodes as NodeListOf<HTMLElement>) {
+        for (const el of mutation.addedNodes as NodeListOf<Element>) {
           if (!isDocumentFragmentOrElementNode(el)) continue;
           attachChildrenLazyTooltip(el);
           if (el.hasAttribute('data-tooltip-content')) {

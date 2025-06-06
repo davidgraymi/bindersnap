@@ -20,12 +20,12 @@ import (
 	repo_model "code.gitea.io/gitea/models/repo"
 	"code.gitea.io/gitea/models/unit"
 	user_model "code.gitea.io/gitea/models/user"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/git"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/structs"
 	"code.gitea.io/gitea/modules/timeutil"
-	"code.gitea.io/gitea/modules/util"
 
 	"xorm.io/builder"
 	"xorm.io/xorm/schemas"
@@ -72,9 +72,9 @@ func (at ActionType) String() string {
 	case ActionRenameRepo:
 		return "rename_repo"
 	case ActionStarRepo:
-		return "star_repo"
+		return "star_repo" // will not displayed in feeds.tmpl
 	case ActionWatchRepo:
-		return "watch_repo"
+		return "watch_repo" // will not displayed in feeds.tmpl
 	case ActionCommitRepo:
 		return "commit_repo"
 	case ActionCreateIssue:
@@ -226,7 +226,7 @@ func (a *Action) GetActUserName(ctx context.Context) string {
 // ShortActUserName gets the action's user name trimmed to max 20
 // chars.
 func (a *Action) ShortActUserName(ctx context.Context) string {
-	return util.EllipsisDisplayString(a.GetActUserName(ctx), 20)
+	return base.EllipsisString(a.GetActUserName(ctx), 20)
 }
 
 // GetActDisplayName gets the action's display name based on DEFAULT_SHOW_FULL_NAME, or falls back to the username if it is blank.
@@ -260,7 +260,7 @@ func (a *Action) GetRepoUserName(ctx context.Context) string {
 // ShortRepoUserName returns the name of the action repository owner
 // trimmed to max 20 chars.
 func (a *Action) ShortRepoUserName(ctx context.Context) string {
-	return util.EllipsisDisplayString(a.GetRepoUserName(ctx), 20)
+	return base.EllipsisString(a.GetRepoUserName(ctx), 20)
 }
 
 // GetRepoName returns the name of the action repository.
@@ -275,7 +275,7 @@ func (a *Action) GetRepoName(ctx context.Context) string {
 // ShortRepoName returns the name of the action repository
 // trimmed to max 33 chars.
 func (a *Action) ShortRepoName(ctx context.Context) string {
-	return util.EllipsisDisplayString(a.GetRepoName(ctx), 33)
+	return base.EllipsisString(a.GetRepoName(ctx), 33)
 }
 
 // GetRepoPath returns the virtual path to the action repository.
@@ -454,6 +454,24 @@ func ActivityReadable(user, doer *user_model.User) bool {
 		doer != nil && (doer.IsAdmin || user.ID == doer.ID)
 }
 
+func FeedDateCond(opts GetFeedsOptions) builder.Cond {
+	cond := builder.NewCond()
+	if opts.Date == "" {
+		return cond
+	}
+
+	dateLow, err := time.ParseInLocation("2006-01-02", opts.Date, setting.DefaultUILocation)
+	if err != nil {
+		log.Warn("Unable to parse %s, filter not applied: %v", opts.Date, err)
+	} else {
+		dateHigh := dateLow.Add(86399000000000) // 23h59m59s
+
+		cond = cond.And(builder.Gte{"`action`.created_unix": dateLow.Unix()})
+		cond = cond.And(builder.Lte{"`action`.created_unix": dateHigh.Unix()})
+	}
+	return cond
+}
+
 func ActivityQueryCondition(ctx context.Context, opts GetFeedsOptions) (builder.Cond, error) {
 	cond := builder.NewCond()
 
@@ -511,7 +529,7 @@ func ActivityQueryCondition(ctx context.Context, opts GetFeedsOptions) (builder.
 	}
 
 	if opts.RequestedTeam != nil {
-		env := repo_model.AccessibleTeamReposEnv(ctx, organization.OrgFromUser(opts.RequestedUser), opts.RequestedTeam)
+		env := organization.OrgFromUser(opts.RequestedUser).AccessibleTeamReposEnv(ctx, opts.RequestedTeam)
 		teamRepoIDs, err := env.RepoIDs(1, opts.RequestedUser.NumRepos)
 		if err != nil {
 			return nil, fmt.Errorf("GetTeamRepositories: %w", err)
@@ -534,17 +552,7 @@ func ActivityQueryCondition(ctx context.Context, opts GetFeedsOptions) (builder.
 		cond = cond.And(builder.Eq{"is_deleted": false})
 	}
 
-	if opts.Date != "" {
-		dateLow, err := time.ParseInLocation("2006-01-02", opts.Date, setting.DefaultUILocation)
-		if err != nil {
-			log.Warn("Unable to parse %s, filter not applied: %v", opts.Date, err)
-		} else {
-			dateHigh := dateLow.Add(86399000000000) // 23h59m59s
-
-			cond = cond.And(builder.Gte{"`action`.created_unix": dateLow.Unix()})
-			cond = cond.And(builder.Lte{"`action`.created_unix": dateHigh.Unix()})
-		}
-	}
+	cond = cond.And(FeedDateCond(opts))
 
 	return cond, nil
 }

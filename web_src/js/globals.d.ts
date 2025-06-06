@@ -14,6 +14,7 @@ declare module '*.vue' {
   export default component;
   // List of named exports from vue components, used to make `tsc` output clean.
   // To actually lint .vue files, `vue-tsc` is used because `tsc` can not parse them.
+  export function initRepoBranchTagSelector(selector: string): void;
   export function initDashboardRepoList(): void;
   export function initRepositoryActionView(): void;
 }
@@ -62,6 +63,7 @@ interface Window {
   jQuery: typeof import('@types/jquery'),
   htmx: Omit<typeof import('htmx.org/dist/htmx.esm.js').default, 'config'> & {
     config?: Writable<typeof import('htmx.org').default.config>,
+    process?: (elt: Element | string) => void,
   },
   ui?: any,
   _globalHandlerErrors: Array<ErrorEvent & PromiseRejectionEvent> & {

@@ -1,3 +1,6 @@
+// Copyright 2025 The Bindersnap Authors. All rights reserved.
+// SPDX-License-Identifier: LicenseRef-License
+
 package repo
 
 import (
@@ -5,15 +8,15 @@ import (
 	"strings"
 
 	"code.gitea.io/gitea/models/db"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/git"
 	code_indexer "code.gitea.io/gitea/modules/indexer/code"
 	"code.gitea.io/gitea/modules/setting"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/services/context"
 )
 
 const (
-	tplRepoHubSearch templates.TplName = "repo/hub/search"
+	tplRepoHubSearch base.TplName = "repo/hub/search"
 )
 
 // Hub search render repository hub search page

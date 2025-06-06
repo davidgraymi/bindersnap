@@ -1,5 +1,18 @@
 import {hideElem, showElem} from './utils/dom.ts';
 
+function onSearchTextChange(ta: HTMLTextAreaElement, ci: HTMLElement) {
+  // adjust the height
+  ta.style.height = 'auto';
+  const h = ta.scrollHeight + 6;
+  ta.style.height = `${h}px`;
+  // display clear icon
+  if (ta.value !== '') {
+    showElem(ci);
+  } else {
+    hideElem(ci);
+  }
+}
+
 function initHub() {
   const searchBar = document.querySelector<HTMLElement>('.search-bar');
   if (!searchBar) return;
@@ -29,18 +42,6 @@ function initHub() {
     searchBar.style.boxShadow = 'var(--shadow-search-box)';
     searchBar.style.borderRadius = '24px';
   }
-  function onSearchTextChange() {
-    // adjust the height
-    textArea.style.height = 'auto';
-    const h = textArea.scrollHeight + 6;
-    textArea.style.height = `${h}px`;
-    // display clear icon
-    if (textArea.value !== '') {
-      showElem(clearIcon);
-    } else {
-      hideElem(clearIcon);
-    }
-  }
 
   searchBar.addEventListener('click', () => {
     textArea.focus();
@@ -62,13 +63,8 @@ function initHub() {
   if (textArea.addEventListener) {
     textArea.addEventListener('input', () => {
       // event handling code for sane browsers
-      onSearchTextChange();
+      onSearchTextChange(textArea, clearIcon);
     }, false);
-  } else if (textArea.attachEvent) {
-    textArea.attachEvent('onpropertychange', () => {
-      // IE-specific event handling code
-      onSearchTextChange();
-    });
   }
 }
 
@@ -101,18 +97,6 @@ function initSearchHub() {
     searchBar.style.boxShadow = 'var(--shadow-search-box)';
     searchBar.style.borderRadius = '24px';
   }
-  function onSearchTextChange() {
-    // adjust the height
-    textArea.style.height = 'auto';
-    const h = textArea.scrollHeight + 6;
-    textArea.style.height = `${h}px`;
-    // display clear icon
-    if (textArea.value !== '') {
-      showElem(clearIcon);
-    } else {
-      hideElem(clearIcon);
-    }
-  }
 
   searchBar.addEventListener('click', () => {
     textArea.focus();
@@ -134,13 +118,8 @@ function initSearchHub() {
   if (textArea.addEventListener) {
     textArea.addEventListener('input', () => {
       // event handling code for sane browsers
-      onSearchTextChange();
+      onSearchTextChange(textArea, clearIcon);
     }, false);
-  } else if (textArea.attachEvent) {
-    textArea.attachEvent('onpropertychange', () => {
-      // IE-specific event handling code
-      onSearchTextChange();
-    });
   }
 }
 

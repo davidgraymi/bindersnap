@@ -5,11 +5,13 @@ package pull
 
 import (
 	"fmt"
+	"strings"
 
 	repo_model "code.gitea.io/gitea/models/repo"
 	user_model "code.gitea.io/gitea/models/user"
 	"code.gitea.io/gitea/modules/container"
 	"code.gitea.io/gitea/modules/git"
+	"code.gitea.io/gitea/modules/gitrepo"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/setting"
 )
@@ -24,12 +26,12 @@ func getAuthorSignatureSquash(ctx *mergeContext) (*git.Signature, error) {
 	// Try to get an signature from the same user in one of the commits, as the
 	// poster email might be private or commits might have a different signature
 	// than the primary email address of the poster.
-	gitRepo, err := git.OpenRepository(ctx, ctx.tmpBasePath)
+	gitRepo, closer, err := gitrepo.RepositoryFromContextOrOpenPath(ctx, ctx.tmpBasePath)
 	if err != nil {
 		log.Error("%-v Unable to open base repository: %v", ctx.pr, err)
 		return nil, err
 	}
-	defer gitRepo.Close()
+	defer closer.Close()
 
 	commits, err := gitRepo.CommitsBetweenIDs(trackingBranch, "HEAD")
 	if err != nil {
@@ -65,7 +67,10 @@ func doMergeStyleSquash(ctx *mergeContext, message string) error {
 
 	if setting.Repository.PullRequest.AddCoCommitterTrailers && ctx.committer.String() != sig.String() {
 		// add trailer
-		message += fmt.Sprintf("\nCo-authored-by: %s\nCo-committed-by: %s\n", sig.String(), sig.String())
+		if !strings.Contains(message, fmt.Sprintf("Co-authored-by: %s", sig.String())) {
+			message += fmt.Sprintf("\nCo-authored-by: %s", sig.String())
+		}
+		message += fmt.Sprintf("\nCo-committed-by: %s\n", sig.String())
 	}
 	cmdCommit := git.NewCommand(ctx, "commit").
 		AddOptionFormat("--author='%s <%s>'", sig.Name, sig.Email).

@@ -301,7 +301,7 @@ func (pr *PullRequest) LoadRequestedReviewers(ctx context.Context) error {
 		return nil
 	}
 
-	reviews, err := GetReviewsByIssueID(ctx, pr.Issue.ID)
+	reviews, _, err := GetReviewsByIssueID(ctx, pr.Issue.ID)
 	if err != nil {
 		return err
 	}
@@ -320,7 +320,7 @@ func (pr *PullRequest) LoadRequestedReviewers(ctx context.Context) error {
 
 // LoadRequestedReviewersTeams loads the requested reviewers teams.
 func (pr *PullRequest) LoadRequestedReviewersTeams(ctx context.Context) error {
-	reviews, err := GetReviewsByIssueID(ctx, pr.Issue.ID)
+	reviews, _, err := GetReviewsByIssueID(ctx, pr.Issue.ID)
 	if err != nil {
 		return err
 	}
@@ -572,7 +572,7 @@ func NewPullRequest(ctx context.Context, repo *repo_model.Repository, issue *Iss
 	}
 
 	issue.Index = idx
-	issue.Title = util.EllipsisDisplayString(issue.Title, 255)
+	issue.Title, _ = util.SplitStringAtByteN(issue.Title, 255)
 
 	if err = NewIssueWithIndex(ctx, issue.Poster, NewIssueOptions{
 		Repo:        repo,

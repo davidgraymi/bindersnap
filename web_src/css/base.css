@@ -336,8 +336,13 @@ a.label,
   border-color: var(--color-secondary);
 }
 
+.ui.dropdown .menu > .header {
+  text-transform: none; /* reset fomantic's "uppercase" */
+}
+
 .ui.dropdown .menu > .header:not(.ui) {
   color: var(--color-text);
+  font-size: 0.95em; /* reset fomantic's small font-size */
 }
 
 .ui.dropdown .menu > .item {
@@ -691,10 +696,6 @@ input:-webkit-autofill:active,
   box-shadow: 0 6px 18px var(--color-shadow) !important;
 }
 
-.ui.dropdown .menu > .header {
-  font-size: 0.8em;
-}
-
 .ui .text.left {
   text-align: left !important;
 }
@@ -742,8 +743,13 @@ input:-webkit-autofill:active,
   font-family: var(--fonts-monospace);
   font-size: 13px;
   font-weight: var(--font-weight-normal);
-  padding: 3px 5px;
+  margin: 0 6px;
+  padding: 5px 10px;
   flex-shrink: 0;
+}
+
+.ui .sha.label .shortsha {
+  display: inline-block; /* not sure whether it is still needed */
 }
 
 .ui .button.truncate {
@@ -928,8 +934,7 @@ strong.attention-caution, svg.attention-caution {
   color: var(--color-red-dark-1);
 }
 
-/* FIXME: this is a longstanding dirty patch since 2015, it only makes the pages more messy and shouldn't be used */
-.center {
+.center:not(.popup) {
   text-align: center;
 }
 
@@ -1220,14 +1225,7 @@ table th[data-sortt-desc] .svg {
   box-shadow: 0 0 0 1px var(--color-secondary) inset;
 }
 
-.emoji {
-  font-size: 1.25em;
-  line-height: var(--line-height-default);
-  font-style: normal !important;
-  font-weight: var(--font-weight-normal) !important;
-  vertical-align: -0.075em;
-}
-
+/* for "image" emojis like ":git:"  ":gitea:" and ":github:" (see CUSTOM_EMOJIS config option) */
 .emoji img {
   border-width: 0 !important;
   margin: 0 !important;
@@ -1384,6 +1382,11 @@ table th[data-sortt-desc] .svg {
   align-items: center;
   gap: .5rem;
   min-width: 0;
+}
+
+.flex-text-block > .ui.button,
+.flex-text-inline > .ui.button {
+  margin: 0; /* fomantic buttons have default margin, when we use them in a flex container with gap, we do not need these margins */
 }
 
 /* to override Fomantic's default display: block for ".menu .item", and use a slightly larger gap for menu item content
