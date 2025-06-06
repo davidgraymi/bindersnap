@@ -43,9 +43,11 @@ var Service = struct {
 	ShowRegistrationButton                  bool
 	EnablePasswordSignInForm                bool
 	ShowMilestonesDashboardPage             bool
-	RequireSignInView                       bool
+	RequireSignInViewStrict                 bool
+	BlockAnonymousAccessExpensive           bool
 	EnableNotifyMail                        bool
 	EnableBasicAuth                         bool
+	EnablePasskeyAuth                       bool
 	EnableReverseProxyAuth                  bool
 	EnableReverseProxyAuthAPI               bool
 	EnableReverseProxyAutoRegister          bool
@@ -158,9 +160,21 @@ func loadServiceFrom(rootCfg ConfigProvider) {
 	Service.EmailDomainBlockList = CompileEmailGlobList(sec, "EMAIL_DOMAIN_BLOCKLIST")
 	Service.ShowRegistrationButton = sec.Key("SHOW_REGISTRATION_BUTTON").MustBool(!(Service.DisableRegistration || Service.AllowOnlyExternalRegistration))
 	Service.ShowMilestonesDashboardPage = sec.Key("SHOW_MILESTONES_DASHBOARD_PAGE").MustBool(true)
-	Service.RequireSignInView = sec.Key("REQUIRE_SIGNIN_VIEW").MustBool()
+
+	// boolean values are considered as "strict"
+	var err error
+	Service.RequireSignInViewStrict, err = sec.Key("REQUIRE_SIGNIN_VIEW").Bool()
+	if s := sec.Key("REQUIRE_SIGNIN_VIEW").String(); err != nil && s != "" {
+		// non-boolean value only supports "expensive" at the moment
+		Service.BlockAnonymousAccessExpensive = s == "expensive"
+		if !Service.BlockAnonymousAccessExpensive {
+			log.Error("Invalid config option: REQUIRE_SIGNIN_VIEW = %s", s)
+		}
+	}
+
 	Service.EnableBasicAuth = sec.Key("ENABLE_BASIC_AUTHENTICATION").MustBool(true)
 	Service.EnablePasswordSignInForm = sec.Key("ENABLE_PASSWORD_SIGNIN_FORM").MustBool(true)
+	Service.EnablePasskeyAuth = sec.Key("ENABLE_PASSKEY_AUTHENTICATION").MustBool(true)
 	Service.EnableReverseProxyAuth = sec.Key("ENABLE_REVERSE_PROXY_AUTHENTICATION").MustBool()
 	Service.EnableReverseProxyAuthAPI = sec.Key("ENABLE_REVERSE_PROXY_AUTHENTICATION_API").MustBool()
 	Service.EnableReverseProxyAutoRegister = sec.Key("ENABLE_REVERSE_PROXY_AUTO_REGISTRATION").MustBool()

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"code.gitea.io/gitea/models"
 	"code.gitea.io/gitea/models/db"
 	git_model "code.gitea.io/gitea/models/git"
 	issues_model "code.gitea.io/gitea/models/issues"
@@ -35,7 +36,7 @@ var prPatchCheckerQueue *queue.WorkerPoolQueue[string]
 
 var (
 	ErrIsClosed              = errors.New("pull is closed")
-	ErrUserNotAllowedToMerge = ErrDisallowedToMerge{}
+	ErrUserNotAllowedToMerge = models.ErrDisallowedToMerge{}
 	ErrHasMerged             = errors.New("has already been merged")
 	ErrIsWorkInProgress      = errors.New("work in progress PRs cannot be merged")
 	ErrIsChecking            = errors.New("cannot merge while conflict checking is in progress")
@@ -105,7 +106,7 @@ func CheckPullMergeable(stdCtx context.Context, doer *user_model.User, perm *acc
 		}
 
 		if err := CheckPullBranchProtections(ctx, pr, false); err != nil {
-			if !IsErrDisallowedToMerge(err) {
+			if !models.IsErrDisallowedToMerge(err) {
 				log.Error("Error whilst checking pull branch protection for %-v: %v", pr, err)
 				return err
 			}
@@ -300,10 +301,15 @@ func manuallyMerged(ctx context.Context, pr *issues_model.PullRequest) bool {
 	pr.Merger = merger
 	pr.MergerID = merger.ID
 
-	if merged, err := pr.SetMerged(ctx); err != nil {
+	if err := db.WithTx(ctx, func(ctx context.Context) error {
+		if merged, err := pr.SetMerged(ctx); err != nil {
+			return err
+		} else if !merged {
+			return errors.New("setMerged failed")
+		}
+		return nil
+	}); err != nil {
 		log.Error("%-v setMerged : %v", pr, err)
-		return false
-	} else if !merged {
 		return false
 	}
 

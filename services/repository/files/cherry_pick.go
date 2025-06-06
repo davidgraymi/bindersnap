@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	"code.gitea.io/gitea/models"
 	repo_model "code.gitea.io/gitea/models/repo"
 	user_model "code.gitea.io/gitea/models/user"
 	"code.gitea.io/gitea/modules/git"
@@ -15,22 +16,6 @@ import (
 	"code.gitea.io/gitea/modules/structs"
 	"code.gitea.io/gitea/services/pull"
 )
-
-// ErrCommitIDDoesNotMatch represents a "CommitIDDoesNotMatch" kind of error.
-type ErrCommitIDDoesNotMatch struct {
-	GivenCommitID   string
-	CurrentCommitID string
-}
-
-// IsErrCommitIDDoesNotMatch checks if an error is a ErrCommitIDDoesNotMatch.
-func IsErrCommitIDDoesNotMatch(err error) bool {
-	_, ok := err.(ErrCommitIDDoesNotMatch)
-	return ok
-}
-
-func (err ErrCommitIDDoesNotMatch) Error() string {
-	return fmt.Sprintf("file CommitID does not match [given: %s, expected: %s]", err.GivenCommitID, err.CurrentCommitID)
-}
 
 // CherryPick cherrypicks or reverts a commit to the given repository
 func CherryPick(ctx context.Context, repo *repo_model.Repository, doer *user_model.User, revert bool, opts *ApplyDiffPatchOptions) (*structs.FileResponse, error) {
@@ -72,7 +57,7 @@ func CherryPick(ctx context.Context, repo *repo_model.Repository, doer *user_mod
 		}
 		opts.LastCommitID = lastCommitID.String()
 		if commit.ID.String() != opts.LastCommitID {
-			return nil, ErrCommitIDDoesNotMatch{
+			return nil, models.ErrCommitIDDoesNotMatch{
 				GivenCommitID:   opts.LastCommitID,
 				CurrentCommitID: opts.LastCommitID,
 			}

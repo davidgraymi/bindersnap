@@ -4,7 +4,7 @@
 package unittest
 
 import (
-	"fmt"
+	"log"
 	"reflect"
 )
 
@@ -14,7 +14,7 @@ func fieldByName(v reflect.Value, field string) reflect.Value {
 	}
 	f := v.FieldByName(field)
 	if !f.IsValid() {
-		panic(fmt.Errorf("can not read %s for %v", field, v))
+		log.Panicf("can not read %s for %v", field, v)
 	}
 	return f
 }

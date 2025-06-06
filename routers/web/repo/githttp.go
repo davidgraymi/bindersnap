@@ -57,8 +57,8 @@ func CorsHandler() func(next http.Handler) http.Handler {
 
 // httpBase implementation git smart HTTP protocol
 func httpBase(ctx *context.Context) *serviceHandler {
-	username := ctx.PathParam("username")
-	reponame := strings.TrimSuffix(ctx.PathParam("reponame"), ".git")
+	username := ctx.PathParam(":username")
+	reponame := strings.TrimSuffix(ctx.PathParam(":reponame"), ".git")
 
 	if ctx.FormString("go-get") == "1" {
 		context.EarlyResponseForGoGetMeta(ctx)
@@ -127,7 +127,7 @@ func httpBase(ctx *context.Context) *serviceHandler {
 	// Only public pull don't need auth.
 	isPublicPull := repoExist && !repo.IsPrivate && isPull
 	var (
-		askAuth = !isPublicPull || setting.Service.RequireSignInView
+		askAuth = !isPublicPull || setting.Service.RequireSignInViewStrict
 		environ []string
 	)
 
@@ -458,6 +458,7 @@ func serviceRPC(ctx *context.Context, h *serviceHandler, service string) {
 
 	var stderr bytes.Buffer
 	cmd.AddArguments("--stateless-rpc").AddDynamicArguments(h.getRepoDir())
+	cmd.SetDescription(fmt.Sprintf("%s %s %s [repo_path: %s]", git.GitExecutable, service, "--stateless-rpc", h.getRepoDir()))
 	if err := cmd.Run(&git.RunOpts{
 		Dir:               h.getRepoDir(),
 		Env:               append(os.Environ(), h.environ...),

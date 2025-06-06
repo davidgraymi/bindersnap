@@ -387,7 +387,7 @@ func TestDeleteIssueLabel(t *testing.T) {
 
 		expectedNumIssues := label.NumIssues
 		expectedNumClosedIssues := label.NumClosedIssues
-		if unittest.GetBean(t, &issues_model.IssueLabel{IssueID: issueID, LabelID: labelID}) != nil {
+		if unittest.BeanExists(t, &issues_model.IssueLabel{IssueID: issueID, LabelID: labelID}) {
 			expectedNumIssues--
 			if issue.IsClosed {
 				expectedNumClosedIssues--

@@ -124,8 +124,11 @@ td .commit-summary {
 }
 
 @media (max-width: 767.98px) {
-  .latest-commit .commit-id-short {
+  .latest-commit .sha {
     display: none;
+  }
+  .latest-commit .commit-summary {
+    margin-left: 8px;
   }
 }
 
@@ -603,6 +606,15 @@ td .commit-summary {
   margin-right: 0.25em;
 }
 
+.singular-commit {
+  display: flex;
+  align-items: center;
+}
+
+.singular-commit .badge {
+  height: 30px !important;
+}
+
 .repository.view.issue .comment-list .timeline-item.event > .commit-status-link {
   float: right;
   margin-right: 8px;
@@ -784,7 +796,7 @@ td .commit-summary {
   box-shadow: none;
 }
 
-.repository.view.issue .ui.depending .item.is-closed .title {
+.repository.view.issue .ui.depending .item.is-closed .issue-dependency-title {
   text-decoration: line-through;
 }
 
@@ -923,6 +935,14 @@ td .commit-summary {
 }
 .repository #commits-table thead .sha {
   width: 200px;
+}
+
+.repository #commits-table thead .shatd {
+  text-align: center;
+}
+
+.repository #commits-table td.sha .sha.label {
+  margin: 0;
 }
 
 .repository #commits-table.ui.basic.striped.table tbody tr:nth-child(2n) {
@@ -1421,6 +1441,12 @@ td .commit-summary {
   padding-top: 15px;
 }
 
+.commit-header-row {
+  min-height: 50px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
 .commit-header-buttons {
   display: flex;
   gap: 4px;
@@ -1643,7 +1669,7 @@ td .commit-summary {
 }
 
 .repo-button-row-left {
-  flex: 1;
+  flex-grow: 1;
 }
 
 .repo-button-row .button {
@@ -2106,6 +2132,18 @@ tbody.commit-list {
   .repository.view.issue .comment-list .timeline .timeline-avatar,
   .repository.view.issue .comment-list .timeline .comment-header-right .role-label {
     display: none;
+  }
+  .commit-header-row .ui.horizontal.list {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 2px;
+  }
+  .commit-header-row .ui.horizontal.list .item {
+    align-items: center;
+    display: flex;
+  }
+  .commit-header-row .author {
+    padding: 3px 0;
   }
   .commit-header h3 {
     flex-basis: auto !important;

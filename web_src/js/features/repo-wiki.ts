@@ -13,7 +13,7 @@ async function initRepoWikiFormEditor() {
   let editor: ComboMarkdownEditor;
 
   let renderRequesting = false;
-  let lastContent: string = '';
+  let lastContent;
   const renderEasyMDEPreview = async function () {
     if (renderRequesting) return;
 

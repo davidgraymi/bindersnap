@@ -93,7 +93,7 @@ func packageAssignment(ctx *packageAssignmentCtx, errCb func(int, string, any)) 
 }
 
 func determineAccessMode(ctx *Base, pkg *Package, doer *user_model.User) (perm.AccessMode, error) {
-	if setting.Service.RequireSignInView && (doer == nil || doer.IsGhost()) {
+	if setting.Service.RequireSignInViewStrict && (doer == nil || doer.IsGhost()) {
 		return perm.AccessModeNone, nil
 	}
 
@@ -153,10 +153,12 @@ func PackageContexter() func(next http.Handler) http.Handler {
 	renderer := templates.HTMLRenderer()
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-			base := NewBaseContext(resp, req)
+			base, baseCleanUp := NewBaseContext(resp, req)
+			defer baseCleanUp()
+
 			// it is still needed when rendering 500 page in a package handler
 			ctx := NewWebContext(base, renderer, nil)
-			ctx.SetContextValue(WebContextKey, ctx)
+			ctx.Base.AppendContextValue(WebContextKey, ctx)
 			next.ServeHTTP(ctx.Resp, ctx.Req)
 		})
 	}

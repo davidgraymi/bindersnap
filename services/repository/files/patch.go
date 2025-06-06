@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	"code.gitea.io/gitea/models"
 	git_model "code.gitea.io/gitea/models/git"
 	repo_model "code.gitea.io/gitea/models/repo"
 	user_model "code.gitea.io/gitea/models/user"
@@ -15,28 +16,8 @@ import (
 	"code.gitea.io/gitea/modules/gitrepo"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/structs"
-	"code.gitea.io/gitea/modules/util"
 	asymkey_service "code.gitea.io/gitea/services/asymkey"
 )
-
-// ErrUserCannotCommit represents "UserCannotCommit" kind of error.
-type ErrUserCannotCommit struct {
-	UserName string
-}
-
-// IsErrUserCannotCommit checks if an error is an ErrUserCannotCommit.
-func IsErrUserCannotCommit(err error) bool {
-	_, ok := err.(ErrUserCannotCommit)
-	return ok
-}
-
-func (err ErrUserCannotCommit) Error() string {
-	return fmt.Sprintf("user cannot commit to repo [user: %s]", err.UserName)
-}
-
-func (err ErrUserCannotCommit) Unwrap() error {
-	return util.ErrPermissionDenied
-}
 
 // ApplyDiffPatchOptions holds the repository diff patch update options
 type ApplyDiffPatchOptions struct {
@@ -93,7 +74,7 @@ func (opts *ApplyDiffPatchOptions) Validate(ctx context.Context, repo *repo_mode
 		if protectedBranch != nil {
 			protectedBranch.Repo = repo
 			if !protectedBranch.CanUserPush(ctx, doer) {
-				return ErrUserCannotCommit{
+				return models.ErrUserCannotCommit{
 					UserName: doer.LowerName,
 				}
 			}
@@ -104,7 +85,7 @@ func (opts *ApplyDiffPatchOptions) Validate(ctx context.Context, repo *repo_mode
 				if !asymkey_service.IsErrWontSign(err) {
 					return err
 				}
-				return ErrUserCannotCommit{
+				return models.ErrUserCannotCommit{
 					UserName: doer.LowerName,
 				}
 			}
@@ -156,7 +137,7 @@ func ApplyDiffPatch(ctx context.Context, repo *repo_model.Repository, doer *user
 		}
 		opts.LastCommitID = lastCommitID.String()
 		if commit.ID.String() != opts.LastCommitID {
-			return nil, ErrCommitIDDoesNotMatch{
+			return nil, models.ErrCommitIDDoesNotMatch{
 				GivenCommitID:   opts.LastCommitID,
 				CurrentCommitID: opts.LastCommitID,
 			}

@@ -94,7 +94,7 @@ func GetEngine(ctx context.Context) Engine {
 	if e := getExistingEngine(ctx); e != nil {
 		return e
 	}
-	return xormEngine.Context(ctx)
+	return x.Context(ctx)
 }
 
 // getExistingEngine gets an existing db Engine/Statement from this context or returns nil
@@ -155,7 +155,7 @@ func TxContext(parentCtx context.Context) (*Context, Committer, error) {
 		return newContext(parentCtx, sess), &halfCommitter{committer: sess}, nil
 	}
 
-	sess := xormEngine.NewSession()
+	sess := x.NewSession()
 	if err := sess.Begin(); err != nil {
 		_ = sess.Close()
 		return nil, nil, err
@@ -179,7 +179,7 @@ func WithTx(parentCtx context.Context, f func(ctx context.Context) error) error 
 }
 
 func txWithNoCheck(parentCtx context.Context, f func(ctx context.Context) error) error {
-	sess := xormEngine.NewSession()
+	sess := x.NewSession()
 	defer sess.Close()
 	if err := sess.Begin(); err != nil {
 		return err
@@ -322,7 +322,7 @@ func CountByBean(ctx context.Context, bean any) (int64, error) {
 
 // TableName returns the table name according a bean object
 func TableName(bean any) string {
-	return xormEngine.TableName(bean)
+	return x.TableName(bean)
 }
 
 // InTransaction returns true if the engine is in a transaction otherwise return false

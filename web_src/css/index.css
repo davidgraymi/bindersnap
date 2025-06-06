@@ -86,6 +86,6 @@
 @import "./tiptap.css";
 @import "./snapdiff/base.css";
 
-@import "./helpers.css";
-
 @tailwind utilities;
+
+@import "./helpers.css";

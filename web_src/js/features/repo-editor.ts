@@ -6,7 +6,7 @@ import {attachRefIssueContextPopup} from './contextpopup.ts';
 import {POST} from '../modules/fetch.ts';
 import {initDropzone} from './dropzone.ts';
 import {confirmModal} from './comp/ConfirmModal.ts';
-import {applyAreYouSure, ignoreAreYouSure} from '../vendor/jquery.are-you-sure.ts';
+import {applyAreYouSure} from '../vendor/jquery.are-you-sure.ts';
 import {fomanticQuery} from '../modules/fomantic/base.ts';
 import RichTextEditorFixedMenu from '../components/RichTextEditorFixedMenu.vue';
 import {createApp} from 'vue';
@@ -111,6 +111,7 @@ export function initRepoEditor() {
   }
 
   const filenameInput = document.querySelector<HTMLInputElement>('#file-name');
+  if (!filenameInput) return;
   function joinTreePath() {
     const parts = [];
     for (const el of document.querySelectorAll('.breadcrumb span.section')) {
@@ -245,7 +246,7 @@ export function initRepoEditor() {
           header: elForm.getAttribute('data-text-empty-confirm-header'),
           content: elForm.getAttribute('data-text-empty-confirm-content'),
         })) {
-          ignoreAreYouSure(elForm);
+          elForm.classList.remove('dirty');
           elForm.submit();
         }
       }

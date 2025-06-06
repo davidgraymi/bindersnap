@@ -174,7 +174,7 @@ func testIssueAddComment(t *testing.T, session *TestSession, issueURL, content, 
 
 	htmlDoc = NewHTMLParser(t, resp.Body)
 
-	val := htmlDoc.doc.Find(".comment-list .comment .render-content p").Eq(commentCount).Text()
+	val := strings.TrimSpace(htmlDoc.doc.Find(".comment-list .comment .render-content").Eq(commentCount).Text())
 	assert.Equal(t, content, val)
 
 	idAttr, has := htmlDoc.doc.Find(".comment-list .comment").Eq(commentCount).Attr("id")
@@ -183,6 +183,15 @@ func testIssueAddComment(t *testing.T, session *TestSession, issueURL, content, 
 	id, err := strconv.Atoi(idStr)
 	assert.NoError(t, err)
 	return int64(id)
+}
+
+func testIssueChangeMilestone(t *testing.T, session *TestSession, repoLink string, issueID, milestoneID int64) {
+	req := NewRequestWithValues(t, "POST", fmt.Sprintf(repoLink+"/issues/milestone?issue_ids=%d", issueID), map[string]string{
+		"_csrf": GetUserCSRFToken(t, session),
+		"id":    strconv.FormatInt(milestoneID, 10),
+	})
+	resp := session.MakeRequest(t, req, http.StatusOK)
+	assert.Equal(t, `{"ok":true}`, strings.TrimSpace(resp.Body.String()))
 }
 
 func TestNewIssue(t *testing.T) {

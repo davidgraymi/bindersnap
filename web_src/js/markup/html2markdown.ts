@@ -12,7 +12,7 @@ type ProcessorContext = {
 
 function prepareProcessors(ctx:ProcessorContext): Processors {
   const processors = {
-    H1(el: HTMLElement) {
+    H1(el: HTMLHeadingElement) {
       const level = parseInt(el.tagName.slice(1));
       el.textContent = `${'#'.repeat(level)} ${el.textContent.trim()}`;
     },
@@ -25,7 +25,7 @@ function prepareProcessors(ctx:ProcessorContext): Processors {
     DEL(el: HTMLElement) {
       return `~~${el.textContent}~~`;
     },
-    A(el: HTMLElement) {
+    A(el: HTMLAnchorElement) {
       const text = el.textContent || 'link';
       const href = el.getAttribute('href');
       if (/^https?:/.test(text) && text === href) {
@@ -33,7 +33,7 @@ function prepareProcessors(ctx:ProcessorContext): Processors {
       }
       return href ? `[${text}](${href})` : text;
     },
-    IMG(el: HTMLElement) {
+    IMG(el: HTMLImageElement) {
       const alt = el.getAttribute('alt') || 'image';
       const src = el.getAttribute('src');
       const widthAttr = el.hasAttribute('width') ? ` width="${htmlEscape(el.getAttribute('width') || '')}"` : '';
@@ -43,7 +43,7 @@ function prepareProcessors(ctx:ProcessorContext): Processors {
       }
       return `![${alt}](${src})`;
     },
-    P(el: HTMLElement) {
+    P(el: HTMLParagraphElement) {
       el.textContent = `${el.textContent}\n`;
     },
     BLOCKQUOTE(el: HTMLElement) {
@@ -54,14 +54,14 @@ function prepareProcessors(ctx:ProcessorContext): Processors {
       el.textContent = `${preNewLine}${el.textContent}\n`;
     },
     LI(el: HTMLElement) {
-      const parent = el.parentNode as HTMLElement;
-      const bullet = parent.tagName === 'OL' ? `1. ` : '* ';
+      const parent = el.parentNode;
+      const bullet = (parent as HTMLElement).tagName === 'OL' ? `1. ` : '* ';
       const nestingIdentLevel = Math.max(0, ctx.listNestingLevel - 1);
       el.textContent = `${' '.repeat(nestingIdentLevel * 4)}${bullet}${el.textContent}${ctx.elementIsLast ? '' : '\n'}`;
       return el;
     },
-    INPUT(el: HTMLElement) {
-      return (el as HTMLInputElement).checked ? '[x] ' : '[ ] ';
+    INPUT(el: HTMLInputElement) {
+      return el.checked ? '[x] ' : '[ ] ';
     },
     CODE(el: HTMLElement) {
       const text = el.textContent;

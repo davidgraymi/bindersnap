@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"code.gitea.io/gitea/models"
 	repo_model "code.gitea.io/gitea/models/repo"
 	user_model "code.gitea.io/gitea/models/user"
 	"code.gitea.io/gitea/modules/git"
@@ -186,7 +187,7 @@ func (t *TemporaryUploadRepository) AddObjectToIndex(mode, objectHash, objectPat
 	if _, _, err := git.NewCommand(t.ctx, "update-index", "--add", "--replace", "--cacheinfo").AddDynamicArguments(mode, objectHash, objectPath).RunStdString(&git.RunOpts{Dir: t.basePath}); err != nil {
 		stderr := err.Error()
 		if matched, _ := regexp.MatchString(".*Invalid path '.*", stderr); matched {
-			return ErrFilePathInvalid{
+			return models.ErrFilePathInvalid{
 				Message: objectPath,
 				Path:    objectPath,
 			}

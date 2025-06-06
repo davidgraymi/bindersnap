@@ -35,7 +35,6 @@ import (
 	"code.gitea.io/gitea/modules/markup"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/structs"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/typesniffer"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/services/context"
@@ -46,12 +45,12 @@ import (
 )
 
 const (
-	tplRepoEMPTY    templates.TplName = "repo/empty"
-	tplRepoHome     templates.TplName = "repo/home"
-	tplRepoViewList templates.TplName = "repo/view_list"
-	tplWatchers     templates.TplName = "repo/watchers"
-	tplForks        templates.TplName = "repo/forks"
-	tplMigrating    templates.TplName = "repo/migrate/migrating"
+	tplRepoEMPTY    base.TplName = "repo/empty"
+	tplRepoHome     base.TplName = "repo/home"
+	tplRepoViewList base.TplName = "repo/view_list"
+	tplWatchers     base.TplName = "repo/watchers"
+	tplForks        base.TplName = "repo/forks"
+	tplMigrating    base.TplName = "repo/migrate/migrating"
 )
 
 type fileInfo struct {
@@ -315,7 +314,7 @@ func renderDirectoryFiles(ctx *context.Context, timeout time.Duration) git.Entri
 }
 
 // RenderUserCards render a page show users according the input template
-func RenderUserCards(ctx *context.Context, total int, getter func(opts db.ListOptions) ([]*user_model.User, error), tpl templates.TplName) {
+func RenderUserCards(ctx *context.Context, total int, getter func(opts db.ListOptions) ([]*user_model.User, error), tpl base.TplName) {
 	page := ctx.FormInt("page")
 	if page <= 0 {
 		page = 1

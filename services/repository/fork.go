@@ -158,6 +158,7 @@ func ForkRepository(ctx context.Context, doer, owner *user_model.User, opts Fork
 		}
 		repoPath := repo_model.RepoPath(owner.Name, repo.Name)
 		if stdout, _, err := cloneCmd.AddDynamicArguments(oldRepoPath, repoPath).
+			SetDescription(fmt.Sprintf("ForkRepository(git clone): %s to %s", opts.BaseRepo.FullName(), repo.FullName())).
 			RunStdBytes(&git.RunOpts{Timeout: 10 * time.Minute}); err != nil {
 			log.Error("Fork Repository (git clone) Failed for %v (from %v):\nStdout: %s\nError: %v", repo, opts.BaseRepo, stdout, err)
 			return fmt.Errorf("git clone: %w", err)
@@ -168,6 +169,7 @@ func ForkRepository(ctx context.Context, doer, owner *user_model.User, opts Fork
 		}
 
 		if stdout, _, err := git.NewCommand(txCtx, "update-server-info").
+			SetDescription(fmt.Sprintf("ForkRepository(git update-server-info): %s", repo.FullName())).
 			RunStdString(&git.RunOpts{Dir: repoPath}); err != nil {
 			log.Error("Fork Repository (git update-server-info) failed for %v:\nStdout: %s\nError: %v", repo, stdout, err)
 			return fmt.Errorf("git update-server-info: %w", err)
@@ -256,9 +258,11 @@ type findForksOptions struct {
 }
 
 func (opts findForksOptions) ToConds() builder.Cond {
-	return builder.Eq{"fork_id": opts.RepoID}.And(
-		repo_model.AccessibleRepositoryCondition(opts.Doer, unit.TypeInvalid),
-	)
+	cond := builder.Eq{"fork_id": opts.RepoID}
+	if opts.Doer != nil && opts.Doer.IsAdmin {
+		return cond
+	}
+	return cond.And(repo_model.AccessibleRepositoryCondition(opts.Doer, unit.TypeInvalid))
 }
 
 // FindForks returns all the forks of the repository

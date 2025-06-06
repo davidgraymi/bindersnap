@@ -276,13 +276,16 @@ func ValidateRepoMetasForNewIssue(ctx *context.Context, form forms.CreateIssueFo
 	}
 	pageMetaData.ProjectsData.SelectedProjectID = form.ProjectID
 
+	// prepare assignees
 	candidateAssignees := toSet(pageMetaData.AssigneesData.CandidateAssignees, func(user *user_model.User) int64 { return user.ID })
 	inputAssigneeIDs, _ := base.StringsToInt64s(strings.Split(form.AssigneeIDs, ","))
-	if len(inputAssigneeIDs) > 0 && !candidateAssignees.Contains(inputAssigneeIDs...) {
-		ctx.NotFound("", nil)
-		return ret
+	var assigneeIDStrings []string
+	for _, inputAssigneeID := range inputAssigneeIDs {
+		if candidateAssignees.Contains(inputAssigneeID) {
+			assigneeIDStrings = append(assigneeIDStrings, strconv.FormatInt(inputAssigneeID, 10))
+		}
 	}
-	pageMetaData.AssigneesData.SelectedAssigneeIDs = form.AssigneeIDs
+	pageMetaData.AssigneesData.SelectedAssigneeIDs = strings.Join(assigneeIDStrings, ",")
 
 	// Check if the passed reviewers (user/team) actually exist
 	var reviewers []*user_model.User
@@ -396,8 +399,15 @@ func NewIssuePost(ctx *context.Context) {
 
 	log.Trace("Issue created: %d/%d", repo.ID, issue.ID)
 	if ctx.FormString("redirect_after_creation") == "project" && projectID > 0 {
-		ctx.JSONRedirect(ctx.Repo.RepoLink + "/projects/" + strconv.FormatInt(projectID, 10))
-	} else {
-		ctx.JSONRedirect(issue.Link())
+		project, err := project_model.GetProjectByID(ctx, projectID)
+		if err == nil {
+			if project.Type == project_model.TypeOrganization {
+				ctx.JSONRedirect(project_model.ProjectLinkForOrg(ctx.Repo.Owner, project.ID))
+			} else {
+				ctx.JSONRedirect(project_model.ProjectLinkForRepo(repo, project.ID))
+			}
+			return
+		}
 	}
+	ctx.JSONRedirect(issue.Link())
 }

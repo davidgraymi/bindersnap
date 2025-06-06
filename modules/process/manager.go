@@ -11,8 +11,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"code.gitea.io/gitea/modules/gtprof"
 )
 
 // TODO: This packages still uses a singleton for the Manager.
@@ -26,6 +24,18 @@ var (
 	// DefaultContext is the default context to run processing commands in
 	DefaultContext = context.Background()
 )
+
+// DescriptionPProfLabel is a label set on goroutines that have a process attached
+const DescriptionPProfLabel = "process-description"
+
+// PIDPProfLabel is a label set on goroutines that have a process attached
+const PIDPProfLabel = "pid"
+
+// PPIDPProfLabel is a label set on goroutines that have a process attached
+const PPIDPProfLabel = "ppid"
+
+// ProcessTypePProfLabel is a label set on goroutines that have a process attached
+const ProcessTypePProfLabel = "process-type"
 
 // IDType is a pid type
 type IDType string
@@ -177,12 +187,7 @@ func (pm *Manager) Add(ctx context.Context, description string, cancel context.C
 
 	Trace(true, pid, description, parentPID, processType)
 
-	pprofCtx := pprof.WithLabels(ctx, pprof.Labels(
-		gtprof.LabelProcessDescription, description,
-		gtprof.LabelPpid, string(parentPID),
-		gtprof.LabelPid, string(pid),
-		gtprof.LabelProcessType, processType,
-	))
+	pprofCtx := pprof.WithLabels(ctx, pprof.Labels(DescriptionPProfLabel, description, PPIDPProfLabel, string(parentPID), PIDPProfLabel, string(pid), ProcessTypePProfLabel, processType))
 	if currentlyRunning {
 		pprof.SetGoroutineLabels(pprofCtx)
 	}

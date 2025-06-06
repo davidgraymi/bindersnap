@@ -10,13 +10,13 @@ import (
 	"net/http"
 	"strings"
 
+	"code.gitea.io/gitea/models"
 	"code.gitea.io/gitea/models/db"
 	"code.gitea.io/gitea/models/organization"
 	"code.gitea.io/gitea/models/perm"
 	access_model "code.gitea.io/gitea/models/perm/access"
 	repo_model "code.gitea.io/gitea/models/repo"
 	user_model "code.gitea.io/gitea/models/user"
-	"code.gitea.io/gitea/modules/git"
 	"code.gitea.io/gitea/modules/graceful"
 	"code.gitea.io/gitea/modules/lfs"
 	"code.gitea.io/gitea/modules/log"
@@ -27,6 +27,7 @@ import (
 	"code.gitea.io/gitea/modules/web"
 	"code.gitea.io/gitea/services/context"
 	"code.gitea.io/gitea/services/convert"
+	"code.gitea.io/gitea/services/forms"
 	"code.gitea.io/gitea/services/migrations"
 	notify_service "code.gitea.io/gitea/services/notify"
 	repo_service "code.gitea.io/gitea/services/repository"
@@ -103,7 +104,7 @@ func Migrate(ctx *context.APIContext) {
 		}
 	}
 
-	remoteAddr, err := git.ParseRemoteAddr(form.CloneAddr, form.AuthUsername, form.AuthPassword)
+	remoteAddr, err := forms.ParseRemoteAddr(form.CloneAddr, form.AuthUsername, form.AuthPassword)
 	if err == nil {
 		err = migrations.IsMigrateURLAllowed(remoteAddr, ctx.Doer)
 	}
@@ -236,7 +237,7 @@ func handleMigrateError(ctx *context.APIContext, repoOwner *user_model.User, err
 		ctx.Error(http.StatusUnprocessableEntity, "", fmt.Sprintf("The username '%s' contains invalid characters.", err.(db.ErrNameCharsNotAllowed).Name))
 	case db.IsErrNamePatternNotAllowed(err):
 		ctx.Error(http.StatusUnprocessableEntity, "", fmt.Sprintf("The pattern '%s' is not allowed in a username.", err.(db.ErrNamePatternNotAllowed).Pattern))
-	case git.IsErrInvalidCloneAddr(err):
+	case models.IsErrInvalidCloneAddr(err):
 		ctx.Error(http.StatusUnprocessableEntity, "", err)
 	case base.IsErrNotSupported(err):
 		ctx.Error(http.StatusUnprocessableEntity, "", err)
@@ -255,8 +256,8 @@ func handleMigrateError(ctx *context.APIContext, repoOwner *user_model.User, err
 }
 
 func handleRemoteAddrError(ctx *context.APIContext, err error) {
-	if git.IsErrInvalidCloneAddr(err) {
-		addrErr := err.(*git.ErrInvalidCloneAddr)
+	if models.IsErrInvalidCloneAddr(err) {
+		addrErr := err.(*models.ErrInvalidCloneAddr)
 		switch {
 		case addrErr.IsURLError:
 			ctx.Error(http.StatusUnprocessableEntity, "", err)
