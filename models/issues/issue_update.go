@@ -5,16 +5,14 @@ package issues
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"code.gitea.io/gitea/models/db"
 	"code.gitea.io/gitea/models/organization"
-	"code.gitea.io/gitea/models/perm"
 	access_model "code.gitea.io/gitea/models/perm/access"
-	project_model "code.gitea.io/gitea/models/project"
 	repo_model "code.gitea.io/gitea/models/repo"
-	system_model "code.gitea.io/gitea/models/system"
 	"code.gitea.io/gitea/models/unit"
 	user_model "code.gitea.io/gitea/models/user"
 	"code.gitea.io/gitea/modules/git"
@@ -28,38 +26,40 @@ import (
 
 // UpdateIssueCols updates cols of issue
 func UpdateIssueCols(ctx context.Context, issue *Issue, cols ...string) error {
-	if _, err := db.GetEngine(ctx).ID(issue.ID).Cols(cols...).Update(issue); err != nil {
-		return err
-	}
-	return nil
+	_, err := db.GetEngine(ctx).ID(issue.ID).Cols(cols...).Update(issue)
+	return err
 }
 
-func changeIssueStatus(ctx context.Context, issue *Issue, doer *user_model.User, isClosed, isMergePull bool) (*Comment, error) {
-	// Reload the issue
-	currentIssue, err := GetIssueByID(ctx, issue.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Nothing should be performed if current status is same as target status
-	if currentIssue.IsClosed == isClosed {
-		if !issue.IsPull {
-			return nil, ErrIssueWasClosed{
-				ID: issue.ID,
-			}
-		}
-		return nil, ErrPullWasClosed{
-			ID: issue.ID,
-		}
-	}
-
-	issue.IsClosed = isClosed
-	return doChangeIssueStatus(ctx, issue, doer, isMergePull)
+// ErrIssueIsClosed is used when close a closed issue
+type ErrIssueIsClosed struct {
+	ID     int64
+	RepoID int64
+	Index  int64
+	IsPull bool
 }
 
-func doChangeIssueStatus(ctx context.Context, issue *Issue, doer *user_model.User, isMergePull bool) (*Comment, error) {
+// IsErrIssueIsClosed checks if an error is a ErrIssueIsClosed.
+func IsErrIssueIsClosed(err error) bool {
+	_, ok := err.(ErrIssueIsClosed)
+	return ok
+}
+
+func (err ErrIssueIsClosed) Error() string {
+	return fmt.Sprintf("%s [id: %d, repo_id: %d, index: %d] is already closed", util.Iif(err.IsPull, "Pull Request", "Issue"), err.ID, err.RepoID, err.Index)
+}
+
+func SetIssueAsClosed(ctx context.Context, issue *Issue, doer *user_model.User, isMergePull bool) (*Comment, error) {
+	if issue.IsClosed {
+		return nil, ErrIssueIsClosed{
+			ID:     issue.ID,
+			RepoID: issue.RepoID,
+			Index:  issue.Index,
+			IsPull: issue.IsPull,
+		}
+	}
+
 	// Check for open dependencies
-	if issue.IsClosed && issue.Repo.IsDependenciesEnabled(ctx) {
+	if issue.Repo.IsDependenciesEnabled(ctx) {
 		// only check if dependencies are enabled and we're about to close an issue, otherwise reopening an issue would fail when there are unsatisfied dependencies
 		noDeps, err := IssueNoDependenciesLeft(ctx, issue)
 		if err != nil {
@@ -71,16 +71,63 @@ func doChangeIssueStatus(ctx context.Context, issue *Issue, doer *user_model.Use
 		}
 	}
 
-	if issue.IsClosed {
-		issue.ClosedUnix = timeutil.TimeStampNow()
-	} else {
-		issue.ClosedUnix = 0
-	}
+	issue.IsClosed = true
+	issue.ClosedUnix = timeutil.TimeStampNow()
 
-	if err := UpdateIssueCols(ctx, issue, "is_closed", "closed_unix"); err != nil {
+	if cnt, err := db.GetEngine(ctx).ID(issue.ID).Cols("is_closed", "closed_unix").
+		Where("is_closed = ?", false).
+		Update(issue); err != nil {
 		return nil, err
+	} else if cnt != 1 {
+		return nil, ErrIssueAlreadyChanged
 	}
 
+	return updateIssueNumbers(ctx, issue, doer, util.Iif(isMergePull, CommentTypeMergePull, CommentTypeClose))
+}
+
+// ErrIssueIsOpen is used when reopen an opened issue
+type ErrIssueIsOpen struct {
+	ID     int64
+	RepoID int64
+	IsPull bool
+	Index  int64
+}
+
+// IsErrIssueIsOpen checks if an error is a ErrIssueIsOpen.
+func IsErrIssueIsOpen(err error) bool {
+	_, ok := err.(ErrIssueIsOpen)
+	return ok
+}
+
+func (err ErrIssueIsOpen) Error() string {
+	return fmt.Sprintf("%s [id: %d, repo_id: %d, index: %d] is already open", util.Iif(err.IsPull, "Pull Request", "Issue"), err.ID, err.RepoID, err.Index)
+}
+
+func setIssueAsReopen(ctx context.Context, issue *Issue, doer *user_model.User) (*Comment, error) {
+	if !issue.IsClosed {
+		return nil, ErrIssueIsOpen{
+			ID:     issue.ID,
+			RepoID: issue.RepoID,
+			Index:  issue.Index,
+			IsPull: issue.IsPull,
+		}
+	}
+
+	issue.IsClosed = false
+	issue.ClosedUnix = 0
+
+	if cnt, err := db.GetEngine(ctx).ID(issue.ID).Cols("is_closed", "closed_unix").
+		Where("is_closed = ?", true).
+		Update(issue); err != nil {
+		return nil, err
+	} else if cnt != 1 {
+		return nil, ErrIssueAlreadyChanged
+	}
+
+	return updateIssueNumbers(ctx, issue, doer, CommentTypeReopen)
+}
+
+func updateIssueNumbers(ctx context.Context, issue *Issue, doer *user_model.User, cmtType CommentType) (*Comment, error) {
 	// Update issue count of labels
 	if err := issue.LoadLabels(ctx); err != nil {
 		return nil, err
@@ -101,14 +148,6 @@ func doChangeIssueStatus(ctx context.Context, issue *Issue, doer *user_model.Use
 	// update repository's issue closed number
 	if err := repo_model.UpdateRepoIssueNumbers(ctx, issue.RepoID, issue.IsPull, true); err != nil {
 		return nil, err
-	}
-
-	// New action comment
-	cmtType := CommentTypeClose
-	if !issue.IsClosed {
-		cmtType = CommentTypeReopen
-	} else if isMergePull {
-		cmtType = CommentTypeMergePull
 	}
 
 	return CreateComment(ctx, &CreateCommentOptions{
@@ -134,7 +173,7 @@ func CloseIssue(ctx context.Context, issue *Issue, doer *user_model.User) (*Comm
 	}
 	defer committer.Close()
 
-	comment, err := changeIssueStatus(ctx, issue, doer, true, false)
+	comment, err := SetIssueAsClosed(ctx, issue, doer, false)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +198,7 @@ func ReopenIssue(ctx context.Context, issue *Issue, doer *user_model.User) (*Com
 	}
 	defer committer.Close()
 
-	comment, err := changeIssueStatus(ctx, issue, doer, false, false)
+	comment, err := setIssueAsReopen(ctx, issue, doer)
 	if err != nil {
 		return nil, err
 	}
@@ -345,10 +384,10 @@ func NewIssueWithIndex(ctx context.Context, doer *user_model.User, opts NewIssue
 	}
 
 	if opts.Issue.Index <= 0 {
-		return fmt.Errorf("no issue index provided")
+		return errors.New("no issue index provided")
 	}
 	if opts.Issue.ID > 0 {
-		return fmt.Errorf("issue exist")
+		return errors.New("issue exist")
 	}
 
 	if _, err := e.Insert(opts.Issue); err != nil {
@@ -405,19 +444,10 @@ func NewIssueWithIndex(ctx context.Context, doer *user_model.User, opts NewIssue
 		return err
 	}
 
-	if len(opts.Attachments) > 0 {
-		attachments, err := repo_model.GetAttachmentsByUUIDs(ctx, opts.Attachments)
-		if err != nil {
-			return fmt.Errorf("getAttachmentsByUUIDs [uuids: %v]: %w", opts.Attachments, err)
-		}
-
-		for i := 0; i < len(attachments); i++ {
-			attachments[i].IssueID = opts.Issue.ID
-			if _, err = e.ID(attachments[i].ID).Update(attachments[i]); err != nil {
-				return fmt.Errorf("update attachment [id: %d]: %w", attachments[i].ID, err)
-			}
-		}
+	if err := UpdateIssueAttachments(ctx, opts.Issue.ID, opts.Attachments); err != nil {
+		return err
 	}
+
 	if err = opts.Issue.LoadAttributes(ctx); err != nil {
 		return err
 	}
@@ -579,7 +609,7 @@ func ResolveIssueMentionsByVisibility(ctx context.Context, issue *Issue, doer *u
 				unittype = unit.TypePullRequests
 			}
 			for _, team := range teams {
-				if team.AccessMode >= perm.AccessModeAdmin {
+				if team.HasAdminAccess() {
 					checked = append(checked, team.ID)
 					resolved[issue.Repo.Owner.LowerName+"/"+team.LowerName] = true
 					continue
@@ -683,137 +713,13 @@ func UpdateReactionsMigrationsByType(ctx context.Context, gitServiceType api.Git
 	return err
 }
 
-// DeleteIssuesByRepoID deletes issues by repositories id
-func DeleteIssuesByRepoID(ctx context.Context, repoID int64) (attachmentPaths []string, err error) {
-	// MariaDB has a performance bug: https://jira.mariadb.org/browse/MDEV-16289
-	// so here it uses "DELETE ... WHERE IN" with pre-queried IDs.
-	sess := db.GetEngine(ctx)
-
-	for {
-		issueIDs := make([]int64, 0, db.DefaultMaxInSize)
-
-		err := sess.Table(&Issue{}).Where("repo_id = ?", repoID).OrderBy("id").Limit(db.DefaultMaxInSize).Cols("id").Find(&issueIDs)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(issueIDs) == 0 {
-			break
-		}
-
-		// Delete content histories
-		_, err = sess.In("issue_id", issueIDs).Delete(&ContentHistory{})
-		if err != nil {
-			return nil, err
-		}
-
-		// Delete comments and attachments
-		_, err = sess.In("issue_id", issueIDs).Delete(&Comment{})
-		if err != nil {
-			return nil, err
-		}
-
-		// Dependencies for issues in this repository
-		_, err = sess.In("issue_id", issueIDs).Delete(&IssueDependency{})
-		if err != nil {
-			return nil, err
-		}
-
-		// Delete dependencies for issues in other repositories
-		_, err = sess.In("dependency_id", issueIDs).Delete(&IssueDependency{})
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sess.In("issue_id", issueIDs).Delete(&IssueUser{})
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sess.In("issue_id", issueIDs).Delete(&Reaction{})
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sess.In("issue_id", issueIDs).Delete(&IssueWatch{})
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sess.In("issue_id", issueIDs).Delete(&Stopwatch{})
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sess.In("issue_id", issueIDs).Delete(&TrackedTime{})
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sess.In("issue_id", issueIDs).Delete(&project_model.ProjectIssue{})
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sess.In("dependent_issue_id", issueIDs).Delete(&Comment{})
-		if err != nil {
-			return nil, err
-		}
-
-		var attachments []*repo_model.Attachment
-		err = sess.In("issue_id", issueIDs).Find(&attachments)
-		if err != nil {
-			return nil, err
-		}
-
-		for j := range attachments {
-			attachmentPaths = append(attachmentPaths, attachments[j].RelativePath())
-		}
-
-		_, err = sess.In("issue_id", issueIDs).Delete(&repo_model.Attachment{})
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sess.In("id", issueIDs).Delete(&Issue{})
-		if err != nil {
-			return nil, err
-		}
+func GetOrphanedIssueRepoIDs(ctx context.Context) ([]int64, error) {
+	var repoIDs []int64
+	if err := db.GetEngine(ctx).Table("issue").Distinct("issue.repo_id").
+		Join("LEFT", "repository", "issue.repo_id=repository.id").
+		Where(builder.IsNull{"repository.id"}).
+		Find(&repoIDs); err != nil {
+		return nil, err
 	}
-
-	return attachmentPaths, err
-}
-
-// DeleteOrphanedIssues delete issues without a repo
-func DeleteOrphanedIssues(ctx context.Context) error {
-	var attachmentPaths []string
-	err := db.WithTx(ctx, func(ctx context.Context) error {
-		var ids []int64
-
-		if err := db.GetEngine(ctx).Table("issue").Distinct("issue.repo_id").
-			Join("LEFT", "repository", "issue.repo_id=repository.id").
-			Where(builder.IsNull{"repository.id"}).GroupBy("issue.repo_id").
-			Find(&ids); err != nil {
-			return err
-		}
-
-		for i := range ids {
-			paths, err := DeleteIssuesByRepoID(ctx, ids[i])
-			if err != nil {
-				return err
-			}
-			attachmentPaths = append(attachmentPaths, paths...)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	// Remove issue attachment files.
-	for i := range attachmentPaths {
-		system_model.RemoveAllWithNotice(ctx, "Delete issue attachment", attachmentPaths[i])
-	}
-	return nil
+	return repoIDs, nil
 }

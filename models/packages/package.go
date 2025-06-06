@@ -127,7 +127,7 @@ func (pt Type) Name() string {
 	case TypeVagrant:
 		return "Vagrant"
 	}
-	panic(fmt.Sprintf("unknown package type: %s", string(pt)))
+	panic("unknown package type: " + string(pt))
 }
 
 // SVGName gets the name of the package type svg image
@@ -178,7 +178,7 @@ func (pt Type) SVGName() string {
 	case TypeVagrant:
 		return "gitea-vagrant"
 	}
-	panic(fmt.Sprintf("unknown package type: %s", string(pt)))
+	panic("unknown package type: " + string(pt))
 }
 
 // Package represents a package
@@ -228,6 +228,11 @@ func SetRepositoryLink(ctx context.Context, packageID, repoID int64) error {
 	return err
 }
 
+func UnlinkRepository(ctx context.Context, packageID int64) error {
+	_, err := db.GetEngine(ctx).ID(packageID).Cols("repo_id").Update(&Package{RepoID: 0})
+	return err
+}
+
 // UnlinkRepositoryFromAllPackages unlinks every package from the repository
 func UnlinkRepositoryFromAllPackages(ctx context.Context, repoID int64) error {
 	_, err := db.GetEngine(ctx).Where("repo_id = ?", repoID).Cols("repo_id").Update(&Package{})
@@ -246,6 +251,18 @@ func GetPackageByID(ctx context.Context, packageID int64) (*Package, error) {
 		return nil, ErrPackageNotExist
 	}
 	return p, nil
+}
+
+// UpdatePackageNameByID updates the package's name, it is only for internal usage, for example: rename some legacy packages
+func UpdatePackageNameByID(ctx context.Context, ownerID int64, packageType Type, packageID int64, name string) error {
+	var cond builder.Cond = builder.Eq{
+		"package.id":          packageID,
+		"package.owner_id":    ownerID,
+		"package.type":        packageType,
+		"package.is_internal": false,
+	}
+	_, err := db.GetEngine(ctx).Where(cond).Update(&Package{Name: name, LowerName: strings.ToLower(name)})
+	return err
 }
 
 // GetPackageByName gets a package by name

@@ -40,13 +40,6 @@ func TestMain(m *testing.M) {
 	tests.InitTest(false)
 	testE2eWebRoutes = routers.NormalRoutes()
 
-	os.Unsetenv("GIT_AUTHOR_NAME")
-	os.Unsetenv("GIT_AUTHOR_EMAIL")
-	os.Unsetenv("GIT_AUTHOR_DATE")
-	os.Unsetenv("GIT_COMMITTER_NAME")
-	os.Unsetenv("GIT_COMMITTER_EMAIL")
-	os.Unsetenv("GIT_COMMITTER_DATE")
-
 	err := unittest.InitFixtures(
 		unittest.FixturesOptions{
 			Dir: filepath.Join(filepath.Dir(setting.AppPath), "models/fixtures/"),
@@ -101,7 +94,7 @@ func TestE2e(t *testing.T) {
 			onGiteaRun(t, func(*testing.T, *url.URL) {
 				cmd := exec.Command(runArgs[0], runArgs...)
 				cmd.Env = os.Environ()
-				cmd.Env = append(cmd.Env, fmt.Sprintf("GITEA_URL=%s", setting.AppURL))
+				cmd.Env = append(cmd.Env, "GITEA_URL="+setting.AppURL)
 
 				var stdout, stderr bytes.Buffer
 				cmd.Stdout = &stdout

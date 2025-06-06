@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"code.gitea.io/gitea/models/auth"
+	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/services/auth/source/ldap"
 
 	"github.com/urfave/cli/v2"
@@ -127,6 +128,34 @@ var (
 		&cli.UintFlag{
 			Name:  "page-size",
 			Usage: "Search page size.",
+		},
+		&cli.BoolFlag{
+			Name:  "enable-groups",
+			Usage: "Enable LDAP groups",
+		},
+		&cli.StringFlag{
+			Name:  "group-search-base-dn",
+			Usage: "The LDAP base DN at which group accounts will be searched for",
+		},
+		&cli.StringFlag{
+			Name:  "group-member-attribute",
+			Usage: "Group attribute containing list of users",
+		},
+		&cli.StringFlag{
+			Name:  "group-user-attribute",
+			Usage: "User attribute listed in group",
+		},
+		&cli.StringFlag{
+			Name:  "group-filter",
+			Usage: "Verify group membership in LDAP",
+		},
+		&cli.StringFlag{
+			Name:  "group-team-map",
+			Usage: "Map LDAP groups to Organization teams",
+		},
+		&cli.BoolFlag{
+			Name:  "group-team-map-removal",
+			Usage: "Remove users from synchronized teams if user does not belong to corresponding LDAP group",
 		})
 
 	ldapSimpleAuthCLIFlags = append(commonLdapCLIFlags,
@@ -182,8 +211,8 @@ func newAuthService() *authService {
 	}
 }
 
-// parseAuthSource assigns values on authSource according to command line flags.
-func parseAuthSource(c *cli.Context, authSource *auth.Source) {
+// parseAuthSourceLdap assigns values on authSource according to command line flags.
+func parseAuthSourceLdap(c *cli.Context, authSource *auth.Source) {
 	if c.IsSet("name") {
 		authSource.Name = c.String("name")
 	}
@@ -199,6 +228,7 @@ func parseAuthSource(c *cli.Context, authSource *auth.Source) {
 	if c.IsSet("disable-synchronize-users") {
 		authSource.IsSyncEnabled = !c.Bool("disable-synchronize-users")
 	}
+	authSource.TwoFactorPolicy = util.Iif(c.Bool("skip-local-2fa"), "skip", "")
 }
 
 // parseLdapConfig assigns values on config according to command line flags.
@@ -270,8 +300,26 @@ func parseLdapConfig(c *cli.Context, config *ldap.Source) error {
 	if c.IsSet("allow-deactivate-all") {
 		config.AllowDeactivateAll = c.Bool("allow-deactivate-all")
 	}
-	if c.IsSet("skip-local-2fa") {
-		config.SkipLocalTwoFA = c.Bool("skip-local-2fa")
+	if c.IsSet("enable-groups") {
+		config.GroupsEnabled = c.Bool("enable-groups")
+	}
+	if c.IsSet("group-search-base-dn") {
+		config.GroupDN = c.String("group-search-base-dn")
+	}
+	if c.IsSet("group-member-attribute") {
+		config.GroupMemberUID = c.String("group-member-attribute")
+	}
+	if c.IsSet("group-user-attribute") {
+		config.UserUID = c.String("group-user-attribute")
+	}
+	if c.IsSet("group-filter") {
+		config.GroupFilter = c.String("group-filter")
+	}
+	if c.IsSet("group-team-map") {
+		config.GroupTeamMap = c.String("group-team-map")
+	}
+	if c.IsSet("group-team-map-removal") {
+		config.GroupTeamMapRemoval = c.Bool("group-team-map-removal")
 	}
 	return nil
 }
@@ -327,7 +375,7 @@ func (a *authService) addLdapBindDn(c *cli.Context) error {
 		},
 	}
 
-	parseAuthSource(c, authSource)
+	parseAuthSourceLdap(c, authSource)
 	if err := parseLdapConfig(c, authSource.Cfg.(*ldap.Source)); err != nil {
 		return err
 	}
@@ -349,7 +397,7 @@ func (a *authService) updateLdapBindDn(c *cli.Context) error {
 		return err
 	}
 
-	parseAuthSource(c, authSource)
+	parseAuthSourceLdap(c, authSource)
 	if err := parseLdapConfig(c, authSource.Cfg.(*ldap.Source)); err != nil {
 		return err
 	}
@@ -378,7 +426,7 @@ func (a *authService) addLdapSimpleAuth(c *cli.Context) error {
 		},
 	}
 
-	parseAuthSource(c, authSource)
+	parseAuthSourceLdap(c, authSource)
 	if err := parseLdapConfig(c, authSource.Cfg.(*ldap.Source)); err != nil {
 		return err
 	}
@@ -400,7 +448,7 @@ func (a *authService) updateLdapSimpleAuth(c *cli.Context) error {
 		return err
 	}
 
-	parseAuthSource(c, authSource)
+	parseAuthSourceLdap(c, authSource)
 	if err := parseLdapConfig(c, authSource.Cfg.(*ldap.Source)); err != nil {
 		return err
 	}

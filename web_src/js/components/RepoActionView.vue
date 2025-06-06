@@ -1,11 +1,13 @@
 <script lang="ts">
 import {SvgIcon} from '../svg.ts';
 import ActionRunStatus from './ActionRunStatus.vue';
-import {createApp} from 'vue';
+import {defineComponent, type PropType} from 'vue';
 import {createElementFromAttrs, toggleElem} from '../utils/dom.ts';
 import {formatDatetime} from '../utils/time.ts';
 import {renderAnsi} from '../render/ansi.ts';
 import {POST, DELETE} from '../modules/fetch.ts';
+import type {IntervalId} from '../types.ts';
+import {toggleFullScreen} from '../utils.ts';
 
 // see "models/actions/status.go", if it needs to be used somewhere else, move it to a shared file like "types/actions.ts"
 type RunStatus = 'unknown' | 'waiting' | 'running' | 'success' | 'failure' | 'cancelled' | 'skipped' | 'blocked';
@@ -24,6 +26,20 @@ type LogLineCommand = {
   prefix: string,
 }
 
+type Job = {
+  id: number;
+  name: string;
+  status: RunStatus;
+  canRerun: boolean;
+  duration: string;
+}
+
+type Step = {
+  summary: string,
+  duration: string,
+  status: RunStatus,
+}
+
 function parseLineCommand(line: LogLine): LogLineCommand | null {
   for (const prefix of LogLinePrefixesGroup) {
     if (line.message.startsWith(prefix)) {
@@ -38,7 +54,7 @@ function parseLineCommand(line: LogLine): LogLineCommand | null {
   return null;
 }
 
-function isLogElementInViewport(el: HTMLElement): boolean {
+function isLogElementInViewport(el: Element): boolean {
   const rect = el.getBoundingClientRect();
   return rect.top >= 0 && rect.bottom <= window.innerHeight; // only check height but not width
 }
@@ -57,25 +73,28 @@ function getLocaleStorageOptions(): LocaleStorageOptions {
   return {autoScroll: true, expandRunning: false};
 }
 
-const sfc = {
+export default defineComponent({
   name: 'RepoActionView',
   components: {
     SvgIcon,
     ActionRunStatus,
   },
   props: {
-    runIndex: String,
-    jobIndex: String,
-    actionsURL: String,
-    locale: Object,
-  },
-
-  watch: {
-    optionAlwaysAutoScroll() {
-      this.saveLocaleStorageOptions();
+    runIndex: {
+      type: String,
+      default: '',
     },
-    optionAlwaysExpandRunning() {
-      this.saveLocaleStorageOptions();
+    jobIndex: {
+      type: String,
+      default: '',
+    },
+    actionsURL: {
+      type: String,
+      default: '',
+    },
+    locale: {
+      type: Object as PropType<Record<string, any>>,
+      default: null,
     },
   },
 
@@ -83,11 +102,10 @@ const sfc = {
     const {autoScroll, expandRunning} = getLocaleStorageOptions();
     return {
       // internal state
-      loadingAbortController: null,
-      intervalID: null,
-      currentJobStepsStates: [],
-      artifacts: [],
-      onHoverRerunIndex: -1,
+      loadingAbortController: null as AbortController | null,
+      intervalID: null as IntervalId | null,
+      currentJobStepsStates: [] as Array<Record<string, any>>,
+      artifacts: [] as Array<Record<string, any>>,
       menuVisible: false,
       isFullScreen: false,
       timeVisible: {
@@ -102,10 +120,11 @@ const sfc = {
         link: '',
         title: '',
         titleHTML: '',
-        status: '',
+        status: '' as RunStatus, // do not show the status before initialized, otherwise it would show an incorrect "error" icon
         canCancel: false,
         canApprove: false,
         canRerun: false,
+        canDeleteArtifact: false,
         done: false,
         workflowID: '',
         workflowLink: '',
@@ -118,7 +137,7 @@ const sfc = {
           //   canRerun: false,
           //   duration: '',
           // },
-        ],
+        ] as Array<Job>,
         commit: {
           localeCommit: '',
           localePushedBy: '',
@@ -131,6 +150,7 @@ const sfc = {
           branch: {
             name: '',
             link: '',
+            isDeleted: false,
           },
         },
       },
@@ -143,12 +163,21 @@ const sfc = {
           //   duration: '',
           //   status: '',
           // }
-        ],
+        ] as Array<Step>,
       },
     };
   },
 
-  async mounted() {
+  watch: {
+    optionAlwaysAutoScroll() {
+      this.saveLocaleStorageOptions();
+    },
+    optionAlwaysExpandRunning() {
+      this.saveLocaleStorageOptions();
+    },
+  },
+
+  async mounted() { // eslint-disable-line @typescript-eslint/no-misused-promises
     // load job data and then auto-reload periodically
     // need to await first loadJob so this.currentJobStepsStates is initialized and can be used in hashChangeListener
     await this.loadJob();
@@ -180,17 +209,18 @@ const sfc = {
 
     // get the job step logs container ('.job-step-logs')
     getJobStepLogsContainer(stepIndex: number): HTMLElement {
-      return this.$refs.logs[stepIndex];
+      return (this.$refs.logs as any)[stepIndex];
     },
 
     // get the active logs container element, either the `job-step-logs` or the `job-log-list` in the `job-log-group`
     getActiveLogsContainer(stepIndex: number): HTMLElement {
       const el = this.getJobStepLogsContainer(stepIndex);
+      // @ts-expect-error - _stepLogsActiveContainer is a custom property
       return el._stepLogsActiveContainer ?? el;
     },
     // begin a log group
     beginLogGroup(stepIndex: number, startTime: number, line: LogLine, cmd: LogLineCommand) {
-      const el = this.$refs.logs[stepIndex];
+      const el = (this.$refs.logs as any)[stepIndex];
       const elJobLogGroupSummary = createElementFromAttrs('summary', {class: 'job-log-group-summary'},
         this.createLogLine(stepIndex, startTime, {
           index: line.index,
@@ -208,7 +238,7 @@ const sfc = {
     },
     // end a log group
     endLogGroup(stepIndex: number, startTime: number, line: LogLine, cmd: LogLineCommand) {
-      const el = this.$refs.logs[stepIndex];
+      const el = (this.$refs.logs as any)[stepIndex];
       el._stepLogsActiveContainer = null;
       el.append(this.createLogLine(stepIndex, startTime, {
         index: line.index,
@@ -263,7 +293,7 @@ const sfc = {
       const el = this.getJobStepLogsContainer(stepIndex);
       // if the logs container is empty, then auto-scroll if the step is expanded
       if (!el.lastChild) return this.currentJobStepsStates[stepIndex].expanded;
-      return isLogElementInViewport(el.lastChild);
+      return isLogElementInViewport(el.lastChild as Element);
     },
 
     appendLogs(stepIndex: number, startTime: number, logLines: LogLine[]) {
@@ -378,98 +408,39 @@ const sfc = {
       if (this.menuVisible) this.menuVisible = false;
     },
 
-    toggleTimeDisplay(type: string) {
+    toggleTimeDisplay(type: 'seconds' | 'stamp') {
       this.timeVisible[`log-time-${type}`] = !this.timeVisible[`log-time-${type}`];
-      for (const el of this.$refs.steps.querySelectorAll(`.log-time-${type}`)) {
+      for (const el of (this.$refs.steps as HTMLElement).querySelectorAll(`.log-time-${type}`)) {
         toggleElem(el, this.timeVisible[`log-time-${type}`]);
       }
     },
 
     toggleFullScreen() {
       this.isFullScreen = !this.isFullScreen;
-      const fullScreenEl = document.querySelector('.action-view-right');
-      const outerEl = document.querySelector('.full.height');
-      const actionBodyEl = document.querySelector('.action-view-body');
-      const headerEl = document.querySelector('#navbar');
-      const contentEl = document.querySelector('.page-content');
-      const footerEl = document.querySelector('.page-footer');
-      toggleElem(headerEl, !this.isFullScreen);
-      toggleElem(contentEl, !this.isFullScreen);
-      toggleElem(footerEl, !this.isFullScreen);
-      // move .action-view-right to new parent
-      if (this.isFullScreen) {
-        outerEl.append(fullScreenEl);
-      } else {
-        actionBodyEl.append(fullScreenEl);
-      }
+      toggleFullScreen('.action-view-right', this.isFullScreen, '.action-view-body');
     },
     async hashChangeListener() {
       const selectedLogStep = window.location.hash;
       if (!selectedLogStep) return;
       const [_, step, _line] = selectedLogStep.split('-');
-      if (!this.currentJobStepsStates[step]) return;
-      if (!this.currentJobStepsStates[step].expanded && this.currentJobStepsStates[step].cursor === null) {
-        this.currentJobStepsStates[step].expanded = true;
+      const stepNum = Number(step);
+      if (!this.currentJobStepsStates[stepNum]) return;
+      if (!this.currentJobStepsStates[stepNum].expanded && this.currentJobStepsStates[stepNum].cursor === null) {
+        this.currentJobStepsStates[stepNum].expanded = true;
         // need to await for load job if the step log is loaded for the first time
         // so logline can be selected by querySelector
         await this.loadJob();
       }
-      const logLine = this.$refs.steps.querySelector(selectedLogStep);
+      const logLine = (this.$refs.steps as HTMLElement).querySelector(selectedLogStep);
       if (!logLine) return;
-      logLine.querySelector('.line-num').click();
+      logLine.querySelector<HTMLAnchorElement>('.line-num').click();
     },
   },
-};
-
-export default sfc;
-
-export function initRepositoryActionView() {
-  const el = document.querySelector('#repo-action-view');
-  if (!el) return;
-
-  // TODO: the parent element's full height doesn't work well now,
-  // but we can not pollute the global style at the moment, only fix the height problem for pages with this component
-  const parentFullHeight = document.querySelector<HTMLElement>('body > div.full.height');
-  if (parentFullHeight) parentFullHeight.style.paddingBottom = '0';
-
-  const view = createApp(sfc, {
-    runIndex: el.getAttribute('data-run-index'),
-    jobIndex: el.getAttribute('data-job-index'),
-    actionsURL: el.getAttribute('data-actions-url'),
-    locale: {
-      approve: el.getAttribute('data-locale-approve'),
-      cancel: el.getAttribute('data-locale-cancel'),
-      rerun: el.getAttribute('data-locale-rerun'),
-      rerun_all: el.getAttribute('data-locale-rerun-all'),
-      scheduled: el.getAttribute('data-locale-runs-scheduled'),
-      commit: el.getAttribute('data-locale-runs-commit'),
-      pushedBy: el.getAttribute('data-locale-runs-pushed-by'),
-      artifactsTitle: el.getAttribute('data-locale-artifacts-title'),
-      areYouSure: el.getAttribute('data-locale-are-you-sure'),
-      confirmDeleteArtifact: el.getAttribute('data-locale-confirm-delete-artifact'),
-      showTimeStamps: el.getAttribute('data-locale-show-timestamps'),
-      showLogSeconds: el.getAttribute('data-locale-show-log-seconds'),
-      showFullScreen: el.getAttribute('data-locale-show-full-screen'),
-      downloadLogs: el.getAttribute('data-locale-download-logs'),
-      status: {
-        unknown: el.getAttribute('data-locale-status-unknown'),
-        waiting: el.getAttribute('data-locale-status-waiting'),
-        running: el.getAttribute('data-locale-status-running'),
-        success: el.getAttribute('data-locale-status-success'),
-        failure: el.getAttribute('data-locale-status-failure'),
-        cancelled: el.getAttribute('data-locale-status-cancelled'),
-        skipped: el.getAttribute('data-locale-status-skipped'),
-        blocked: el.getAttribute('data-locale-status-blocked'),
-      },
-      logsAlwaysAutoScroll: el.getAttribute('data-locale-logs-always-auto-scroll'),
-      logsAlwaysExpandRunning: el.getAttribute('data-locale-logs-always-expand-running'),
-    },
-  });
-  view.mount(el);
-}
+});
 </script>
 <template>
-  <div class="ui container action-view-container">
+  <!-- make the view container full width to make users easier to read logs -->
+  <div class="ui fluid container">
     <div class="action-view-header">
       <div class="action-info-summary">
         <div class="action-info-summary-title">
@@ -508,13 +479,13 @@ export function initRepositoryActionView() {
       <div class="action-view-left">
         <div class="job-group-section">
           <div class="job-brief-list">
-            <a class="job-brief-item" :href="run.link+'/jobs/'+index" :class="parseInt(jobIndex) === index ? 'selected' : ''" v-for="(job, index) in run.jobs" :key="job.id" @mouseenter="onHoverRerunIndex = job.id" @mouseleave="onHoverRerunIndex = -1">
+            <a class="job-brief-item" :href="run.link+'/jobs/'+index" :class="parseInt(jobIndex) === index ? 'selected' : ''" v-for="(job, index) in run.jobs" :key="job.id">
               <div class="job-brief-item-left">
                 <ActionRunStatus :locale-status="locale.status[job.status]" :status="job.status"/>
                 <span class="job-brief-name tw-mx-2 gt-ellipsis">{{ job.name }}</span>
               </div>
               <span class="job-brief-item-right">
-                <SvgIcon name="octicon-sync" role="button" :data-tooltip-content="locale.rerun" class="job-brief-rerun tw-mx-2 link-action" :data-url="`${run.link}/jobs/${index}/rerun`" v-if="job.canRerun && onHoverRerunIndex === job.id"/>
+                <SvgIcon name="octicon-sync" role="button" :data-tooltip-content="locale.rerun" class="job-brief-rerun tw-mx-2 link-action" :data-url="`${run.link}/jobs/${index}/rerun`" v-if="job.canRerun"/>
                 <span class="step-summary-duration">{{ job.duration }}</span>
               </span>
             </a>
@@ -525,14 +496,24 @@ export function initRepositoryActionView() {
             {{ locale.artifactsTitle }}
           </div>
           <ul class="job-artifacts-list">
-            <li class="job-artifacts-item" v-for="artifact in artifacts" :key="artifact.name">
-              <a class="job-artifacts-link" target="_blank" :href="run.link+'/artifacts/'+artifact.name">
-                <SvgIcon name="octicon-file" class="ui text black job-artifacts-icon"/>{{ artifact.name }}
-              </a>
-              <a v-if="run.canDeleteArtifact" @click="deleteArtifact(artifact.name)" class="job-artifacts-delete">
-                <SvgIcon name="octicon-trash" class="ui text black job-artifacts-icon"/>
-              </a>
-            </li>
+            <template v-for="artifact in artifacts" :key="artifact.name">
+              <li class="job-artifacts-item">
+                <template v-if="artifact.status !== 'expired'">
+                  <a class="flex-text-inline" target="_blank" :href="run.link+'/artifacts/'+artifact.name">
+                    <SvgIcon name="octicon-file" class="text black"/>
+                    <span class="gt-ellipsis">{{ artifact.name }}</span>
+                  </a>
+                  <a v-if="run.canDeleteArtifact" @click="deleteArtifact(artifact.name)">
+                    <SvgIcon name="octicon-trash" class="text black"/>
+                  </a>
+                </template>
+                <span v-else class="flex-text-inline text light grey">
+                  <SvgIcon name="octicon-file"/>
+                  <span class="gt-ellipsis">{{ artifact.name }}</span>
+                  <span class="ui label text light grey tw-flex-shrink-0">{{ locale.artifactExpired }}</span>
+                </span>
+              </li>
+            </template>
           </ul>
         </div>
       </div>
@@ -591,7 +572,7 @@ export function initRepositoryActionView() {
               <!-- If the job is done and the job step log is loaded for the first time, show the loading icon
                 currentJobStepsStates[i].cursor === null means the log is loaded for the first time
               -->
-              <SvgIcon v-if="isDone(run.status) && currentJobStepsStates[i].expanded && currentJobStepsStates[i].cursor === null" name="octicon-sync" class="tw-mr-2 job-status-rotate"/>
+              <SvgIcon v-if="isDone(run.status) && currentJobStepsStates[i].expanded && currentJobStepsStates[i].cursor === null" name="octicon-sync" class="tw-mr-2 circular-spin"/>
               <SvgIcon v-else :name="currentJobStepsStates[i].expanded ? 'octicon-chevron-down': 'octicon-chevron-right'" :class="['tw-mr-2', !isExpandable(jobStep.status) && 'tw-invisible']"/>
               <ActionRunStatus :status="jobStep.status" class="tw-mr-2"/>
 
@@ -694,15 +675,12 @@ export function initRepositoryActionView() {
   padding: 6px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .job-artifacts-list {
   padding-left: 12px;
   list-style: none;
-}
-
-.job-artifacts-icon {
-  padding-right: 3px;
 }
 
 .job-brief-list {
@@ -737,11 +715,6 @@ export function initRepositoryActionView() {
 
 .job-brief-item .job-brief-rerun {
   cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.job-brief-item .job-brief-rerun:hover {
-  transform: scale(130%);
 }
 
 .job-brief-item .job-brief-item-left {
@@ -918,16 +891,6 @@ export function initRepositoryActionView() {
 
 <style> /* eslint-disable-line vue-scoped-css/enforce-style-type */
 /* some elements are not managed by vue, so we need to use global style */
-.job-status-rotate {
-  animation: job-status-rotate-keyframes 1s linear infinite;
-}
-
-@keyframes job-status-rotate-keyframes {
-  100% {
-    transform: rotate(-360deg);
-  }
-}
-
 .job-step-section {
   margin: 10px;
 }
@@ -977,7 +940,6 @@ export function initRepositoryActionView() {
 
 .job-step-logs .job-log-line .log-msg {
   flex: 1;
-  word-break: break-all;
   white-space: break-spaces;
   margin-left: 10px;
   overflow-wrap: anywhere;

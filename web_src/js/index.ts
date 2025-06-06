@@ -70,23 +70,11 @@ import {initColorPickers} from './features/colorpicker.ts';
 import {initAdminSelfCheck} from './features/admin/selfcheck.ts';
 import {initOAuth2SettingsDisableCheckbox} from './features/oauth2-settings.ts';
 import {initGlobalFetchAction} from './features/common-fetch-action.ts';
-import {initScopedAccessTokenCategories} from './features/scoped-access-token.ts';
-import {
-  initFootLanguageMenu,
-  initGlobalDropdown,
-  initGlobalTabularMenu,
-  initHeadNavbarContentToggle,
-} from './features/common-page.ts';
-import {
-  initGlobalButtonClickOnEnter,
-  initGlobalButtons,
-  initGlobalDeleteButton,
-} from './features/common-button.ts';
-import {
-  initGlobalComboMarkdownEditor,
-  initGlobalEnterQuickSubmit,
-  initGlobalFormDirtyLeaveConfirm,
-} from './features/common-form.ts';
+import {initFootLanguageMenu, initGlobalAvatarUploader, initGlobalDropdown, initGlobalInput, initGlobalTabularMenu, initHeadNavbarContentToggle} from './features/common-page.ts';
+import {initGlobalButtonClickOnEnter, initGlobalButtons, initGlobalDeleteButton} from './features/common-button.ts';
+import {initGlobalComboMarkdownEditor, initGlobalEnterQuickSubmit, initGlobalFormDirtyLeaveConfirm} from './features/common-form.ts';
+import {callInitFunctions} from './modules/init.ts';
+import {initRepoViewFileTree} from './features/repo-view-file-tree.ts';
 import {initSearch} from './search.ts';
 
 initGiteaFomantic();
@@ -221,4 +209,13 @@ onDomReady(() => {
 
     initSearch,
   ]);
+
+  // it must be the last one, then the "querySelectorAll" only needs to be executed once for global init functions.
+  initGlobalSelectorObserver(initPerformanceTracer);
+  if (initPerformanceTracer) initPerformanceTracer.printResults();
+
+  const initDur = performance.now() - initStartTime;
+  if (initDur > 500) {
+    console.error(`slow init functions took ${initDur.toFixed(3)}ms`);
+  }
 });

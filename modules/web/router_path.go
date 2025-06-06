@@ -4,7 +4,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -89,11 +88,23 @@ func (p *routerPathMatcher) matchPath(chiCtx *chi.Context, path string) bool {
 	return true
 }
 
+func isValidMethod(name string) bool {
+	switch name {
+	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodHead, http.MethodOptions, http.MethodConnect, http.MethodTrace:
+		return true
+	}
+	return false
+}
+
 func newRouterPathMatcher(methods, pattern string, h ...any) *routerPathMatcher {
 	middlewares, handlerFunc := wrapMiddlewareAndHandler(nil, h)
 	p := &routerPathMatcher{methods: make(container.Set[string]), middlewares: middlewares, handlerFunc: handlerFunc}
 	for _, method := range strings.Split(methods, ",") {
-		p.methods.Add(strings.TrimSpace(method))
+		method = strings.TrimSpace(method)
+		if !isValidMethod(method) {
+			panic("invalid HTTP method: " + method)
+		}
+		p.methods.Add(method)
 	}
 	re := []byte{'^'}
 	lastEnd := 0
@@ -105,7 +116,7 @@ func newRouterPathMatcher(methods, pattern string, h ...any) *routerPathMatcher 
 		}
 		end := strings.IndexByte(pattern[lastEnd+start:], '>')
 		if end == -1 {
-			panic(fmt.Sprintf("invalid pattern: %s", pattern))
+			panic("invalid pattern: " + pattern)
 		}
 		re = append(re, pattern[lastEnd:lastEnd+start]...)
 		partName, partExp, _ := strings.Cut(pattern[lastEnd+start+1:lastEnd+start+end], ":")

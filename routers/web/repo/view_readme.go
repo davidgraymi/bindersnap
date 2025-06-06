@@ -69,7 +69,7 @@ func findReadmeFileInEntries(ctx *context.Context, entries []*git.TreeEntry, try
 			if readmeFiles[i] == nil || base.NaturalSortLess(readmeFiles[i].Name(), entry.Blob().Name()) {
 				if entry.IsLink() {
 					target, err := entry.FollowLinks()
-					if err != nil && !git.IsErrBadLink(err) {
+					if err != nil && !git.IsErrSymlinkUnresolved(err) {
 						return "", nil, err
 					} else if target != nil && (target.IsExecutable() || target.IsRegular()) {
 						readmeFiles[i] = entry
@@ -162,7 +162,7 @@ func prepareToRenderReadmeFile(ctx *context.Context, subfolder string, readmeFil
 	defer dataRc.Close()
 
 	ctx.Data["FileIsText"] = fInfo.isTextFile
-	ctx.Data["FileName"] = path.Join(subfolder, readmeFile.Name())
+	ctx.Data["FileTreePath"] = path.Join(subfolder, readmeFile.Name())
 	ctx.Data["FileSize"] = fInfo.fileSize
 	ctx.Data["IsLFSFile"] = fInfo.isLFSFile
 
@@ -189,7 +189,7 @@ func prepareToRenderReadmeFile(ctx *context.Context, subfolder string, readmeFil
 		ctx.Data["MarkupType"] = markupType
 
 		rctx := renderhelper.NewRenderContextRepoFile(ctx, ctx.Repo.Repository, renderhelper.RepoFileOptions{
-			CurrentRefPath:  ctx.Repo.BranchNameSubURL(),
+			CurrentRefPath:  ctx.Repo.RefTypeNameSubURL(),
 			CurrentTreePath: path.Join(ctx.Repo.TreePath, subfolder),
 		}).
 			WithMarkupType(markupType).
