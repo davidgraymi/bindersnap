@@ -1,5 +1,5 @@
 import {updateIssuesMeta} from './repo-common.ts';
-import {toggleElem, isElemHidden, queryElems} from '../utils/dom.ts';
+import {toggleElem, queryElems, isElemVisible} from '../utils/dom.ts';
 import {htmlEscape} from 'escape-goat';
 import {confirmModal} from './comp/ConfirmModal.ts';
 import {showErrorToast} from '../modules/toast.ts';
@@ -7,6 +7,7 @@ import {createSortable} from '../modules/sortable.ts';
 import {DELETE, POST} from '../modules/fetch.ts';
 import {parseDom} from '../utils.ts';
 import {fomanticQuery} from '../modules/fomantic/base.ts';
+import type {SortableEvent} from 'sortablejs';
 
 function initRepoIssueListCheckboxes() {
   const issueSelectAll = document.querySelector<HTMLInputElement>('.issue-checkbox-all');
@@ -32,8 +33,8 @@ function initRepoIssueListCheckboxes() {
     toggleElem('#issue-filters', !anyChecked);
     toggleElem('#issue-actions', anyChecked);
     // there are two panels but only one select-all checkbox, so move the checkbox to the visible panel
-    const panels = document.querySelectorAll('#issue-filters, #issue-actions');
-    const visiblePanel = Array.from(panels).find((el) => !isElemHidden(el));
+    const panels = document.querySelectorAll<HTMLElement>('#issue-filters, #issue-actions');
+    const visiblePanel = Array.from(panels).find((el) => isElemVisible(el));
     const toolbarLeft = visiblePanel.querySelector('.issue-list-toolbar-left');
     toolbarLeft.prepend(issueSelectAll);
   };
@@ -104,7 +105,7 @@ function initDropdownUserRemoteSearch(el: Element) {
   $searchDropdown.dropdown('setting', {
     fullTextSearch: true,
     selectOnKeydown: false,
-    action: (_text, value) => {
+    action: (_text: string, value: string) => {
       window.location.href = actionJumpUrl.replace('{username}', encodeURIComponent(value));
     },
   });
@@ -133,11 +134,11 @@ function initDropdownUserRemoteSearch(el: Element) {
     $searchDropdown.dropdown('setting', 'apiSettings', {
       cache: false,
       url: `${searchUrl}&q={query}`,
-      onResponse(resp) {
+      onResponse(resp: any) {
         // the content is provided by backend IssuePosters handler
         processedResults.length = 0;
         for (const item of resp.results) {
-          let html = `<img class="ui avatar tw-align-middle" src="${htmlEscape(item.avatar_link)}" aria-hidden="true" alt="" width="20" height="20"><span class="gt-ellipsis">${htmlEscape(item.username)}</span>`;
+          let html = `<img class="ui avatar tw-align-middle" src="${htmlEscape(item.avatar_link)}" aria-hidden="true" alt width="20" height="20"><span class="gt-ellipsis">${htmlEscape(item.username)}</span>`;
           if (item.full_name) html += `<span class="search-fullname tw-ml-2">${htmlEscape(item.full_name)}</span>`;
           if (selectedUsername.toLowerCase() === item.username.toLowerCase()) selectedUsername = item.username;
           processedResults.push({value: item.username, name: html});
@@ -153,7 +154,7 @@ function initDropdownUserRemoteSearch(el: Element) {
   const dropdownSetup = {...$searchDropdown.dropdown('internal', 'setup')};
   const dropdownTemplates = $searchDropdown.dropdown('setting', 'templates');
   $searchDropdown.dropdown('internal', 'setup', dropdownSetup);
-  dropdownSetup.menu = function (values) {
+  dropdownSetup.menu = function (values: any) {
     // remove old dynamic items
     for (const el of elMenu.querySelectorAll(':scope > .dynamic-item')) {
       el.remove();
@@ -193,7 +194,7 @@ function initPinRemoveButton() {
   }
 }
 
-async function pinMoveEnd(e) {
+async function pinMoveEnd(e: SortableEvent) {
   const url = e.item.getAttribute('data-move-url');
   const id = Number(e.item.getAttribute('data-issue-id'));
   await POST(url, {data: {id, position: e.newIndex + 1}});

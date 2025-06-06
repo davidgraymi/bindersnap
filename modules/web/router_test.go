@@ -51,7 +51,7 @@ func TestPathProcessor(t *testing.T) {
 }
 
 func TestRouter(t *testing.T) {
-	buff := bytes.NewBufferString("")
+	buff := &bytes.Buffer{}
 	recorder := httptest.NewRecorder()
 	recorder.Body = buff
 
@@ -121,7 +121,7 @@ func TestRouter(t *testing.T) {
 			req, err := http.NewRequest(methodPathFields[0], methodPathFields[1], nil)
 			assert.NoError(t, err)
 			r.ServeHTTP(recorder, req)
-			assert.EqualValues(t, expected, res)
+			assert.Equal(t, expected, res)
 		})
 	}
 
@@ -183,6 +183,11 @@ func TestRouter(t *testing.T) {
 			pathParams:  map[string]string{"username": "the-user", "reponame": "the-repo", "*": "d1/d2/fn", "dir": "d1/d2", "file": "fn"},
 			handlerMark: "match-path",
 		})
+		testRoute(t, "GET /api/v1/repos/the-user/the-repo/branches/d1%2fd2/fn", resultStruct{
+			method:      "GET",
+			pathParams:  map[string]string{"username": "the-user", "reponame": "the-repo", "*": "d1%2fd2/fn", "dir": "d1%2fd2", "file": "fn"},
+			handlerMark: "match-path",
+		})
 		testRoute(t, "GET /api/v1/repos/the-user/the-repo/branches/d1/d2/000", resultStruct{
 			method:      "GET",
 			pathParams:  map[string]string{"reponame": "the-repo", "username": "the-user", "*": "d1/d2/000"},
@@ -219,7 +224,7 @@ func TestRouteNormalizePath(t *testing.T) {
 			actualPaths.Path = req.URL.Path
 		})
 
-		req, err := http.NewRequest("GET", reqPath, nil)
+		req, err := http.NewRequest(http.MethodGet, reqPath, nil)
 		assert.NoError(t, err)
 		r.ServeHTTP(recorder, req)
 		assert.Equal(t, expectedPaths, actualPaths, "req path = %q", reqPath)

@@ -6,10 +6,10 @@ package issues
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"code.gitea.io/gitea/models/db"
@@ -80,22 +80,6 @@ func (err ErrPullRequestAlreadyExists) Unwrap() error {
 	return util.ErrAlreadyExist
 }
 
-// ErrPullWasClosed is used close a closed pull request
-type ErrPullWasClosed struct {
-	ID    int64
-	Index int64
-}
-
-// IsErrPullWasClosed checks if an error is a ErrErrPullWasClosed.
-func IsErrPullWasClosed(err error) bool {
-	_, ok := err.(ErrPullWasClosed)
-	return ok
-}
-
-func (err ErrPullWasClosed) Error() string {
-	return fmt.Sprintf("Pull request [%d] %d was already closed", err.ID, err.Index)
-}
-
 // PullRequestType defines pull request type
 type PullRequestType int
 
@@ -118,27 +102,6 @@ const (
 	PullRequestStatusEmpty
 	PullRequestStatusAncestor
 )
-
-func (status PullRequestStatus) String() string {
-	switch status {
-	case PullRequestStatusConflict:
-		return "CONFLICT"
-	case PullRequestStatusChecking:
-		return "CHECKING"
-	case PullRequestStatusMergeable:
-		return "MERGEABLE"
-	case PullRequestStatusManuallyMerged:
-		return "MANUALLY_MERGED"
-	case PullRequestStatusError:
-		return "ERROR"
-	case PullRequestStatusEmpty:
-		return "EMPTY"
-	case PullRequestStatusAncestor:
-		return "ANCESTOR"
-	default:
-		return strconv.Itoa(int(status))
-	}
-}
 
 // PullRequestFlow the flow of pull request
 type PullRequestFlow int
@@ -301,7 +264,7 @@ func (pr *PullRequest) LoadRequestedReviewers(ctx context.Context) error {
 		return nil
 	}
 
-	reviews, err := GetReviewsByIssueID(ctx, pr.Issue.ID)
+	reviews, _, err := GetReviewsByIssueID(ctx, pr.Issue.ID)
 	if err != nil {
 		return err
 	}
@@ -320,7 +283,7 @@ func (pr *PullRequest) LoadRequestedReviewers(ctx context.Context) error {
 
 // LoadRequestedReviewersTeams loads the requested reviewers teams.
 func (pr *PullRequest) LoadRequestedReviewersTeams(ctx context.Context) error {
-	reviews, err := GetReviewsByIssueID(ctx, pr.Issue.ID)
+	reviews, _, err := GetReviewsByIssueID(ctx, pr.Issue.ID)
 	if err != nil {
 		return err
 	}
@@ -497,65 +460,6 @@ func (pr *PullRequest) IsAncestor() bool {
 // IsFromFork return true if this PR is from a fork.
 func (pr *PullRequest) IsFromFork() bool {
 	return pr.HeadRepoID != pr.BaseRepoID
-}
-
-// SetMerged sets a pull request to merged and closes the corresponding issue
-func (pr *PullRequest) SetMerged(ctx context.Context) (bool, error) {
-	if pr.HasMerged {
-		return false, fmt.Errorf("PullRequest[%d] already merged", pr.Index)
-	}
-	if pr.MergedCommitID == "" || pr.MergedUnix == 0 || pr.Merger == nil {
-		return false, fmt.Errorf("Unable to merge PullRequest[%d], some required fields are empty", pr.Index)
-	}
-
-	pr.HasMerged = true
-	sess := db.GetEngine(ctx)
-
-	if _, err := sess.Exec("UPDATE `issue` SET `repo_id` = `repo_id` WHERE `id` = ?", pr.IssueID); err != nil {
-		return false, err
-	}
-
-	if _, err := sess.Exec("UPDATE `pull_request` SET `issue_id` = `issue_id` WHERE `id` = ?", pr.ID); err != nil {
-		return false, err
-	}
-
-	pr.Issue = nil
-	if err := pr.LoadIssue(ctx); err != nil {
-		return false, err
-	}
-
-	if tmpPr, err := GetPullRequestByID(ctx, pr.ID); err != nil {
-		return false, err
-	} else if tmpPr.HasMerged {
-		if pr.Issue.IsClosed {
-			return false, nil
-		}
-		return false, fmt.Errorf("PullRequest[%d] already merged but it's associated issue [%d] is not closed", pr.Index, pr.IssueID)
-	} else if pr.Issue.IsClosed {
-		return false, fmt.Errorf("PullRequest[%d] already closed", pr.Index)
-	}
-
-	if err := pr.Issue.LoadRepo(ctx); err != nil {
-		return false, err
-	}
-
-	if err := pr.Issue.Repo.LoadOwner(ctx); err != nil {
-		return false, err
-	}
-
-	if _, err := changeIssueStatus(ctx, pr.Issue, pr.Merger, true, true); err != nil {
-		return false, fmt.Errorf("Issue.changeStatus: %w", err)
-	}
-
-	// reset the conflicted files as there cannot be any if we're merged
-	pr.ConflictedFiles = []string{}
-
-	// We need to save all of the data used to compute this merge as it may have already been changed by TestPatch. FIXME: need to set some state to prevent TestPatch from running whilst we are merging.
-	if _, err := sess.Where("id = ?", pr.ID).Cols("has_merged, status, merge_base, merged_commit_id, merger_id, merged_unix, conflicted_files").Update(pr); err != nil {
-		return false, fmt.Errorf("Failed to update pr[%d]: %w", pr.ID, err)
-	}
-
-	return true, nil
 }
 
 // NewPullRequest creates new pull request with labels for repository.
@@ -807,7 +711,7 @@ func (pr *PullRequest) GetWorkInProgressPrefix(ctx context.Context) string {
 // UpdateCommitDivergence update Divergence of a pull request
 func (pr *PullRequest) UpdateCommitDivergence(ctx context.Context, ahead, behind int) error {
 	if pr.ID == 0 {
-		return fmt.Errorf("pull ID is 0")
+		return errors.New("pull ID is 0")
 	}
 	pr.CommitsAhead = ahead
 	pr.CommitsBehind = behind
@@ -1000,7 +904,7 @@ func ParseCodeOwnersLine(ctx context.Context, tokens []string) (*CodeOwnerRule, 
 		if strings.Contains(user, "/") {
 			s := strings.Split(user, "/")
 			if len(s) != 2 {
-				warnings = append(warnings, fmt.Sprintf("incorrect codeowner group: %s", user))
+				warnings = append(warnings, "incorrect codeowner group: "+user)
 				continue
 			}
 			orgName := s[0]
@@ -1008,12 +912,12 @@ func ParseCodeOwnersLine(ctx context.Context, tokens []string) (*CodeOwnerRule, 
 
 			org, err := org_model.GetOrgByName(ctx, orgName)
 			if err != nil {
-				warnings = append(warnings, fmt.Sprintf("incorrect codeowner organization: %s", user))
+				warnings = append(warnings, "incorrect codeowner organization: "+user)
 				continue
 			}
 			teams, err := org.LoadTeams(ctx)
 			if err != nil {
-				warnings = append(warnings, fmt.Sprintf("incorrect codeowner team: %s", user))
+				warnings = append(warnings, "incorrect codeowner team: "+user)
 				continue
 			}
 
@@ -1025,7 +929,7 @@ func ParseCodeOwnersLine(ctx context.Context, tokens []string) (*CodeOwnerRule, 
 		} else {
 			u, err := user_model.GetUserByName(ctx, user)
 			if err != nil {
-				warnings = append(warnings, fmt.Sprintf("incorrect codeowner user: %s", user))
+				warnings = append(warnings, "incorrect codeowner user: "+user)
 				continue
 			}
 			rule.Users = append(rule.Users, u)

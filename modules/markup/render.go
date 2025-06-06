@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,9 +45,9 @@ type RenderOptions struct {
 	MarkupType string
 
 	// user&repo, format&style&regexp (for external issue pattern), teams&org (for mention)
-	// BranchNameSubURL (for iframe&asciicast)
+	// RefTypeNameSubURL (for iframe&asciicast)
 	// markupAllowShortIssuePattern
-	// markdownLineBreakStyle (comment, document)
+	// markdownNewLineHardBreak
 	Metas map[string]string
 
 	// used by external render. the router "/org/repo/render/..." will output the rendered content in a standalone page
@@ -170,7 +171,7 @@ sandbox="allow-scripts"
 		setting.AppSubURL,
 		url.PathEscape(ctx.RenderOptions.Metas["user"]),
 		url.PathEscape(ctx.RenderOptions.Metas["repo"]),
-		ctx.RenderOptions.Metas["BranchNameSubURL"],
+		ctx.RenderOptions.Metas["RefTypeNameSubURL"],
 		url.PathEscape(ctx.RenderOptions.RelativePath),
 	))
 	return err
@@ -247,7 +248,8 @@ func Init(renderHelpFuncs *RenderHelperFuncs) {
 }
 
 func ComposeSimpleDocumentMetas() map[string]string {
-	return map[string]string{"markdownLineBreakStyle": "document"}
+	// TODO: there is no separate config option for "simple document" rendering, so temporarily use the same config as "repo file"
+	return map[string]string{"markdownNewLineHardBreak": strconv.FormatBool(setting.Markdown.RenderOptionsRepoFile.NewLineHardBreak)}
 }
 
 type TestRenderHelper struct {
@@ -261,8 +263,14 @@ func (r *TestRenderHelper) IsCommitIDExisting(commitID string) bool {
 	return strings.HasPrefix(commitID, "65f1bf2") //|| strings.HasPrefix(commitID, "88fc37a")
 }
 
-func (r *TestRenderHelper) ResolveLink(link string, likeType LinkType) string {
-	return r.ctx.ResolveLinkRelative(r.BaseLink, "", link)
+func (r *TestRenderHelper) ResolveLink(link, preferLinkType string) string {
+	linkType, link := ParseRenderedLink(link, preferLinkType)
+	switch linkType {
+	case LinkTypeRoot:
+		return r.ctx.ResolveLinkRoot(link)
+	default:
+		return r.ctx.ResolveLinkRelative(r.BaseLink, "", link)
+	}
 }
 
 var _ RenderHelper = (*TestRenderHelper)(nil)

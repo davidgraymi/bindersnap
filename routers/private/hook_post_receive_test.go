@@ -27,7 +27,7 @@ func TestHandlePullRequestMerging(t *testing.T) {
 
 	user1 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 1})
 
-	err = pull_model.ScheduleAutoMerge(db.DefaultContext, user1, pr.ID, repo_model.MergeStyleSquash, "squash merge a pr")
+	err = pull_model.ScheduleAutoMerge(db.DefaultContext, user1, pr.ID, repo_model.MergeStyleSquash, "squash merge a pr", false)
 	assert.NoError(t, err)
 
 	autoMerge := unittest.AssertExistsAndLoadBean(t, &pull_model.AutoMerge{PullID: pr.ID})
@@ -43,7 +43,7 @@ func TestHandlePullRequestMerging(t *testing.T) {
 	pr, err = issues_model.GetPullRequestByID(db.DefaultContext, pr.ID)
 	assert.NoError(t, err)
 	assert.True(t, pr.HasMerged)
-	assert.EqualValues(t, "01234567", pr.MergedCommitID)
+	assert.Equal(t, "01234567", pr.MergedCommitID)
 
 	unittest.AssertNotExistsBean(t, &pull_model.AutoMerge{ID: autoMerge.ID})
 }

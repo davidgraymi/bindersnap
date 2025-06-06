@@ -5,6 +5,7 @@ package actions
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path"
 
@@ -51,10 +52,16 @@ func createCommitStatus(ctx context.Context, job *actions_model.ActionRunJob) er
 			return fmt.Errorf("GetPushEventPayload: %w", err)
 		}
 		if payload.HeadCommit == nil {
-			return fmt.Errorf("head commit is missing in event payload")
+			return errors.New("head commit is missing in event payload")
 		}
 		sha = payload.HeadCommit.ID
-	case webhook_module.HookEventPullRequest, webhook_module.HookEventPullRequestSync:
+	case // pull_request
+		webhook_module.HookEventPullRequest,
+		webhook_module.HookEventPullRequestSync,
+		webhook_module.HookEventPullRequestAssign,
+		webhook_module.HookEventPullRequestLabel,
+		webhook_module.HookEventPullRequestReviewRequest,
+		webhook_module.HookEventPullRequestMilestone:
 		if run.TriggerEvent == actions_module.GithubEventPullRequestTarget {
 			event = "pull_request_target"
 		} else {
@@ -65,9 +72,9 @@ func createCommitStatus(ctx context.Context, job *actions_model.ActionRunJob) er
 			return fmt.Errorf("GetPullRequestEventPayload: %w", err)
 		}
 		if payload.PullRequest == nil {
-			return fmt.Errorf("pull request is missing in event payload")
+			return errors.New("pull request is missing in event payload")
 		} else if payload.PullRequest.Head == nil {
-			return fmt.Errorf("head of pull request is missing in event payload")
+			return errors.New("head of pull request is missing in event payload")
 		}
 		sha = payload.PullRequest.Head.Sha
 	case webhook_module.HookEventRelease:
@@ -85,7 +92,7 @@ func createCommitStatus(ctx context.Context, job *actions_model.ActionRunJob) er
 	}
 	ctxname := fmt.Sprintf("%s / %s (%s)", runName, job.Name, event)
 	state := toCommitStatus(job.Status)
-	if statuses, _, err := git_model.GetLatestCommitStatus(ctx, repo.ID, sha, db.ListOptionsAll); err == nil {
+	if statuses, err := git_model.GetLatestCommitStatus(ctx, repo.ID, sha, db.ListOptionsAll); err == nil {
 		for _, v := range statuses {
 			if v.Context == ctxname {
 				if v.State == state {
@@ -142,12 +149,14 @@ func createCommitStatus(ctx context.Context, job *actions_model.ActionRunJob) er
 
 func toCommitStatus(status actions_model.Status) api.CommitStatusState {
 	switch status {
-	case actions_model.StatusSuccess, actions_model.StatusSkipped:
+	case actions_model.StatusSuccess:
 		return api.CommitStatusSuccess
 	case actions_model.StatusFailure, actions_model.StatusCancelled:
 		return api.CommitStatusFailure
 	case actions_model.StatusWaiting, actions_model.StatusBlocked, actions_model.StatusRunning:
 		return api.CommitStatusPending
+	case actions_model.StatusSkipped:
+		return api.CommitStatusSkipped
 	default:
 		return api.CommitStatusError
 	}

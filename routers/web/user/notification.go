@@ -4,7 +4,6 @@
 package user
 
 import (
-	goctx "context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -34,32 +33,6 @@ const (
 	tplNotificationDiv           templates.TplName = "user/notification/notification_div"
 	tplNotificationSubscriptions templates.TplName = "user/notification/notification_subscriptions"
 )
-
-// GetNotificationCount is the middleware that sets the notification count in the context
-func GetNotificationCount(ctx *context.Context) {
-	if strings.HasPrefix(ctx.Req.URL.Path, "/api") {
-		return
-	}
-
-	if !ctx.IsSigned {
-		return
-	}
-
-	ctx.Data["NotificationUnreadCount"] = func() int64 {
-		count, err := db.Count[activities_model.Notification](ctx, activities_model.FindNotificationOptions{
-			UserID: ctx.Doer.ID,
-			Status: []activities_model.NotificationStatus{activities_model.NotificationStatusUnread},
-		})
-		if err != nil {
-			if err != goctx.Canceled {
-				log.Error("Unable to GetNotificationCount for user:%-v: %v", ctx.Doer, err)
-			}
-			return -1
-		}
-
-		return count
-	}
-}
 
 // Notifications is the notifications page
 func Notifications(ctx *context.Context) {
@@ -173,7 +146,7 @@ func getNotifications(ctx *context.Context) {
 	ctx.Data["Status"] = status
 	ctx.Data["Notifications"] = notifications
 
-	pager.SetDefaultParams(ctx)
+	pager.AddParamFromRequest(ctx.Req)
 	ctx.Data["Page"] = pager
 }
 
@@ -314,15 +287,7 @@ func NotificationSubscriptions(ctx *context.Context) {
 	ctx.Data["CommitLastStatus"] = lastStatus
 	ctx.Data["CommitStatuses"] = commitStatuses
 	ctx.Data["Issues"] = issues
-
 	ctx.Data["IssueRefEndNames"], ctx.Data["IssueRefURLs"] = issue_service.GetRefEndNamesAndURLs(issues, "")
-
-	commitStatus, err := pull_service.GetIssuesLastCommitStatus(ctx, issues)
-	if err != nil {
-		ctx.ServerError("GetIssuesLastCommitStatus", err)
-		return
-	}
-	ctx.Data["CommitStatus"] = commitStatus
 
 	approvalCounts, err := issues.GetApprovalCounts(ctx)
 	if err != nil {
@@ -335,9 +300,10 @@ func NotificationSubscriptions(ctx *context.Context) {
 			return 0
 		}
 		reviewTyp := issues_model.ReviewTypeApprove
-		if typ == "reject" {
+		switch typ {
+		case "reject":
 			reviewTyp = issues_model.ReviewTypeReject
-		} else if typ == "waiting" {
+		case "waiting":
 			reviewTyp = issues_model.ReviewTypeRequest
 		}
 		for _, count := range counts {
@@ -357,8 +323,7 @@ func NotificationSubscriptions(ctx *context.Context) {
 		ctx.Redirect(fmt.Sprintf("/notifications/subscriptions?page=%d", pager.Paginater.Current()))
 		return
 	}
-	pager.AddParamString("sort", sortType)
-	pager.AddParamString("state", state)
+	pager.AddParamFromRequest(ctx.Req)
 	ctx.Data["Page"] = pager
 
 	ctx.HTML(http.StatusOK, tplNotificationSubscriptions)
@@ -417,7 +382,7 @@ func NotificationWatching(ctx *context.Context) {
 	private := ctx.FormOptionalBool("private")
 	ctx.Data["IsPrivate"] = private
 
-	repos, count, err := repo_model.SearchRepository(ctx, &repo_model.SearchRepoOptions{
+	repos, count, err := repo_model.SearchRepository(ctx, repo_model.SearchRepoOptions{
 		ListOptions: db.ListOptions{
 			PageSize: setting.UI.User.RepoPagingNum,
 			Page:     page,
@@ -446,22 +411,7 @@ func NotificationWatching(ctx *context.Context) {
 
 	// redirect to last page if request page is more than total pages
 	pager := context.NewPagination(total, setting.UI.User.RepoPagingNum, page, 5)
-	pager.SetDefaultParams(ctx)
-	if archived.Has() {
-		pager.AddParamString("archived", fmt.Sprint(archived.Value()))
-	}
-	if fork.Has() {
-		pager.AddParamString("fork", fmt.Sprint(fork.Value()))
-	}
-	if mirror.Has() {
-		pager.AddParamString("mirror", fmt.Sprint(mirror.Value()))
-	}
-	if template.Has() {
-		pager.AddParamString("template", fmt.Sprint(template.Value()))
-	}
-	if private.Has() {
-		pager.AddParamString("private", fmt.Sprint(private.Value()))
-	}
+	pager.AddParamFromRequest(ctx.Req)
 	ctx.Data["Page"] = pager
 
 	ctx.Data["Status"] = 2

@@ -4,7 +4,6 @@
 package integration
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -39,7 +38,7 @@ func TestLFSRender(t *testing.T) {
 		doc := NewHTMLParser(t, resp.Body).doc
 
 		fileInfo := doc.Find("div.file-info-entry").First().Text()
-		assert.Contains(t, fileInfo, "Stored with Git LFS")
+		assert.Contains(t, fileInfo, "LFS")
 
 		content := doc.Find("div.file-view").Text()
 		assert.Contains(t, content, "Testing documents in LFS")
@@ -55,7 +54,7 @@ func TestLFSRender(t *testing.T) {
 		doc := NewHTMLParser(t, resp.Body).doc
 
 		fileInfo := doc.Find("div.file-info-entry").First().Text()
-		assert.Contains(t, fileInfo, "Stored with Git LFS")
+		assert.Contains(t, fileInfo, "LFS")
 
 		src, exists := doc.Find(".file-view img").Attr("src")
 		assert.True(t, exists, "The image should be in an <img> tag")
@@ -72,7 +71,7 @@ func TestLFSRender(t *testing.T) {
 		doc := NewHTMLParser(t, resp.Body).doc
 
 		fileInfo := doc.Find("div.file-info-entry").First().Text()
-		assert.Contains(t, fileInfo, "Stored with Git LFS")
+		assert.Contains(t, fileInfo, "LFS")
 
 		rawLink, exists := doc.Find("div.file-view > div.view-raw > a").Attr("href")
 		assert.True(t, exists, "Download link should render instead of content because this is a binary file")
@@ -143,7 +142,7 @@ func TestLFSLockView(t *testing.T) {
 		defer tests.PrintCurrentTest(t)()
 
 		// make sure the display names are different, or the test is meaningless
-		require.NoError(t, repo3.LoadOwner(context.Background()))
+		require.NoError(t, repo3.LoadOwner(t.Context()))
 		require.NotEqual(t, user2.DisplayName(), repo3.Owner.DisplayName())
 
 		req := NewRequest(t, "GET", fmt.Sprintf("/%s/settings/lfs/locks", repo3.FullName()))

@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,7 +18,11 @@ import (
 	access_model "code.gitea.io/gitea/models/perm/access"
 	repo_model "code.gitea.io/gitea/models/repo"
 	unit_model "code.gitea.io/gitea/models/unit"
+	user_model "code.gitea.io/gitea/models/user"
 	"code.gitea.io/gitea/modules/git"
+	giturl "code.gitea.io/gitea/modules/git/url"
+	"code.gitea.io/gitea/modules/gitrepo"
+	"code.gitea.io/gitea/modules/httplib"
 	"code.gitea.io/gitea/modules/log"
 	repo_module "code.gitea.io/gitea/modules/repository"
 	"code.gitea.io/gitea/modules/setting"
@@ -74,7 +79,7 @@ func prepareOpenWithEditorApps(ctx *context.Context) {
 		schema, _, _ := strings.Cut(app.OpenURL, ":")
 		var iconHTML template.HTML
 		if schema == "vscode" || schema == "vscodium" || schema == "jetbrains" {
-			iconHTML = svg.RenderHTML(fmt.Sprintf("gitea-%s", schema), 16)
+			iconHTML = svg.RenderHTML("gitea-"+schema, 16)
 		} else {
 			iconHTML = svg.RenderHTML("gitea-git", 16) // TODO: it could support user's customized icon in the future
 		}
@@ -135,7 +140,7 @@ func prepareToRenderDirectory(ctx *context.Context) {
 
 	if ctx.Repo.TreePath != "" {
 		ctx.Data["HideRepoInfo"] = true
-		ctx.Data["Title"] = ctx.Tr("repo.file.title", ctx.Repo.Repository.Name+"/"+path.Base(ctx.Repo.TreePath), ctx.Repo.RefName)
+		ctx.Data["Title"] = ctx.Tr("repo.file.title", ctx.Repo.Repository.Name+"/"+path.Base(ctx.Repo.TreePath), ctx.Repo.RefFullName.ShortName())
 	}
 
 	subfolder, readmeFile, err := findReadmeFileInEntries(ctx, entries, true)
@@ -178,7 +183,7 @@ func prepareHomeSidebarLatestRelease(ctx *context.Context) {
 }
 
 func prepareUpstreamDivergingInfo(ctx *context.Context) {
-	if !ctx.Repo.Repository.IsFork || !ctx.Repo.IsViewBranch || ctx.Repo.TreePath != "" {
+	if !ctx.Repo.Repository.IsFork || !ctx.Repo.RefFullName.IsBranch() || ctx.Repo.TreePath != "" {
 		return
 	}
 	upstreamDivergingInfo, err := repo_service.GetUpstreamDivergingInfo(ctx, ctx.Repo.Repository, ctx.Repo.BranchName)
@@ -215,24 +220,71 @@ func prepareRecentlyPushedNewBranches(ctx *context.Context) {
 		if !opts.Repo.IsMirror && !opts.BaseRepo.IsMirror &&
 			opts.BaseRepo.UnitEnabled(ctx, unit_model.TypePullRequests) &&
 			baseRepoPerm.CanRead(unit_model.TypePullRequests) {
-			ctx.Data["RecentlyPushedNewBranches"], err = git_model.FindRecentlyPushedNewBranches(ctx, ctx.Doer, opts)
+			var finalBranches []*git_model.RecentlyPushedNewBranch
+			branches, err := git_model.FindRecentlyPushedNewBranches(ctx, ctx.Doer, opts)
 			if err != nil {
 				log.Error("FindRecentlyPushedNewBranches failed: %v", err)
 			}
+
+			for _, branch := range branches {
+				divergingInfo, err := repo_service.GetBranchDivergingInfo(ctx,
+					branch.BranchRepo, branch.BranchName, // "base" repo for diverging info
+					opts.BaseRepo, opts.BaseRepo.DefaultBranch, // "head" repo for diverging info
+				)
+				if err != nil {
+					log.Error("GetBranchDivergingInfo failed: %v", err)
+					continue
+				}
+				branchRepoHasNewCommits := divergingInfo.BaseHasNewCommits
+				baseRepoCommitsBehind := divergingInfo.HeadCommitsBehind
+				if branchRepoHasNewCommits || baseRepoCommitsBehind > 0 {
+					finalBranches = append(finalBranches, branch)
+				}
+			}
+			ctx.Data["RecentlyPushedNewBranches"] = finalBranches
 		}
+	}
+}
+
+func updateContextRepoEmptyAndStatus(ctx *context.Context, empty bool, status repo_model.RepositoryStatus) {
+	if ctx.Repo.Repository.IsEmpty == empty && ctx.Repo.Repository.Status == status {
+		return
+	}
+	ctx.Repo.Repository.IsEmpty = empty
+	if ctx.Repo.Repository.Status == repo_model.RepositoryReady || ctx.Repo.Repository.Status == repo_model.RepositoryBroken {
+		ctx.Repo.Repository.Status = status // only handle ready and broken status, leave other status as-is
+	}
+	if err := repo_model.UpdateRepositoryColsNoAutoTime(ctx, ctx.Repo.Repository, "is_empty", "status"); err != nil {
+		ctx.ServerError("updateContextRepoEmptyAndStatus: UpdateRepositoryCols", err)
+		return
 	}
 }
 
 func handleRepoEmptyOrBroken(ctx *context.Context) {
 	showEmpty := true
-	var err error
+	if ctx.Repo.GitRepo == nil {
+		// in case the repo really exists and works, but the status was incorrectly marked as "broken", we need to open and check it again
+		ctx.Repo.GitRepo, _ = gitrepo.RepositoryFromRequestContextOrOpen(ctx, ctx.Repo.Repository)
+	}
 	if ctx.Repo.GitRepo != nil {
-		showEmpty, err = ctx.Repo.GitRepo.IsEmpty()
+		reallyEmpty, err := ctx.Repo.GitRepo.IsEmpty()
 		if err != nil {
+			showEmpty = true // the repo is broken
+			updateContextRepoEmptyAndStatus(ctx, true, repo_model.RepositoryBroken)
 			log.Error("GitRepo.IsEmpty: %v", err)
-			ctx.Repo.Repository.Status = repo_model.RepositoryBroken
-			showEmpty = true
 			ctx.Flash.Error(ctx.Tr("error.occurred"), true)
+		} else if reallyEmpty {
+			showEmpty = true // the repo is really empty
+			updateContextRepoEmptyAndStatus(ctx, true, repo_model.RepositoryReady)
+		} else if branches, _, _ := ctx.Repo.GitRepo.GetBranchNames(0, 1); len(branches) == 0 {
+			showEmpty = true // it is not really empty, but there is no branch
+			// at the moment, other repo units like "actions" are not able to handle such case,
+			// so we just mark the repo as empty to prevent from displaying these units.
+			ctx.Data["RepoHasContentsWithoutBranch"] = true
+			updateContextRepoEmptyAndStatus(ctx, true, repo_model.RepositoryReady)
+		} else {
+			// the repo is actually not empty and has branches, need to update the database later
+			showEmpty = false
 		}
 	}
 	if showEmpty {
@@ -240,18 +292,11 @@ func handleRepoEmptyOrBroken(ctx *context.Context) {
 		return
 	}
 
-	// the repo is not really empty, so we should update the modal in database
-	// such problem may be caused by:
-	// 1) an error occurs during pushing/receiving.  2) the user replaces an empty git repo manually
-	// and even more: the IsEmpty flag is deeply broken and should be removed with the UI changed to manage to cope with empty repos.
-	// it's possible for a repository to be non-empty by that flag but still 500
-	// because there are no branches - only tags -or the default branch is non-extant as it has been 0-pushed.
-	ctx.Repo.Repository.IsEmpty = false
-	if err = repo_model.UpdateRepositoryCols(ctx, ctx.Repo.Repository, "is_empty"); err != nil {
-		ctx.ServerError("UpdateRepositoryCols", err)
-		return
-	}
-	if err = repo_module.UpdateRepoSize(ctx, ctx.Repo.Repository); err != nil {
+	// The repo is not really empty, so we should update the model in database, such problem may be caused by:
+	// 1) an error occurs during pushing/receiving.
+	// 2) the user replaces an empty git repo manually.
+	updateContextRepoEmptyAndStatus(ctx, false, repo_model.RepositoryReady)
+	if err := repo_module.UpdateRepoSize(ctx, ctx.Repo.Repository); err != nil {
 		ctx.ServerError("UpdateRepoSize", err)
 		return
 	}
@@ -264,8 +309,33 @@ func handleRepoEmptyOrBroken(ctx *context.Context) {
 	ctx.Redirect(link)
 }
 
+func handleRepoViewSubmodule(ctx *context.Context, submodule *git.SubModule) {
+	submoduleRepoURL, err := giturl.ParseRepositoryURL(ctx, submodule.URL)
+	if err != nil {
+		HandleGitError(ctx, "prepareToRenderDirOrFile: ParseRepositoryURL", err)
+		return
+	}
+	submoduleURL := giturl.MakeRepositoryWebLink(submoduleRepoURL)
+	if httplib.IsCurrentGiteaSiteURL(ctx, submoduleURL) {
+		ctx.RedirectToCurrentSite(submoduleURL)
+	} else {
+		// don't auto-redirect to external URL, to avoid open redirect or phishing
+		ctx.Data["NotFoundPrompt"] = submoduleURL
+		ctx.NotFound(nil)
+	}
+}
+
 func prepareToRenderDirOrFile(entry *git.TreeEntry) func(ctx *context.Context) {
 	return func(ctx *context.Context) {
+		if entry.IsSubModule() {
+			submodule, err := ctx.Repo.Commit.GetSubModule(entry.Name())
+			if err != nil {
+				HandleGitError(ctx, "prepareToRenderDirOrFile: GetSubModule", err)
+				return
+			}
+			handleRepoViewSubmodule(ctx, submodule)
+			return
+		}
 		if entry.IsDir() {
 			prepareToRenderDirectory(ctx)
 		} else {
@@ -275,19 +345,43 @@ func prepareToRenderDirOrFile(entry *git.TreeEntry) func(ctx *context.Context) {
 }
 
 func handleRepoHomeFeed(ctx *context.Context) bool {
-	if setting.Other.EnableFeed {
-		isFeed, _, showFeedType := feed.GetFeedType(ctx.PathParam("reponame"), ctx.Req)
-		if isFeed {
-			switch {
-			case ctx.Link == fmt.Sprintf("%s.%s", ctx.Repo.RepoLink, showFeedType):
-				feed.ShowRepoFeed(ctx, ctx.Repo.Repository, showFeedType)
-			case ctx.Repo.TreePath == "":
-				feed.ShowBranchFeed(ctx, ctx.Repo.Repository, showFeedType)
-			case ctx.Repo.TreePath != "":
-				feed.ShowFileFeed(ctx, ctx.Repo.Repository, showFeedType)
-			}
-			return true
+	if !setting.Other.EnableFeed {
+		return false
+	}
+	isFeed, showFeedType := feed.GetFeedType(ctx.PathParam("reponame"), ctx.Req)
+	if !isFeed {
+		return false
+	}
+	if ctx.Link == fmt.Sprintf("%s.%s", ctx.Repo.RepoLink, showFeedType) {
+		feed.ShowRepoFeed(ctx, ctx.Repo.Repository, showFeedType)
+	} else if ctx.Repo.TreePath == "" {
+		feed.ShowBranchFeed(ctx, ctx.Repo.Repository, showFeedType)
+	} else {
+		feed.ShowFileFeed(ctx, ctx.Repo.Repository, showFeedType)
+	}
+	return true
+}
+
+func prepareHomeTreeSideBarSwitch(ctx *context.Context) {
+	showFileTree := true
+	if ctx.Doer != nil {
+		v, err := user_model.GetUserSetting(ctx, ctx.Doer.ID, user_model.SettingsKeyCodeViewShowFileTree, "true")
+		if err != nil {
+			log.Error("GetUserSetting: %v", err)
+		} else {
+			showFileTree, _ = strconv.ParseBool(v)
 		}
+	}
+	ctx.Data["UserSettingCodeViewShowFileTree"] = showFileTree
+}
+
+func redirectSrcToRaw(ctx *context.Context) bool {
+	// GitHub redirects a tree path with "?raw=1" to the raw path
+	// It is useful to embed some raw contents into markdown files,
+	// then viewing the markdown in "src" path could embed the raw content correctly.
+	if ctx.Repo.TreePath != "" && ctx.FormBool("raw") {
+		ctx.Redirect(ctx.Repo.RepoLink + "/raw/" + ctx.Repo.RefTypeNameSubURL() + "/" + util.PathEscapeSegments(ctx.Repo.TreePath))
+		return true
 	}
 	return false
 }
@@ -297,7 +391,9 @@ func Home(ctx *context.Context) {
 	if handleRepoHomeFeed(ctx) {
 		return
 	}
-
+	if redirectSrcToRaw(ctx) {
+		return
+	}
 	// Check whether the repo is viewable: not in migration, and the code unit should be enabled
 	// Ideally the "feed" logic should be after this, but old code did so, so keep it as-is.
 	checkHomeCodeViewable(ctx)
@@ -306,7 +402,7 @@ func Home(ctx *context.Context) {
 	}
 
 	title := ctx.Repo.Repository.Owner.Name + "/" + ctx.Repo.Repository.Name
-	if len(ctx.Repo.Repository.Description) > 0 {
+	if ctx.Repo.Repository.Description != "" {
 		title += ": " + ctx.Repo.Repository.Description
 	}
 	ctx.Data["Title"] = title
@@ -319,6 +415,8 @@ func Home(ctx *context.Context) {
 		return
 	}
 
+	prepareHomeTreeSideBarSwitch(ctx)
+
 	// get the current git entry which doer user is currently looking at.
 	entry, err := ctx.Repo.Commit.GetTreeEntryByPath(ctx.Repo.TreePath)
 	if err != nil {
@@ -328,7 +426,7 @@ func Home(ctx *context.Context) {
 
 	// prepare the tree path
 	var treeNames, paths []string
-	branchLink := ctx.Repo.RepoLink + "/src/" + ctx.Repo.BranchNameSubURL()
+	branchLink := ctx.Repo.RepoLink + "/src/" + ctx.Repo.RefTypeNameSubURL()
 	treeLink := branchLink
 	if ctx.Repo.TreePath != "" {
 		treeLink += "/" + util.PathEscapeSegments(ctx.Repo.TreePath)
@@ -374,5 +472,39 @@ func Home(ctx *context.Context) {
 		}
 	}
 
-	ctx.HTML(http.StatusOK, tplRepoHome)
+	if ctx.FormBool("only_content") {
+		ctx.HTML(http.StatusOK, tplRepoViewContent)
+	} else if len(treeNames) != 0 {
+		ctx.HTML(http.StatusOK, tplRepoView)
+	} else {
+		ctx.HTML(http.StatusOK, tplRepoHome)
+	}
+}
+
+func RedirectRepoTreeToSrc(ctx *context.Context) {
+	// Redirect "/owner/repo/tree/*" requests to "/owner/repo/src/*",
+	// then use the deprecated "/src/*" handler to guess the ref type and render a file list page.
+	// This is done intentionally so that Gitea's repo URL structure matches other forges (GitHub/GitLab) provide,
+	// allowing us to construct submodule URLs across forges easily.
+	// For example, when viewing a submodule, we can simply construct the link as:
+	// * "https://gitea/owner/repo/tree/{CommitID}"
+	// * "https://github/owner/repo/tree/{CommitID}"
+	// * "https://gitlab/owner/repo/tree/{CommitID}"
+	// Then no matter which forge the submodule is using, the link works.
+	redirect := ctx.Repo.RepoLink + "/src/" + ctx.PathParamRaw("*")
+	if ctx.Req.URL.RawQuery != "" {
+		redirect += "?" + ctx.Req.URL.RawQuery
+	}
+	ctx.Redirect(redirect)
+}
+
+func RedirectRepoBlobToCommit(ctx *context.Context) {
+	// redirect "/owner/repo/blob/*" requests to "/owner/repo/src/commit/*"
+	// just like GitHub: browse files of a commit by "https://github/owner/repo/blob/{CommitID}"
+	// TODO: maybe we could guess more types to redirect to the related pages in the future
+	redirect := ctx.Repo.RepoLink + "/src/commit/" + ctx.PathParamRaw("*")
+	if ctx.Req.URL.RawQuery != "" {
+		redirect += "?" + ctx.Req.URL.RawQuery
+	}
+	ctx.Redirect(redirect)
 }

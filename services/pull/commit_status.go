@@ -10,7 +10,6 @@ import (
 	"code.gitea.io/gitea/models/db"
 	git_model "code.gitea.io/gitea/models/git"
 	issues_model "code.gitea.io/gitea/models/issues"
-	"code.gitea.io/gitea/modules/git"
 	"code.gitea.io/gitea/modules/gitrepo"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/structs"
@@ -47,57 +46,31 @@ func MergeRequiredContextsCommitStatus(commitStatuses []*git_model.CommitStatus,
 
 			// If required rule not match any action, then it is pending
 			if targetStatus == "" {
-				if structs.CommitStatusPending.NoBetterThan(returnedStatus) {
+				if structs.CommitStatusPending.HasHigherPriorityThan(returnedStatus) {
 					returnedStatus = structs.CommitStatusPending
 				}
 				break
 			}
 
-			if targetStatus.NoBetterThan(returnedStatus) {
+			if targetStatus.HasHigherPriorityThan(returnedStatus) {
 				returnedStatus = targetStatus
 			}
 		}
 	}
 
 	if matchedCount == 0 && returnedStatus == structs.CommitStatusSuccess {
-		status := git_model.CalcCommitStatus(commitStatuses)
-		if status != nil {
-			return status.State
+		if len(commitStatuses) == 0 {
+			// "no statuses" should mean "pending"
+			return structs.CommitStatusPending
 		}
-		return structs.CommitStatusSuccess
+		status := git_model.CalcCommitStatus(commitStatuses)
+		if status.State == structs.CommitStatusSkipped {
+			return structs.CommitStatusSuccess // if all statuses are skipped, return success
+		}
+		return status.State
 	}
 
 	return returnedStatus
-}
-
-// IsCommitStatusContextSuccess returns true if all required status check contexts succeed.
-func IsCommitStatusContextSuccess(commitStatuses []*git_model.CommitStatus, requiredContexts []string) bool {
-	// If no specific context is required, require that last commit status is a success
-	if len(requiredContexts) == 0 {
-		status := git_model.CalcCommitStatus(commitStatuses)
-		if status == nil || status.State != structs.CommitStatusSuccess {
-			return false
-		}
-		return true
-	}
-
-	for _, ctx := range requiredContexts {
-		var found bool
-		for _, commitStatus := range commitStatuses {
-			if commitStatus.Context == ctx {
-				if commitStatus.State != structs.CommitStatusSuccess {
-					return false
-				}
-
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-	return true
 }
 
 // IsPullCommitStatusPass returns if all required status checks PASS
@@ -131,10 +104,10 @@ func GetPullRequestCommitStatusState(ctx context.Context, pr *issues_model.PullR
 	}
 	defer closer.Close()
 
-	if pr.Flow == issues_model.PullRequestFlowGithub && !headGitRepo.IsBranchExist(pr.HeadBranch) {
+	if pr.Flow == issues_model.PullRequestFlowGithub && !gitrepo.IsBranchExist(ctx, pr.HeadRepo, pr.HeadBranch) {
 		return "", errors.New("Head branch does not exist, can not merge")
 	}
-	if pr.Flow == issues_model.PullRequestFlowAGit && !git.IsReferenceExist(ctx, headGitRepo.Path, pr.GetGitRefName()) {
+	if pr.Flow == issues_model.PullRequestFlowAGit && !gitrepo.IsReferenceExist(ctx, pr.HeadRepo, pr.GetGitRefName()) {
 		return "", errors.New("Head branch does not exist, can not merge")
 	}
 
@@ -152,7 +125,7 @@ func GetPullRequestCommitStatusState(ctx context.Context, pr *issues_model.PullR
 		return "", errors.Wrap(err, "LoadBaseRepo")
 	}
 
-	commitStatuses, _, err := git_model.GetLatestCommitStatus(ctx, pr.BaseRepo.ID, sha, db.ListOptionsAll)
+	commitStatuses, err := git_model.GetLatestCommitStatus(ctx, pr.BaseRepo.ID, sha, db.ListOptionsAll)
 	if err != nil {
 		return "", errors.Wrap(err, "GetLatestCommitStatus")
 	}
