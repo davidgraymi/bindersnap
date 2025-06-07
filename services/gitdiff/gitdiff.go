@@ -82,7 +82,7 @@ type DiffLine struct {
 	Match       int
 	Type        DiffLineType
 	Content     string
-	Comments    []*issues_model.Comment
+	Comments    issues_model.CommentList
 	SectionInfo *DiffLineSectionInfo
 }
 
@@ -202,8 +202,6 @@ var (
 	addedCodePrefix   = []byte(`<span class="added-code">`)
 	removedCodePrefix = []byte(`<span class="removed-code">`)
 	codeTagSuffix     = []byte(`</span>`)
-	// divTagPrefix      = []byte(`<div class="tag-code">`)
-	// divTagSuffix      = []byte(`</div>`)
 )
 
 func diffToHTML(lineWrapperTags []string, diffs []diffmatchpatch.Diff, lineType DiffLineType) string {
@@ -1290,6 +1288,8 @@ func GetDiff(ctx context.Context, gitRepo *git.Repository, opts *DiffOptions, fi
 				if language.Has() {
 					diffFile.Language = language.Value()
 				}
+			} else {
+				checker = nil // CheckPath fails, it's not impossible to "check" anymore
 			}
 		}
 
@@ -1474,10 +1474,8 @@ func GetWhitespaceFlag(whitespaceBehavior string) git.TrustedCmdArgs {
 		"ignore-eol":    {"--ignore-space-at-eol"},
 		"show-all":      nil,
 	}
-
 	if flag, ok := whitespaceFlags[whitespaceBehavior]; ok {
 		return flag
 	}
-	log.Warn("unknown whitespace behavior: %q, default to 'show-all'", whitespaceBehavior)
 	return nil
 }

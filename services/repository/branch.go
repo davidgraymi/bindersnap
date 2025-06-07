@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"code.gitea.io/gitea/models"
 	actions_model "code.gitea.io/gitea/models/actions"
 	"code.gitea.io/gitea/models/db"
 	git_model "code.gitea.io/gitea/models/git"
@@ -29,8 +30,8 @@ import (
 	"code.gitea.io/gitea/modules/timeutil"
 	"code.gitea.io/gitea/modules/util"
 	webhook_module "code.gitea.io/gitea/modules/webhook"
+	actions_service "code.gitea.io/gitea/services/actions"
 	notify_service "code.gitea.io/gitea/services/notify"
-	release_service "code.gitea.io/gitea/services/release"
 	files_service "code.gitea.io/gitea/services/repository/files"
 
 	"xorm.io/builder"
@@ -274,7 +275,7 @@ func checkBranchName(ctx context.Context, repo *repo_model.Repository, name stri
 				BranchName: branchRefName,
 			}
 		case refName == git.TagPrefix+name:
-			return release_service.ErrTagAlreadyExists{
+			return models.ErrTagAlreadyExists{
 				TagName: name,
 			}
 		}
@@ -428,7 +429,7 @@ func RenameBranch(ctx context.Context, repo *repo_model.Repository, doer *user_m
 				log.Error("DeleteCronTaskByRepo: %v", err)
 			}
 			// cancel running cron jobs of this repository and delete old schedules
-			if err := actions_model.CancelPreviousJobs(
+			if err := actions_service.CancelPreviousJobs(
 				ctx,
 				repo.ID,
 				from,
@@ -609,7 +610,7 @@ func SetRepoDefaultBranch(ctx context.Context, repo *repo_model.Repository, gitR
 			log.Error("DeleteCronTaskByRepo: %v", err)
 		}
 		// cancel running cron jobs of this repository and delete old schedules
-		if err := actions_model.CancelPreviousJobs(
+		if err := actions_service.CancelPreviousJobs(
 			ctx,
 			repo.ID,
 			oldDefaultBranchName,
@@ -635,4 +636,75 @@ func SetRepoDefaultBranch(ctx context.Context, repo *repo_model.Repository, gitR
 	notify_service.ChangeDefaultBranch(ctx, repo)
 
 	return nil
+}
+
+// BranchDivergingInfo contains the information about the divergence of a head branch to the base branch.
+type BranchDivergingInfo struct {
+	// whether the base branch contains new commits which are not in the head branch
+	BaseHasNewCommits bool
+
+	// behind/after are number of commits that the head branch is behind/after the base branch, it's 0 if it's unable to calculate.
+	// there could be a case that BaseHasNewCommits=true while the behind/after are both 0 (unable to calculate).
+	HeadCommitsBehind int
+	HeadCommitsAhead  int
+}
+
+// GetBranchDivergingInfo returns the information about the divergence of a patch branch to the base branch.
+func GetBranchDivergingInfo(ctx context.Context, baseRepo *repo_model.Repository, baseBranch string, headRepo *repo_model.Repository, headBranch string) (*BranchDivergingInfo, error) {
+	headGitBranch, err := git_model.GetBranch(ctx, headRepo.ID, headBranch)
+	if err != nil {
+		return nil, err
+	}
+	if headGitBranch.IsDeleted {
+		return nil, git_model.ErrBranchNotExist{
+			BranchName: headBranch,
+		}
+	}
+	baseGitBranch, err := git_model.GetBranch(ctx, baseRepo.ID, baseBranch)
+	if err != nil {
+		return nil, err
+	}
+	if baseGitBranch.IsDeleted {
+		return nil, git_model.ErrBranchNotExist{
+			BranchName: baseBranch,
+		}
+	}
+
+	info := &BranchDivergingInfo{}
+	if headGitBranch.CommitID == baseGitBranch.CommitID {
+		return info, nil
+	}
+
+	// if the fork repo has new commits, this call will fail because they are not in the base repo
+	// exit status 128 - fatal: Invalid symmetric difference expression aaaaaaaaaaaa...bbbbbbbbbbbb
+	// so at the moment, we first check the update time, then check whether the fork branch has base's head
+	diff, err := git.GetDivergingCommits(ctx, baseRepo.RepoPath(), baseGitBranch.CommitID, headGitBranch.CommitID)
+	if err != nil {
+		info.BaseHasNewCommits = baseGitBranch.UpdatedUnix > headGitBranch.UpdatedUnix
+		if headRepo.IsFork && info.BaseHasNewCommits {
+			return info, nil
+		}
+		// if the base's update time is before the fork, check whether the base's head is in the fork
+		headGitRepo, closer, err := gitrepo.RepositoryFromContextOrOpen(ctx, headRepo)
+		if err != nil {
+			return nil, err
+		}
+		defer closer.Close()
+
+		headCommit, err := headGitRepo.GetCommit(headGitBranch.CommitID)
+		if err != nil {
+			return nil, err
+		}
+		baseCommitID, err := git.NewIDFromString(baseGitBranch.CommitID)
+		if err != nil {
+			return nil, err
+		}
+		hasPreviousCommit, _ := headCommit.HasPreviousCommit(baseCommitID)
+		info.BaseHasNewCommits = !hasPreviousCommit
+		return info, nil
+	}
+
+	info.HeadCommitsBehind, info.HeadCommitsAhead = diff.Behind, diff.Ahead
+	info.BaseHasNewCommits = info.HeadCommitsBehind > 0
+	return info, nil
 }

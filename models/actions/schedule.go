@@ -68,7 +68,7 @@ func CreateScheduleTask(ctx context.Context, rows []*ActionSchedule) error {
 
 	// Loop through each schedule row
 	for _, row := range rows {
-		row.Title = util.EllipsisDisplayString(row.Title, 255)
+		row.Title, _ = util.SplitStringAtByteN(row.Title, 255)
 		// Create new schedule row
 		if err = db.Insert(ctx, row); err != nil {
 			return err
@@ -120,21 +120,22 @@ func DeleteScheduleTaskByRepo(ctx context.Context, id int64) error {
 	return committer.Commit()
 }
 
-func CleanRepoScheduleTasks(ctx context.Context, repo *repo_model.Repository) error {
+func CleanRepoScheduleTasks(ctx context.Context, repo *repo_model.Repository) ([]*ActionRunJob, error) {
 	// If actions disabled when there is schedule task, this will remove the outdated schedule tasks
 	// There is no other place we can do this because the app.ini will be changed manually
 	if err := DeleteScheduleTaskByRepo(ctx, repo.ID); err != nil {
-		return fmt.Errorf("DeleteCronTaskByRepo: %v", err)
+		return nil, fmt.Errorf("DeleteCronTaskByRepo: %v", err)
 	}
 	// cancel running cron jobs of this repository and delete old schedules
-	if err := CancelPreviousJobs(
+	jobs, err := CancelPreviousJobs(
 		ctx,
 		repo.ID,
 		repo.DefaultBranch,
 		"",
 		webhook_module.HookEventSchedule,
-	); err != nil {
-		return fmt.Errorf("CancelPreviousJobs: %v", err)
+	)
+	if err != nil {
+		return jobs, fmt.Errorf("CancelPreviousJobs: %v", err)
 	}
-	return nil
+	return jobs, nil
 }

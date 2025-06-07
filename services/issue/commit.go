@@ -188,19 +188,15 @@ func UpdateIssuesCommit(ctx context.Context, doer *user_model.User, repo *repo_m
 					continue
 				}
 			}
-
-			refIssue.Repo = refRepo
-			if ref.Action == references.XRefActionCloses && !refIssue.IsClosed {
-				if len(ref.TimeLog) > 0 {
-					if err := issueAddTime(ctx, refIssue, doer, c.Timestamp, ref.TimeLog); err != nil {
-						return err
-					}
-				}
-				if err := CloseIssue(ctx, refIssue, doer, c.Sha1); err != nil {
+			isClosed := ref.Action == references.XRefActionCloses
+			if isClosed && len(ref.TimeLog) > 0 {
+				if err := issueAddTime(ctx, refIssue, doer, c.Timestamp, ref.TimeLog); err != nil {
 					return err
 				}
-			} else if ref.Action == references.XRefActionReopens && refIssue.IsClosed {
-				if err := ReopenIssue(ctx, refIssue, doer, c.Sha1); err != nil {
+			}
+			if isClosed != refIssue.IsClosed {
+				refIssue.Repo = refRepo
+				if err := ChangeStatus(ctx, refIssue, doer, c.Sha1, isClosed); err != nil {
 					return err
 				}
 			}

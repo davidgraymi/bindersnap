@@ -47,7 +47,7 @@ func TestRemoveOrgUser(t *testing.T) {
 
 	testSuccess := func(org *organization.Organization, user *user_model.User) {
 		expectedNumMembers := org.NumMembers
-		if unittest.GetBean(t, &organization.OrgUser{OrgID: org.ID, UID: user.ID}) != nil {
+		if unittest.BeanExists(t, &organization.OrgUser{OrgID: org.ID, UID: user.ID}) {
 			expectedNumMembers--
 		}
 		assert.NoError(t, RemoveOrgUser(db.DefaultContext, org, user))

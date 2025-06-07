@@ -8,7 +8,7 @@ import (
 	"html/template"
 	"strings"
 
-	"code.gitea.io/gitea/modules/util"
+	"code.gitea.io/gitea/modules/base"
 )
 
 type StringUtils struct{}
@@ -54,7 +54,7 @@ func (su *StringUtils) Cut(s, sep string) []any {
 }
 
 func (su *StringUtils) EllipsisString(s string, maxLength int) string {
-	return util.EllipsisDisplayString(s, maxLength)
+	return base.EllipsisString(s, maxLength)
 }
 
 func (su *StringUtils) ToUpper(s string) string {

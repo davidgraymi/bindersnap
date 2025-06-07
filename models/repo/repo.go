@@ -37,7 +37,7 @@ type ErrUserDoesNotHaveAccessToRepo struct {
 	RepoName string
 }
 
-// IsErrUserDoesNotHaveAccessToRepo checks if an error is a ErrUserDoesNotHaveAccessToRepo.
+// IsErrUserDoesNotHaveAccessToRepo checks if an error is a ErrRepoFileAlreadyExists.
 func IsErrUserDoesNotHaveAccessToRepo(err error) bool {
 	_, ok := err.(ErrUserDoesNotHaveAccessToRepo)
 	return ok
@@ -276,6 +276,8 @@ func (repo *Repository) IsBroken() bool {
 }
 
 // MarkAsBrokenEmpty marks the repo as broken and empty
+// FIXME: the status "broken" and "is_empty" were abused,
+// The code always set them together, no way to distinguish whether a repo is really "empty" or "broken"
 func (repo *Repository) MarkAsBrokenEmpty() {
 	repo.Status = RepositoryBroken
 	repo.IsEmpty = true
@@ -864,21 +866,6 @@ func (repo *Repository) TemplateRepo(ctx context.Context) *Repository {
 		return nil
 	}
 	return repo
-}
-
-// ErrUserOwnRepos represents a "UserOwnRepos" kind of error.
-type ErrUserOwnRepos struct {
-	UID int64
-}
-
-// IsErrUserOwnRepos checks if an error is a ErrUserOwnRepos.
-func IsErrUserOwnRepos(err error) bool {
-	_, ok := err.(ErrUserOwnRepos)
-	return ok
-}
-
-func (err ErrUserOwnRepos) Error() string {
-	return fmt.Sprintf("user still has ownership of repositories [uid: %d]", err.UID)
 }
 
 type CountRepositoryOptions struct {

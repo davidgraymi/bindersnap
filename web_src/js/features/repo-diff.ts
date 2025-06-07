@@ -38,8 +38,6 @@ function initRepoDiffFileViewToggle() {
 }
 
 function initRepoDiffConversationForm() {
-  // FIXME: there could be various different form in a conversation-holder (for example: reply form, edit form).
-  // This listener is for "reply form" only, it should clearly distinguish different forms in the future.
   addDelegatedEventListener<HTMLFormElement, SubmitEvent>(document, 'submit', '.conversation-holder form', async (form, e) => {
     e.preventDefault();
     const textArea = form.querySelector<HTMLTextAreaElement>('textarea');
@@ -223,7 +221,10 @@ function initRepoDiffShowMore() {
       if (!resp) {
         return;
       }
-      $target.parent().replaceWith($(resp).find('#diff-file-boxes .diff-file-body .file-body').children());
+      const $respFileBody = $(resp).find('#diff-file-boxes .diff-file-body .file-body');
+      const respFileBodyChildren = Array.from($respFileBody.children());
+      $target.parent().replaceWith($respFileBody.children());
+      for (const el of respFileBodyChildren) window.htmx.process(el);
       onShowMoreFiles();
     } catch (error) {
       console.error('Error:', error);

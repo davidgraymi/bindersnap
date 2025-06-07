@@ -33,7 +33,6 @@ import (
 	"code.gitea.io/gitea/modules/optional"
 	"code.gitea.io/gitea/modules/setting"
 	api "code.gitea.io/gitea/modules/structs"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/typesniffer"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/routers/common"
@@ -43,9 +42,9 @@ import (
 )
 
 const (
-	tplCompare     templates.TplName = "repo/diff/compare"
-	tplBlobExcerpt templates.TplName = "repo/diff/blob_excerpt"
-	tplDiffBox     templates.TplName = "repo/diff/box"
+	tplCompare     base.TplName = "repo/diff/compare"
+	tplBlobExcerpt base.TplName = "repo/diff/blob_excerpt"
+	tplDiffBox     base.TplName = "repo/diff/box"
 )
 
 // setCompareContext sets context data.
@@ -414,7 +413,6 @@ func ParseCompareInfo(ctx *context.Context) *common.CompareInfo {
 			ctx.ServerError("OpenRepository", err)
 			return nil
 		}
-		defer ci.HeadGitRepo.Close()
 	} else {
 		ctx.NotFound("ParseCompareInfo", nil)
 		return nil
@@ -685,7 +683,7 @@ func PrepareCompareDiff(
 	}
 	if len(title) > 255 {
 		var trailer string
-		title, trailer = util.EllipsisDisplayStringX(title, 255)
+		title, trailer = util.SplitStringAtByteN(title, 255)
 		if len(trailer) > 0 {
 			if ctx.Data["content"] != nil {
 				ctx.Data["content"] = fmt.Sprintf("%s\n\n%s", trailer, ctx.Data["content"])
@@ -730,7 +728,7 @@ func getBranchesAndTagsForRepo(ctx gocontext.Context, repo *repo_model.Repositor
 func CompareDiff(ctx *context.Context) {
 	ci := ParseCompareInfo(ctx)
 	defer func() {
-		if ci != nil && ci.HeadGitRepo != nil {
+		if !ctx.Repo.PullRequest.SameRepo && ci != nil && ci.HeadGitRepo != nil {
 			ci.HeadGitRepo.Close()
 		}
 	}()
@@ -885,7 +883,7 @@ func ExcerptBlob(ctx *context.Context) {
 	direction := ctx.FormString("direction")
 	filePath := ctx.FormString("path")
 	gitRepo := ctx.Repo.GitRepo
-	if ctx.Data["PageIsWiki"] == true {
+	if ctx.FormBool("wiki") {
 		var err error
 		gitRepo, err = gitrepo.OpenWikiRepository(ctx, ctx.Repo.Repository)
 		if err != nil {

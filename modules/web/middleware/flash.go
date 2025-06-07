@@ -7,13 +7,11 @@ import (
 	"fmt"
 	"html/template"
 	"net/url"
-
-	"code.gitea.io/gitea/modules/reqctx"
 )
 
 // Flash represents a one time data transfer between two requests.
 type Flash struct {
-	DataStore reqctx.RequestDataStore
+	DataStore ContextDataStore
 	url.Values
 	ErrorMsg, WarningMsg, InfoMsg, SuccessMsg string
 }

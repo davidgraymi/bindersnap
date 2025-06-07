@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os"
 
@@ -141,7 +142,9 @@ func CreateBlameReader(ctx context.Context, objectFormat ObjectFormat, repoPath 
 		// There is no equivalent on Windows. May be implemented if Gitea uses an external git backend.
 		cmd.AddOptionValues("--ignore-revs-file", *ignoreRevsFile)
 	}
-	cmd.AddDynamicArguments(commit.ID.String()).AddDashesAndList(file)
+	cmd.AddDynamicArguments(commit.ID.String()).
+		AddDashesAndList(file).
+		SetDescription(fmt.Sprintf("GetBlame [repo_path: %s]", repoPath))
 	reader, stdout, err := os.Pipe()
 	if err != nil {
 		if ignoreRevsFile != nil {

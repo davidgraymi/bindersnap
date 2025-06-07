@@ -6,8 +6,10 @@ package forms
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 
+	"code.gitea.io/gitea/models"
 	issues_model "code.gitea.io/gitea/models/issues"
 	project_model "code.gitea.io/gitea/models/project"
 	"code.gitea.io/gitea/modules/setting"
@@ -86,6 +88,27 @@ type MigrateRepoForm struct {
 func (f *MigrateRepoForm) Validate(req *http.Request, errs binding.Errors) binding.Errors {
 	ctx := context.GetValidateContext(req)
 	return middleware.Validate(errs, ctx.Data, f, ctx.Locale)
+}
+
+// ParseRemoteAddr checks if given remote address is valid,
+// and returns composed URL with needed username and password.
+func ParseRemoteAddr(remoteAddr, authUsername, authPassword string) (string, error) {
+	remoteAddr = strings.TrimSpace(remoteAddr)
+	// Remote address can be HTTP/HTTPS/Git URL or local path.
+	if strings.HasPrefix(remoteAddr, "http://") ||
+		strings.HasPrefix(remoteAddr, "https://") ||
+		strings.HasPrefix(remoteAddr, "git://") {
+		u, err := url.Parse(remoteAddr)
+		if err != nil {
+			return "", &models.ErrInvalidCloneAddr{IsURLError: true, Host: remoteAddr}
+		}
+		if len(authUsername)+len(authPassword) > 0 {
+			u.User = url.UserPassword(authUsername, authPassword)
+		}
+		remoteAddr = u.String()
+	}
+
+	return remoteAddr, nil
 }
 
 // RepoSettingForm form for changing repository settings
@@ -240,6 +263,7 @@ type WebhookForm struct {
 	Wiki                     bool
 	Repository               bool
 	Package                  bool
+	Status                   bool
 	Active                   bool
 	BranchFilter             string `binding:"GlobPattern"`
 	AuthorizationHeader      string

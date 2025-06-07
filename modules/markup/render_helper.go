@@ -38,7 +38,6 @@ type RenderHelper interface {
 type RenderHelperFuncs struct {
 	IsUsernameMentionable     func(ctx context.Context, username string) bool
 	RenderRepoFileCodePreview func(ctx context.Context, options RenderCodePreviewOptions) (template.HTML, error)
-	RenderRepoIssueIconTitle  func(ctx context.Context, options RenderIssueIconTitleOptions) (template.HTML, error)
 }
 
 var DefaultRenderHelperFuncs *RenderHelperFuncs

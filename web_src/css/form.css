@@ -35,7 +35,7 @@ textarea,
 .ui.selection.dropdown {
   background: var(--color-input-background);
   border-color: var(--color-input-border);
-  color: var(--color-search-button-text);
+  color: var(--color-input-text);
 }
 
 /* fix fomantic small dropdown having inconsistent padding with input */
@@ -62,8 +62,8 @@ textarea:hover,
 .ui.form input[type="url"]:hover,
 .ui.selection.dropdown:hover {
   background: var(--color-input-background);
-  border-color: var(--color-search-button-border-hover);
-  color: var(--color-search-button-text);
+  border-color: var(--color-input-border-hover);
+  color: var(--color-input-text);
 }
 
 input:focus,
@@ -86,7 +86,7 @@ textarea:focus,
 .ui.selection.dropdown:focus {
   background: var(--color-input-background);
   border-color: var(--color-primary);
-  color: var(--color-search-button-text);
+  color: var(--color-input-text);
 }
 
 .ui.form .field > label,
@@ -106,7 +106,7 @@ textarea:focus,
 }
 
 .ui.input {
-  color: var(--color-search-button-text);
+  color: var(--color-input-text);
 }
 
 /* match <select> padding to <input> */
@@ -182,7 +182,7 @@ textarea:focus,
     height: 76px !important;
   }
   .m-captcha-style {
-    width: 50%;
+    max-width: 450px;
   }
 }
 
@@ -483,7 +483,7 @@ textarea:focus,
     margin-bottom: 1em;
     width: 100%;
   }
-  .new.org .ui.form .field input {
+  .new.org .ui.form .field input:not([type="checkbox"], [type="radio"]) {
     width: 100% !important;
   }
 }

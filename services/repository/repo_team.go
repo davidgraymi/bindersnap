@@ -63,7 +63,7 @@ func addRepositoryToTeam(ctx context.Context, t *organization.Team, repo *repo_m
 // If the team already has some repositories they will be left unchanged.
 func AddAllRepositoriesToTeam(ctx context.Context, t *organization.Team) error {
 	return db.WithTx(ctx, func(ctx context.Context) error {
-		orgRepos, err := repo_model.GetOrgRepositories(ctx, t.OrgID)
+		orgRepos, err := organization.GetOrgRepositories(ctx, t.OrgID)
 		if err != nil {
 			return fmt.Errorf("get org repos: %w", err)
 		}
@@ -103,15 +103,8 @@ func RemoveAllRepositoriesFromTeam(ctx context.Context, t *organization.Team) (e
 // Note: Shall not be called if team includes all repositories
 func removeAllRepositoriesFromTeam(ctx context.Context, t *organization.Team) (err error) {
 	e := db.GetEngine(ctx)
-	repos, err := repo_model.GetTeamRepositories(ctx, &repo_model.SearchTeamRepoOptions{
-		TeamID: t.ID,
-	})
-	if err != nil {
-		return fmt.Errorf("GetTeamRepositories: %w", err)
-	}
-
 	// Delete all accesses.
-	for _, repo := range repos {
+	for _, repo := range t.Repos {
 		if err := access_model.RecalculateTeamAccesses(ctx, repo, t.ID); err != nil {
 			return err
 		}

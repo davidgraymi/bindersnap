@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"testing"
 
+	"code.gitea.io/gitea/models"
 	auth_model "code.gitea.io/gitea/models/auth"
 	"code.gitea.io/gitea/models/db"
 	issues_model "code.gitea.io/gitea/models/issues"
@@ -41,7 +42,7 @@ func TestBlockUser(t *testing.T) {
 	}
 
 	countRepositoryTransfers := func(t *testing.T, senderID, recipientID int64) int64 {
-		transfers, err := repo_model.GetPendingRepositoryTransfers(db.DefaultContext, &repo_model.PendingRepositoryTransferOptions{
+		transfers, err := models.GetPendingRepositoryTransfers(db.DefaultContext, &models.PendingRepositoryTransferOptions{
 			SenderID:    senderID,
 			RecipientID: recipientID,
 		})

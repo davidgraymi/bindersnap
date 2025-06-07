@@ -154,7 +154,7 @@
 
   .home .alternative-cta h1.ui.header {
     margin-top: 0em;
-  }
+}
 
   .home .hero h2,
   .home .alternative-cta h2 {
@@ -174,7 +174,7 @@
     text-align: center;
     vertical-align: middle;
     margin-top: 3em;
-  }
+}
 
   .landing-cta-input-container {
     display: flex;
@@ -194,8 +194,8 @@
     height: 47px;
     border-radius: 6px;
     padding: 0 16px;
-    font-size: 16px;
-  }
+  font-size: 16px;
+}
 
   .home .ui.cta {
     background-color: #1A8037;
@@ -216,7 +216,7 @@
     background-color: transparent;
     text-underline-offset: 2px;
     display: none;
-  }
+}
 
   .landing-benefits {
     display: flex;
@@ -267,15 +267,14 @@
 }
 
 .page-footer .right-links {
-  min-width: 180px;
-  /* make sure the menu dropdown doesn't overflow horizontally when language name is short */
+  min-width: 180px; /* make sure the menu dropdown doesn't overflow horizontally when language name is short */
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
 }
 
-.page-footer .right-links>a {
+.page-footer .right-links > a {
   border-left: 1px solid var(--color-secondary-dark-1);
   padding-left: 8px;
   margin-left: 5px;

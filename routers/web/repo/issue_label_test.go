@@ -162,11 +162,10 @@ func TestUpdateIssueLabel_Toggle(t *testing.T) {
 		UpdateIssueLabel(ctx)
 		assert.EqualValues(t, http.StatusOK, ctx.Resp.Status())
 		for _, issueID := range testCase.IssueIDs {
-			if testCase.ExpectedAdd {
-				unittest.AssertExistsAndLoadBean(t, &issues_model.IssueLabel{IssueID: issueID, LabelID: testCase.LabelID})
-			} else {
-				unittest.AssertNotExistsBean(t, &issues_model.IssueLabel{IssueID: issueID, LabelID: testCase.LabelID})
-			}
+			unittest.AssertExistsIf(t, testCase.ExpectedAdd, &issues_model.IssueLabel{
+				IssueID: issueID,
+				LabelID: testCase.LabelID,
+			})
 		}
 		unittest.CheckConsistencyFor(t, &issues_model.Label{})
 	}
