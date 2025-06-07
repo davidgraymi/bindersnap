@@ -37,7 +37,7 @@
 @media (max-width: 590px) {
   .search-title {
     font-size: 3em;
-    margin-bottom: 0px;
+    margin-bottom: 0;
   }
 }
 

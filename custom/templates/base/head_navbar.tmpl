@@ -52,18 +52,18 @@
       <a class="item{{if .PageIsMilestonesDashboard}} active{{end}}" href="{{AppSubUrl}}/milestones">{{ctx.Locale.Tr "milestones"}}</a>
       {{end}}
       {{end}}
-      <!-- <a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a> -->
+      <a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a>
       {{else if .IsLandingPageOrganizations}}
-      <!-- <a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubUrl}}/explore/organizations">{{ctx.Locale.Tr "explore"}}</a> -->
+      <a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubUrl}}/explore/organizations">{{ctx.Locale.Tr "explore"}}</a>
       {{else}}
-      <!-- <a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a> -->
+      <a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubUrl}}/explore/repos">{{ctx.Locale.Tr "explore"}}</a>
       {{end}}
 
       {{template "custom/extra_links" .}}
 
       {{if not .IsSigned}}
       <!-- TODO!: change to my own help documents -->
-      <!-- <a class="item" target="_blank" rel="noopener noreferrer" href="https://docs.gitea.com">{{ctx.Locale.Tr "help"}}</a> -->
+      <a class="item" target="_blank" rel="noopener noreferrer" href="https://docs.gitea.com">{{ctx.Locale.Tr "help"}}</a>
       {{end}}
     </div>
 

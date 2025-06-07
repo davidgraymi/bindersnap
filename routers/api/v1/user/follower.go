@@ -201,7 +201,7 @@ func CheckFollowing(ctx *context.APIContext) {
 	//   "404":
 	//     "$ref": "#/responses/notFound"
 
-	target := GetUserByPathParam(ctx, "target") // FIXME: it is not right to call this function, it should load the "target" directly
+	target := GetUserByParamsName(ctx, ":target")
 	if ctx.Written() {
 		return
 	}

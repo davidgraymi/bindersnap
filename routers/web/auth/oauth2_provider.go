@@ -18,7 +18,6 @@ import (
 	"code.gitea.io/gitea/modules/json"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/setting"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/web"
 	auth_service "code.gitea.io/gitea/services/auth"
 	"code.gitea.io/gitea/services/context"
@@ -30,8 +29,8 @@ import (
 )
 
 const (
-	tplGrantAccess templates.TplName = "user/auth/grant"
-	tplGrantError  templates.TplName = "user/auth/grant_error"
+	tplGrantAccess base.TplName = "user/auth/grant"
+	tplGrantError  base.TplName = "user/auth/grant_error"
 )
 
 // TODO move error and responses to SDK or models
@@ -249,7 +248,7 @@ func AuthorizeOAuth(ctx *context.Context) {
 			}, form.RedirectURI)
 			return
 		}
-		if err := ctx.Session.Set("CodeChallengeMethod", form.CodeChallenge); err != nil {
+		if err := ctx.Session.Set("CodeChallenge", form.CodeChallenge); err != nil {
 			handleAuthorizeError(ctx, AuthorizeError{
 				ErrorCode:        ErrorCodeServerError,
 				ErrorDescription: "cannot set code challenge",

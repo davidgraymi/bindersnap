@@ -7,13 +7,16 @@ import (
 	"context"
 	"fmt"
 
+	"code.gitea.io/gitea/models"
 	actions_model "code.gitea.io/gitea/models/actions"
 	activities_model "code.gitea.io/gitea/models/activities"
 	admin_model "code.gitea.io/gitea/models/admin"
+	asymkey_model "code.gitea.io/gitea/models/asymkey"
 	"code.gitea.io/gitea/models/db"
 	git_model "code.gitea.io/gitea/models/git"
 	issues_model "code.gitea.io/gitea/models/issues"
 	"code.gitea.io/gitea/models/organization"
+	packages_model "code.gitea.io/gitea/models/packages"
 	access_model "code.gitea.io/gitea/models/perm/access"
 	project_model "code.gitea.io/gitea/models/project"
 	repo_model "code.gitea.io/gitea/models/repo"
@@ -74,11 +77,16 @@ func DeleteRepositoryDirectly(ctx context.Context, doer *user_model.User, repoID
 	}
 
 	// Delete Deploy Keys
-	deleted, err := asymkey_service.DeleteRepoDeployKeys(ctx, repoID)
+	deployKeys, err := db.Find[asymkey_model.DeployKey](ctx, asymkey_model.ListDeployKeysOptions{RepoID: repoID})
 	if err != nil {
-		return err
+		return fmt.Errorf("listDeployKeys: %w", err)
 	}
-	needRewriteKeysFile := deleted > 0
+	needRewriteKeysFile := len(deployKeys) > 0
+	for _, dKey := range deployKeys {
+		if err := models.DeleteDeployKey(ctx, doer, dKey.ID); err != nil {
+			return fmt.Errorf("deleteDeployKeys: %w", err)
+		}
+	}
 
 	if cnt, err := sess.ID(repoID).Delete(&repo_model.Repository{}); err != nil {
 		return err
@@ -263,6 +271,11 @@ func DeleteRepositoryDirectly(ctx context.Context, doer *user_model.User, repoID
 	}
 
 	if _, err := sess.Where("repo_id=?", repo.ID).Delete(new(repo_model.Attachment)); err != nil {
+		return err
+	}
+
+	// unlink packages linked to this repository
+	if err = packages_model.UnlinkRepositoryFromAllPackages(ctx, repoID); err != nil {
 		return err
 	}
 

@@ -10,18 +10,19 @@ import (
 	"net/http"
 	"strings"
 
+	"code.gitea.io/gitea/models"
 	"code.gitea.io/gitea/models/db"
 	git_model "code.gitea.io/gitea/models/git"
 	"code.gitea.io/gitea/models/renderhelper"
 	repo_model "code.gitea.io/gitea/models/repo"
 	"code.gitea.io/gitea/models/unit"
 	user_model "code.gitea.io/gitea/models/user"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/git"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/markup/markdown"
 	"code.gitea.io/gitea/modules/optional"
 	"code.gitea.io/gitea/modules/setting"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/modules/web"
 	"code.gitea.io/gitea/routers/web/feed"
@@ -29,13 +30,13 @@ import (
 	"code.gitea.io/gitea/services/context"
 	"code.gitea.io/gitea/services/context/upload"
 	"code.gitea.io/gitea/services/forms"
-	release_service "code.gitea.io/gitea/services/release"
+	releaseservice "code.gitea.io/gitea/services/release"
 )
 
 const (
-	tplReleasesList templates.TplName = "repo/release/list"
-	tplReleaseNew   templates.TplName = "repo/release/new"
-	tplTagsList     templates.TplName = "repo/tag/list"
+	tplReleasesList base.TplName = "repo/release/list"
+	tplReleaseNew   base.TplName = "repo/release/new"
+	tplTagsList     base.TplName = "repo/tag/list"
 )
 
 // calReleaseNumCommitsBehind calculates given release has how many commits behind release target.
@@ -431,27 +432,27 @@ func NewReleasePost(ctx *context.Context) {
 		}
 
 		if len(form.TagOnly) > 0 {
-			if err = release_service.CreateNewTag(ctx, ctx.Doer, ctx.Repo.Repository, form.Target, form.TagName, msg); err != nil {
-				if release_service.IsErrTagAlreadyExists(err) {
-					e := err.(release_service.ErrTagAlreadyExists)
+			if err = releaseservice.CreateNewTag(ctx, ctx.Doer, ctx.Repo.Repository, form.Target, form.TagName, msg); err != nil {
+				if models.IsErrTagAlreadyExists(err) {
+					e := err.(models.ErrTagAlreadyExists)
 					ctx.Flash.Error(ctx.Tr("repo.branch.tag_collision", e.TagName))
 					ctx.Redirect(ctx.Repo.RepoLink + "/src/" + ctx.Repo.BranchNameSubURL())
 					return
 				}
 
-				if release_service.IsErrInvalidTagName(err) {
+				if models.IsErrInvalidTagName(err) {
 					ctx.Flash.Error(ctx.Tr("repo.release.tag_name_invalid"))
 					ctx.Redirect(ctx.Repo.RepoLink + "/src/" + ctx.Repo.BranchNameSubURL())
 					return
 				}
 
-				if release_service.IsErrProtectedTagName(err) {
+				if models.IsErrProtectedTagName(err) {
 					ctx.Flash.Error(ctx.Tr("repo.release.tag_name_protected"))
 					ctx.Redirect(ctx.Repo.RepoLink + "/src/" + ctx.Repo.BranchNameSubURL())
 					return
 				}
 
-				ctx.ServerError("release_service.CreateNewTag", err)
+				ctx.ServerError("releaseservice.CreateNewTag", err)
 				return
 			}
 
@@ -474,14 +475,14 @@ func NewReleasePost(ctx *context.Context) {
 			IsTag:        false,
 		}
 
-		if err = release_service.CreateRelease(ctx.Repo.GitRepo, rel, attachmentUUIDs, msg); err != nil {
+		if err = releaseservice.CreateRelease(ctx.Repo.GitRepo, rel, attachmentUUIDs, msg); err != nil {
 			ctx.Data["Err_TagName"] = true
 			switch {
 			case repo_model.IsErrReleaseAlreadyExist(err):
 				ctx.RenderWithErr(ctx.Tr("repo.release.tag_name_already_exist"), tplReleaseNew, &form)
-			case release_service.IsErrInvalidTagName(err):
+			case models.IsErrInvalidTagName(err):
 				ctx.RenderWithErr(ctx.Tr("repo.release.tag_name_invalid"), tplReleaseNew, &form)
-			case release_service.IsErrProtectedTagName(err):
+			case models.IsErrProtectedTagName(err):
 				ctx.RenderWithErr(ctx.Tr("repo.release.tag_name_protected"), tplReleaseNew, &form)
 			default:
 				ctx.ServerError("CreateRelease", err)
@@ -503,7 +504,7 @@ func NewReleasePost(ctx *context.Context) {
 		rel.PublisherID = ctx.Doer.ID
 		rel.IsTag = false
 
-		if err = release_service.UpdateRelease(ctx, ctx.Doer, ctx.Repo.GitRepo, rel, attachmentUUIDs, nil, nil); err != nil {
+		if err = releaseservice.UpdateRelease(ctx, ctx.Doer, ctx.Repo.GitRepo, rel, attachmentUUIDs, nil, nil); err != nil {
 			ctx.Data["Err_TagName"] = true
 			ctx.ServerError("UpdateRelease", err)
 			return
@@ -609,7 +610,7 @@ func EditReleasePost(ctx *context.Context) {
 	rel.Note = form.Content
 	rel.IsDraft = len(form.Draft) > 0
 	rel.IsPrerelease = form.Prerelease
-	if err = release_service.UpdateRelease(ctx, ctx.Doer, ctx.Repo.GitRepo,
+	if err = releaseservice.UpdateRelease(ctx, ctx.Doer, ctx.Repo.GitRepo,
 		rel, addAttachmentUUIDs, delAttachmentUUIDs, editAttachments); err != nil {
 		ctx.ServerError("UpdateRelease", err)
 		return
@@ -648,8 +649,8 @@ func deleteReleaseOrTag(ctx *context.Context, isDelTag bool) {
 		return
 	}
 
-	if err := release_service.DeleteReleaseByID(ctx, ctx.Repo.Repository, rel, ctx.Doer, isDelTag); err != nil {
-		if release_service.IsErrProtectedTagName(err) {
+	if err := releaseservice.DeleteReleaseByID(ctx, ctx.Repo.Repository, rel, ctx.Doer, isDelTag); err != nil {
+		if models.IsErrProtectedTagName(err) {
 			ctx.Flash.Error(ctx.Tr("repo.release.tag_name_protected"))
 		} else {
 			ctx.Flash.Error("DeleteReleaseByID: " + err.Error())

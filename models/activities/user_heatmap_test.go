@@ -64,9 +64,11 @@ func TestGetUserHeatmapDataByUser(t *testing.T) {
 	for _, tc := range testCases {
 		user := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: tc.userID})
 
-		var doer *user_model.User
-		if tc.doerID != 0 {
-			doer = unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: tc.doerID})
+		doer := &user_model.User{ID: tc.doerID}
+		_, err := unittest.LoadBeanIfExists(doer)
+		assert.NoError(t, err)
+		if tc.doerID == 0 {
+			doer = nil
 		}
 
 		// get the action for comparison

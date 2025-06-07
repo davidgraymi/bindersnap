@@ -14,6 +14,7 @@ import (
 	"code.gitea.io/gitea/models/perm"
 	access_model "code.gitea.io/gitea/models/perm/access"
 	repo_model "code.gitea.io/gitea/models/repo"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/container"
 	"code.gitea.io/gitea/modules/httplib"
 	"code.gitea.io/gitea/modules/log"
@@ -23,7 +24,6 @@ import (
 	debian_module "code.gitea.io/gitea/modules/packages/debian"
 	rpm_module "code.gitea.io/gitea/modules/packages/rpm"
 	"code.gitea.io/gitea/modules/setting"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/modules/web"
 	packages_helper "code.gitea.io/gitea/routers/api/packages/helper"
@@ -34,10 +34,10 @@ import (
 )
 
 const (
-	tplPackagesList       templates.TplName = "user/overview/packages"
-	tplPackagesView       templates.TplName = "package/view"
-	tplPackageVersionList templates.TplName = "user/overview/package_versions"
-	tplPackagesSettings   templates.TplName = "package/settings"
+	tplPackagesList       base.TplName = "user/overview/packages"
+	tplPackagesView       base.TplName = "package/view"
+	tplPackageVersionList base.TplName = "user/overview/package_versions"
+	tplPackagesSettings   base.TplName = "package/settings"
 )
 
 // ListPackages displays a list of all packages of the context user
@@ -502,7 +502,7 @@ func PackageSettingsPost(ctx *context.Context) {
 
 // DownloadPackageFile serves the content of a package file
 func DownloadPackageFile(ctx *context.Context) {
-	pf, err := packages_model.GetFileForVersionByID(ctx, ctx.Package.Descriptor.Version.ID, ctx.PathParamInt64("fileid"))
+	pf, err := packages_model.GetFileForVersionByID(ctx, ctx.Package.Descriptor.Version.ID, ctx.PathParamInt64(":fileid"))
 	if err != nil {
 		if err == packages_model.ErrPackageFileNotExist {
 			ctx.NotFound("", err)

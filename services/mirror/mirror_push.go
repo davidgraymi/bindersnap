@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"strings"
 	"time"
 
 	"code.gitea.io/gitea/models/db"
@@ -18,6 +19,7 @@ import (
 	"code.gitea.io/gitea/modules/lfs"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/process"
+	"code.gitea.io/gitea/modules/proxy"
 	"code.gitea.io/gitea/modules/repository"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/timeutil"
@@ -30,6 +32,11 @@ var stripExitStatus = regexp.MustCompile(`exit status \d+ - `)
 func AddPushMirrorRemote(ctx context.Context, m *repo_model.PushMirror, addr string) error {
 	addRemoteAndConfig := func(addr, path string) error {
 		cmd := git.NewCommand(ctx, "remote", "add", "--mirror=push").AddDynamicArguments(m.RemoteName, addr)
+		if strings.Contains(addr, "://") && strings.Contains(addr, "@") {
+			cmd.SetDescription(fmt.Sprintf("remote add %s --mirror=push %s [repo_path: %s]", m.RemoteName, util.SanitizeCredentialURLs(addr), path))
+		} else {
+			cmd.SetDescription(fmt.Sprintf("remote add %s --mirror=push %s [repo_path: %s]", m.RemoteName, addr, path))
+		}
 		if _, _, err := cmd.RunStdString(&git.RunOpts{Dir: path}); err != nil {
 			return err
 		}
@@ -161,11 +168,13 @@ func runPushSync(ctx context.Context, m *repo_model.PushMirror) error {
 
 		log.Trace("Pushing %s mirror[%d] remote %s", path, m.ID, m.RemoteName)
 
+		envs := proxy.EnvWithProxy(remoteURL.URL)
 		if err := git.Push(ctx, path, git.PushOptions{
 			Remote:  m.RemoteName,
 			Force:   true,
 			Mirror:  true,
 			Timeout: timeout,
+			Env:     envs,
 		}); err != nil {
 			log.Error("Error pushing %s mirror[%d] remote %s: %v", path, m.ID, m.RemoteName, err)
 

@@ -126,9 +126,12 @@ type artifactV4Routes struct {
 func ArtifactV4Contexter() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-			base := context.NewBaseContext(resp, req)
+			base, baseCleanUp := context.NewBaseContext(resp, req)
+			defer baseCleanUp()
+
 			ctx := &ArtifactContext{Base: base}
-			ctx.SetContextValue(artifactContextKey, ctx)
+			ctx.AppendContextValue(artifactContextKey, ctx)
+
 			next.ServeHTTP(ctx.Resp, ctx.Req)
 		})
 	}

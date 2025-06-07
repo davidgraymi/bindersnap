@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	git_model "code.gitea.io/gitea/models/git"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/charset"
 	"code.gitea.io/gitea/modules/container"
 	"code.gitea.io/gitea/modules/git"
@@ -24,18 +25,17 @@ import (
 	repo_module "code.gitea.io/gitea/modules/repository"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/storage"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/typesniffer"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/services/context"
 )
 
 const (
-	tplSettingsLFS         templates.TplName = "repo/settings/lfs"
-	tplSettingsLFSLocks    templates.TplName = "repo/settings/lfs_locks"
-	tplSettingsLFSFile     templates.TplName = "repo/settings/lfs_file"
-	tplSettingsLFSFileFind templates.TplName = "repo/settings/lfs_file_find"
-	tplSettingsLFSPointers templates.TplName = "repo/settings/lfs_pointers"
+	tplSettingsLFS         base.TplName = "repo/settings/lfs"
+	tplSettingsLFSLocks    base.TplName = "repo/settings/lfs_locks"
+	tplSettingsLFSFile     base.TplName = "repo/settings/lfs_file"
+	tplSettingsLFSFileFind base.TplName = "repo/settings/lfs_file_find"
+	tplSettingsLFSPointers base.TplName = "repo/settings/lfs_pointers"
 )
 
 // LFSFiles shows a repository's LFS files

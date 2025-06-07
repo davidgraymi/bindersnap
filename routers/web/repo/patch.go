@@ -6,10 +6,11 @@ package repo
 import (
 	"strings"
 
+	"code.gitea.io/gitea/models"
 	git_model "code.gitea.io/gitea/models/git"
 	"code.gitea.io/gitea/models/unit"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/setting"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/modules/web"
 	"code.gitea.io/gitea/services/context"
@@ -18,7 +19,7 @@ import (
 )
 
 const (
-	tplPatchFile templates.TplName = "repo/editor/patch"
+	tplPatchFile base.TplName = "repo/editor/patch"
 )
 
 // NewDiffPatch render create patch page
@@ -100,7 +101,7 @@ func NewDiffPatchPost(ctx *context.Context) {
 			ctx.Data["Err_NewBranchName"] = true
 			ctx.RenderWithErr(ctx.Tr("repo.editor.branch_already_exists", branchErr.BranchName), tplEditFile, &form)
 			return
-		} else if files.IsErrCommitIDDoesNotMatch(err) {
+		} else if models.IsErrCommitIDDoesNotMatch(err) {
 			ctx.RenderWithErr(ctx.Tr("repo.editor.file_changed_while_editing", ctx.Repo.RepoLink+"/compare/"+form.LastCommit+"..."+ctx.Repo.CommitID), tplPatchFile, &form)
 			return
 		}

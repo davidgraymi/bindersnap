@@ -13,10 +13,10 @@ import (
 	"code.gitea.io/gitea/models/auth"
 	"code.gitea.io/gitea/models/db"
 	user_model "code.gitea.io/gitea/models/user"
+	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/optional"
 	"code.gitea.io/gitea/modules/setting"
-	"code.gitea.io/gitea/modules/templates"
 	"code.gitea.io/gitea/modules/web/middleware"
 	"code.gitea.io/gitea/services/auth/source/sspi"
 	gitea_context "code.gitea.io/gitea/services/context"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	tplSignIn templates.TplName = "user/auth/signin"
+	tplSignIn base.TplName = "user/auth/signin"
 )
 
 type SSPIAuth interface {
@@ -89,7 +89,7 @@ func (s *SSPI) Verify(req *http.Request, w http.ResponseWriter, store DataStore,
 		store.GetData()["EnableSSPI"] = true
 		// in this case, the Verify function is called in Gitea's web context
 		// FIXME: it doesn't look good to render the page here, why not redirect?
-		gitea_context.GetWebContext(req).HTML(http.StatusUnauthorized, tplSignIn)
+		gitea_context.GetWebContext(req.Context()).HTML(http.StatusUnauthorized, tplSignIn)
 		return nil, err
 	}
 	if outToken != "" {

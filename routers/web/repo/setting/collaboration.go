@@ -32,7 +32,7 @@ func Collaboration(ctx *context.Context) {
 	}
 	ctx.Data["Collaborators"] = users
 
-	teams, err := organization.GetRepoTeams(ctx, ctx.Repo.Repository.OwnerID, ctx.Repo.Repository.ID)
+	teams, err := organization.GetRepoTeams(ctx, ctx.Repo.Repository)
 	if err != nil {
 		ctx.ServerError("GetRepoTeams", err)
 		return

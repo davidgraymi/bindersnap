@@ -63,7 +63,6 @@ var UI = struct {
 	} `ini:"ui.admin"`
 	User struct {
 		RepoPagingNum int
-		OrgPagingNum  int
 	} `ini:"ui.user"`
 	Meta struct {
 		Author      string
@@ -128,10 +127,8 @@ var UI = struct {
 	},
 	User: struct {
 		RepoPagingNum int
-		OrgPagingNum  int
 	}{
 		RepoPagingNum: 15,
-		OrgPagingNum:  15,
 	},
 	Meta: struct {
 		Author      string

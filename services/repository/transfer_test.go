@@ -7,6 +7,7 @@ import (
 	"sync"
 	"testing"
 
+	"code.gitea.io/gitea/models"
 	activities_model "code.gitea.io/gitea/models/activities"
 	"code.gitea.io/gitea/models/db"
 	"code.gitea.io/gitea/models/organization"
@@ -85,23 +86,23 @@ func TestRepositoryTransfer(t *testing.T) {
 	doer := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 3})
 	repo := unittest.AssertExistsAndLoadBean(t, &repo_model.Repository{ID: 3})
 
-	transfer, err := repo_model.GetPendingRepositoryTransfer(db.DefaultContext, repo)
+	transfer, err := models.GetPendingRepositoryTransfer(db.DefaultContext, repo)
 	assert.NoError(t, err)
 	assert.NotNil(t, transfer)
 
 	// Cancel transfer
 	assert.NoError(t, CancelRepositoryTransfer(db.DefaultContext, repo))
 
-	transfer, err = repo_model.GetPendingRepositoryTransfer(db.DefaultContext, repo)
+	transfer, err = models.GetPendingRepositoryTransfer(db.DefaultContext, repo)
 	assert.Error(t, err)
 	assert.Nil(t, transfer)
-	assert.True(t, repo_model.IsErrNoPendingTransfer(err))
+	assert.True(t, models.IsErrNoPendingTransfer(err))
 
 	user2 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 
-	assert.NoError(t, repo_model.CreatePendingRepositoryTransfer(db.DefaultContext, doer, user2, repo.ID, nil))
+	assert.NoError(t, models.CreatePendingRepositoryTransfer(db.DefaultContext, doer, user2, repo.ID, nil))
 
-	transfer, err = repo_model.GetPendingRepositoryTransfer(db.DefaultContext, repo)
+	transfer, err = models.GetPendingRepositoryTransfer(db.DefaultContext, repo)
 	assert.NoError(t, err)
 	assert.NoError(t, transfer.LoadAttributes(db.DefaultContext))
 	assert.Equal(t, "user2", transfer.Recipient.Name)
@@ -109,12 +110,12 @@ func TestRepositoryTransfer(t *testing.T) {
 	org6 := unittest.AssertExistsAndLoadBean(t, &user_model.User{ID: 2})
 
 	// Only transfer can be started at any given time
-	err = repo_model.CreatePendingRepositoryTransfer(db.DefaultContext, doer, org6, repo.ID, nil)
+	err = models.CreatePendingRepositoryTransfer(db.DefaultContext, doer, org6, repo.ID, nil)
 	assert.Error(t, err)
-	assert.True(t, repo_model.IsErrRepoTransferInProgress(err))
+	assert.True(t, models.IsErrRepoTransferInProgress(err))
 
 	// Unknown user
-	err = repo_model.CreatePendingRepositoryTransfer(db.DefaultContext, doer, &user_model.User{ID: 1000, LowerName: "user1000"}, repo.ID, nil)
+	err = models.CreatePendingRepositoryTransfer(db.DefaultContext, doer, &user_model.User{ID: 1000, LowerName: "user1000"}, repo.ID, nil)
 	assert.Error(t, err)
 
 	// Cancel transfer

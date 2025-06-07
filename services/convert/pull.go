@@ -18,6 +18,7 @@ import (
 	"code.gitea.io/gitea/modules/gitrepo"
 	"code.gitea.io/gitea/modules/log"
 	api "code.gitea.io/gitea/modules/structs"
+	"code.gitea.io/gitea/modules/util"
 )
 
 // ToAPIPullRequest assumes following fields have been assigned with valid values:
@@ -77,7 +78,7 @@ func ToAPIPullRequest(ctx context.Context, pr *issues_model.PullRequest, doer *u
 		Labels:         apiIssue.Labels,
 		Milestone:      apiIssue.Milestone,
 		Assignee:       apiIssue.Assignee,
-		Assignees:      apiIssue.Assignees,
+		Assignees:      util.SliceNilAsEmpty(apiIssue.Assignees),
 		State:          apiIssue.State,
 		Draft:          pr.IsWorkInProgress(ctx),
 		IsLocked:       apiIssue.IsLocked,
@@ -93,6 +94,10 @@ func ToAPIPullRequest(ctx context.Context, pr *issues_model.PullRequest, doer *u
 		Created:        pr.Issue.CreatedUnix.AsTimePtr(),
 		Updated:        pr.Issue.UpdatedUnix.AsTimePtr(),
 		PinOrder:       apiIssue.PinOrder,
+
+		// output "[]" rather than null to align to github outputs
+		RequestedReviewers:      []*api.User{},
+		RequestedReviewersTeams: []*api.Team{},
 
 		AllowMaintainerEdit: pr.AllowMaintainerEdit,
 
@@ -234,9 +239,11 @@ func ToAPIPullRequest(ctx context.Context, pr *issues_model.PullRequest, doer *u
 		// Calculate diff
 		startCommitID = pr.MergeBase
 
-		apiPullRequest.ChangedFiles, apiPullRequest.Additions, apiPullRequest.Deletions, err = gitRepo.GetDiffShortStat(startCommitID, endCommitID)
+		diffChangedFiles, diffAdditions, diffDeletions, err := gitRepo.GetDiffShortStat(startCommitID, endCommitID)
 		if err != nil {
 			log.Error("GetDiffShortStat: %v", err)
+		} else {
+			apiPullRequest.ChangedFiles, apiPullRequest.Additions, apiPullRequest.Deletions = &diffChangedFiles, &diffAdditions, &diffDeletions
 		}
 	}
 
@@ -454,12 +461,6 @@ func ToAPIPullRequests(ctx context.Context, baseRepo *repo_model.Repository, prs
 				return nil, err
 			}
 
-			// Outer scope variables to be used in diff calculation
-			var (
-				startCommitID string
-				endCommitID   string
-			)
-
 			if git.IsErrBranchNotExist(err) {
 				headCommitID, err := headGitRepo.GetRefCommitID(apiPullRequest.Head.Ref)
 				if err != nil && !git.IsErrNotExist(err) {
@@ -468,7 +469,6 @@ func ToAPIPullRequests(ctx context.Context, baseRepo *repo_model.Repository, prs
 				}
 				if err == nil {
 					apiPullRequest.Head.Sha = headCommitID
-					endCommitID = headCommitID
 				}
 			} else {
 				commit, err := headBranch.GetCommit()
@@ -479,16 +479,7 @@ func ToAPIPullRequests(ctx context.Context, baseRepo *repo_model.Repository, prs
 				if err == nil {
 					apiPullRequest.Head.Ref = pr.HeadBranch
 					apiPullRequest.Head.Sha = commit.ID.String()
-					endCommitID = commit.ID.String()
 				}
-			}
-
-			// Calculate diff
-			startCommitID = pr.MergeBase
-
-			apiPullRequest.ChangedFiles, apiPullRequest.Additions, apiPullRequest.Deletions, err = gitRepo.GetDiffShortStat(startCommitID, endCommitID)
-			if err != nil {
-				log.Error("GetDiffShortStat: %v", err)
 			}
 		}
 

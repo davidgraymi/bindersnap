@@ -188,13 +188,13 @@ function toggleLink() {
 </template>
 <style scoped>
 button {
-    background: transparent;
-    border-radius: 5px;
-    margin-left: 1px;
-    margin-right: 1px;
+  background: transparent;
+  border-radius: 5px;
+  margin-left: 1px;
+  margin-right: 1px;
 }
 button:hover {
-    background: var(--color-hover);
+  background: var(--color-hover);
 }
 /* .control-group {
     background: transparent;
@@ -202,15 +202,15 @@ button:hover {
     display: flex;
 } */
 .button-group {
-    background: var(--color-box-header);
-    border-radius: 25px;
-    padding: 5px 10px 5px 10px;
+  background: var(--color-box-header);
+  border-radius: 25px;
+  padding: 5px 10px;
 }
 .is-active {
-    background: var(--color-active);
+  background: var(--color-active);
 }
 button .is-active:hover {
-    background: var(--color-active);
+  background: var(--color-active);
 }
 .dropdown-menu {
   position: absolute;
@@ -224,7 +224,7 @@ button .is-active:hover {
   display: inline-block;
 }
 /* Task list specific styles */
-ul[data-type="taskList"] {
+/* ul[data-type="taskList"] {
   list-style: none;
   margin-left: 0;
   padding: 0;
@@ -246,5 +246,5 @@ ul[data-type="taskList"] {
   ul[data-type="taskList"] {
     margin: 0;
   }
-}
+} */
 </style>

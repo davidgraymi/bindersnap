@@ -6,13 +6,13 @@ package org
 import (
 	"net/http"
 
-	"code.gitea.io/gitea/modules/templates"
+	"code.gitea.io/gitea/modules/base"
 	shared_user "code.gitea.io/gitea/routers/web/shared/user"
 	"code.gitea.io/gitea/services/context"
 )
 
 const (
-	tplSettingsBlockedUsers templates.TplName = "org/settings/blocked_users"
+	tplSettingsBlockedUsers base.TplName = "org/settings/blocked_users"
 )
 
 func BlockedUsers(ctx *context.Context) {

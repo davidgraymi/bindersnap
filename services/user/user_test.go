@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"code.gitea.io/gitea/models"
 	"code.gitea.io/gitea/models/auth"
 	"code.gitea.io/gitea/models/db"
 	"code.gitea.io/gitea/models/organization"
@@ -36,7 +37,7 @@ func TestDeleteUser(t *testing.T) {
 		if len(ownedRepos) > 0 {
 			err := DeleteUser(db.DefaultContext, user, false)
 			assert.Error(t, err)
-			assert.True(t, repo_model.IsErrUserOwnRepos(err))
+			assert.True(t, models.IsErrUserOwnRepos(err))
 			return
 		}
 
