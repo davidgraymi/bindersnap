@@ -233,7 +233,7 @@ func NewFile(ctx *context.Context) {
 func editFilePost(ctx *context.Context, form forms.EditRepoFileForm, isNewFile bool) {
 	// If a file has no extension treat it as a .bsdoc
 	if filepath.Ext(form.TreePath) == "" {
-		form.TreePath = form.TreePath + bsDocExt
+		form.TreePath += bsDocExt
 	}
 	canCommit := renderCommitRights(ctx)
 	treeNames, treePaths := getParentTreeFields(form.TreePath)
