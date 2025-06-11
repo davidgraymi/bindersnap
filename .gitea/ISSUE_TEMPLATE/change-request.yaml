@@ -1,4 +1,4 @@
-name: Change Request
+name: Issue
 description: Found something you weren't expecting? Report it here!
 labels: ["type/bug"]
 body:

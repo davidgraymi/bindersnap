@@ -57,7 +57,7 @@ func SaveIssueContentHistory(ctx context.Context, posterID, issueID, commentID i
 	return nil
 }
 
-// KeepLimitedContentHistory keeps at most `limit` history revisions, it will hard delete out-dated revisions, sorting by revision interval
+// KeepLimitedContentHistory keeps at most `limit` history revisions, it will hard delete out-dated revisions, sorting by change request interval
 // we can ignore all errors in this function, so we just log them
 func KeepLimitedContentHistory(ctx context.Context, issueID, commentID int64, limit int) {
 	type IDEditTime struct {
@@ -82,7 +82,7 @@ func KeepLimitedContentHistory(ctx context.Context, issueID, commentID int64, li
 	for outDatedCount > 0 {
 		var indexToDelete int
 		minEditedInterval := -1
-		// find a history revision with minimal edited interval to delete, the first and the last should never be deleted
+		// find a history change request with minimal edited interval to delete, the first and the last should never be deleted
 		for i := 1; i < len(res)-1; i++ {
 			editedInterval := int(res[i].EditedUnix - res[i-1].EditedUnix)
 			if minEditedInterval == -1 || editedInterval < minEditedInterval {
@@ -106,7 +106,7 @@ func KeepLimitedContentHistory(ctx context.Context, issueID, commentID int64, li
 }
 
 // QueryIssueContentHistoryEditedCountMap query related history count of each comment (comment_id = 0 means the main issue)
-// only return the count map for "edited" (history revision count > 1) issues or comments.
+// only return the count map for "edited" (history change request count > 1) issues or comments.
 func QueryIssueContentHistoryEditedCountMap(dbCtx context.Context, issueID int64) (map[int64]int, error) {
 	type HistoryCountRecord struct {
 		CommentID    int64
