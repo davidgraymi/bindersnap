@@ -395,7 +395,7 @@ func DismissReview(ctx context.Context, reviewID, repoID int64, message string, 
 	}
 
 	if review.Type != issues_model.ReviewTypeApprove && review.Type != issues_model.ReviewTypeReject {
-		return nil, fmt.Errorf("not need to dismiss this review because it's type is not Approve or change request")
+		return nil, fmt.Errorf("not need to dismiss this review because it's type is not Approve or issue")
 	}
 
 	// load data for notify

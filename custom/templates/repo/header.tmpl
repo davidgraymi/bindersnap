@@ -55,11 +55,13 @@
 						</form>
 					{{end}}
 					<!-- TODO: add if enabled check -->
-					<a class="ui compact small basic button" href="{{$.RepoLink}}/hub" data-tooltip-content="{{if not $.IsSigned}}{{ctx.Locale.Tr "repo.view_guest_user"}}{{else}}{{ctx.Locale.Tr "repo.view"}}{{end}}">
-						{{svg "octicon-device-desktop" 16}}
-					</a>
+					 {{if $.IsAdmin}}
+						<a class="ui compact small basic button" href="{{$.RepoLink}}/hub" data-tooltip-content="{{if not $.IsSigned}}{{ctx.Locale.Tr "repo.view_guest_user"}}{{else}}{{ctx.Locale.Tr "repo.view"}}{{end}}">
+							{{svg "octicon-device-desktop" 16}}
+						</a>
+					{{end}}
 					<!-- TODO: add end if enabled check -->
-					{{if and $.IsAdmin $.EnableFeed}}
+					{{if $.EnableFeed}}
 					{{/* An extra div-element is not necessary here, as this button does not secretly contain two buttons. */}}
 					<a class="ui compact small basic button" href="{{$.RepoLink}}.rss" data-tooltip-content="{{ctx.Locale.Tr "rss_feed"}}">
 						{{svg "octicon-rss" 16}}

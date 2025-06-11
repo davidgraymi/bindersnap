@@ -54,10 +54,24 @@ func InitSimple(ctx context.Context) error {
 	return nil
 }
 
-func ConvertDocxToSnap(ctx context.Context, in io.Reader, out io.Writer) error {
+func ConvertDocxToBsDoc(ctx context.Context, in io.Reader, out io.Writer) error {
 	var cmd *Command
 	var stderr io.Writer
 	cmd = NewCommand(ctx).AddArguments("-f", "docx", "-t", "html")
+	if err := cmd.Run(&RunOpts{
+		Stdout: out,
+		Stderr: stderr,
+		Stdin:  in,
+	}); err != nil {
+		return fmt.Errorf("Run: %w - %s", err, stderr)
+	}
+	return nil
+}
+
+func ConvertDocToBsDoc(ctx context.Context, in io.Reader, out io.Writer) error {
+	var cmd *Command
+	var stderr io.Writer
+	cmd = NewCommand(ctx).AddArguments("-f", "doc", "-t", "html")
 	if err := cmd.Run(&RunOpts{
 		Stdout: out,
 		Stderr: stderr,

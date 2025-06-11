@@ -1,10 +1,10 @@
 {{if .File}}
-{{$isSnap := (call $.IsSnapFile .File)}}
+{{$isBsDoc := (call $.IsBsDoc .File)}}
 <div class="diff-file-box">
 	<div class="ui attached table segment">
-    {{if $isSnap}}
+    {{if $isBsDoc}}
       <div class="markup snapdiff file-view code-diff-unified unicode-escaped">
-        {{template "repo/diff/snap_diff" dict "FileDiff" .File}}
+        {{template "repo/diff/bsdoc_diff" dict "FileDiff" .File}}
       </div>
     {{else}}
       <div class="file-body file-code code-diff code-diff-unified unicode-escaped">

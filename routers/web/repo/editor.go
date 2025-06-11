@@ -42,9 +42,9 @@ const (
 
 	frmCommitChoiceDirect    string = "direct"
 	frmCommitChoiceNewBranch string = "commit-to-new-branch"
-	snapExt                  string = ".snap"
+	bsDocExt                 string = ".bsdoc"
 	docxExt                  string = ".docx"
-	pdocExt                  string = ".pdoc"
+	docExt                   string = ".doc"
 )
 
 func canCreateBasePullRequest(ctx *context.Context) bool {
@@ -231,6 +231,10 @@ func NewFile(ctx *context.Context) {
 }
 
 func editFilePost(ctx *context.Context, form forms.EditRepoFileForm, isNewFile bool) {
+	// If a file has no extension treat it as a .bsdoc
+	if filepath.Ext(form.TreePath) == "" {
+		form.TreePath = form.TreePath + bsDocExt
+	}
 	canCommit := renderCommitRights(ctx)
 	treeNames, treePaths := getParentTreeFields(form.TreePath)
 	branchName := ctx.Repo.BranchName
@@ -429,7 +433,7 @@ func DiffPreviewPost(ctx *context.Context) {
 		ctx.Data["File"] = diff.Files[0]
 	}
 
-	setSnapCompareContext(ctx)
+	setBsDocCompareContext(ctx)
 
 	ctx.HTML(http.StatusOK, tplEditDiffPreview)
 }
@@ -825,13 +829,18 @@ func UploadFileToServer(ctx *context.Context) {
 
 	nameExt := filepath.Ext(name)
 	var upload *repo_model.Upload
-	if nameExt == docxExt {
+	if nameExt == docxExt || nameExt == docExt {
 		snapBuf := new(bytes.Buffer)
 		// Do we need to init pandoc?
 		if _, err := file.Seek(0, io.SeekStart); err != nil {
 			log.Error("Failed to reset seek on pandoc output. %s", err)
 		}
-		err = pandoc.ConvertDocxToSnap(ctx, file, snapBuf)
+		if nameExt == docxExt {
+			err = pandoc.ConvertDocxToBsDoc(ctx, file, snapBuf)
+		}
+		if nameExt == docExt {
+			err = pandoc.ConvertDocToBsDoc(ctx, file, snapBuf)
+		}
 		file.Close()
 		if err != nil {
 			ctx.Error(http.StatusBadRequest, err.Error())
@@ -843,7 +852,7 @@ func UploadFileToServer(ctx *context.Context) {
 			buf = buf[:n]
 		}
 
-		name = strings.TrimSuffix(name, nameExt) + snapExt
+		name = strings.TrimSuffix(name, nameExt) + bsDocExt
 		upload, err = repo_model.NewUpload(ctx, name, buf, snapBuf)
 	} else {
 		defer file.Close()

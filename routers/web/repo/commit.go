@@ -342,7 +342,7 @@ func Diff(ctx *context.Context) {
 			return
 		}
 		ctx.Data["FileDiff"] = diff.Files[0]
-		ctx.HTML(http.StatusOK, tplPullSnapFile)
+		ctx.HTML(http.StatusOK, tplPullBsDocFile)
 		return
 	}
 

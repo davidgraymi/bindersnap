@@ -50,10 +50,10 @@ import (
 )
 
 const (
-	tplCompareDiff  base.TplName = "repo/diff/compare"
-	tplPullCommits  base.TplName = "repo/pulls/commits"
-	tplPullFiles    base.TplName = "repo/pulls/files"
-	tplPullSnapFile base.TplName = "repo/diff/snap_diff"
+	tplCompareDiff   base.TplName = "repo/diff/compare"
+	tplPullCommits   base.TplName = "repo/pulls/commits"
+	tplPullFiles     base.TplName = "repo/pulls/files"
+	tplPullBsDocFile base.TplName = "repo/diff/bsdoc_diff"
 
 	pullRequestTemplateKey = "PullRequestTemplate"
 )
@@ -786,7 +786,7 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 			return
 		}
 		ctx.Data["FileDiff"] = diff.Files[0]
-		ctx.HTML(http.StatusOK, tplPullSnapFile)
+		ctx.HTML(http.StatusOK, tplPullBsDocFile)
 	}
 
 	ctx.PageData["prReview"] = map[string]any{
