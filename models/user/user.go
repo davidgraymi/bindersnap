@@ -120,6 +120,8 @@ type User struct {
 	// (ex: in private Gitea instances user won't be allowed to see even organizations/repositories that are set as public)
 	IsRestricted bool `xorm:"NOT NULL DEFAULT false"`
 
+	Subscription structs.SubscriptionType `xorm:"NOT NULL DEFAULT 0"`
+
 	AllowGitHook            bool
 	AllowImportLocal        bool // Allow migrate repository by local path
 	AllowCreateOrganization bool `xorm:"DEFAULT true"`

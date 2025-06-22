@@ -23,6 +23,7 @@ type AdminCreateUserForm struct {
 	SendNotify         bool
 	MustChangePassword bool
 	Visibility         structs.VisibleType
+	Subscription       structs.SubscriptionType
 }
 
 // Validate validates form fields
@@ -52,6 +53,7 @@ type AdminEditUserForm struct {
 	ProhibitLogin           bool
 	Reset2FA                bool `form:"reset_2fa"`
 	Visibility              structs.VisibleType
+	Subscription            structs.SubscriptionType
 }
 
 // Validate validates form fields
