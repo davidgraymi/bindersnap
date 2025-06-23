@@ -22,6 +22,7 @@ import (
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/optional"
 	"code.gitea.io/gitea/modules/setting"
+	"code.gitea.io/gitea/modules/structs"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/modules/web"
 	"code.gitea.io/gitea/routers/web/explore"
@@ -92,8 +93,10 @@ func NewUser(ctx *context.Context) {
 	ctx.Data["PageIsAdminUsers"] = true
 	ctx.Data["DefaultUserVisibilityMode"] = setting.Service.DefaultUserVisibilityMode
 	ctx.Data["AllowedUserVisibilityModes"] = setting.Service.AllowedUserVisibilityModesSlice.ToVisibleTypeSlice()
+	ctx.Data["SubscriptionModes"] = structs.SubscriptionModes
 
 	ctx.Data["login_type"] = "0-0"
+	ctx.Data["subscription"] = structs.SubscriptionTypeFree
 
 	sources, err := db.Find[auth.Source](ctx, auth.FindSourcesOptions{
 		IsActive: optional.Some(true),
@@ -115,6 +118,7 @@ func NewUserPost(ctx *context.Context) {
 	ctx.Data["PageIsAdminUsers"] = true
 	ctx.Data["DefaultUserVisibilityMode"] = setting.Service.DefaultUserVisibilityMode
 	ctx.Data["AllowedUserVisibilityModes"] = setting.Service.AllowedUserVisibilityModesSlice.ToVisibleTypeSlice()
+	ctx.Data["SubscriptionModes"] = structs.SubscriptionModes
 
 	sources, err := db.Find[auth.Source](ctx, auth.FindSourcesOptions{
 		IsActive: optional.Some(true),
@@ -133,10 +137,11 @@ func NewUserPost(ctx *context.Context) {
 	}
 
 	u := &user_model.User{
-		Name:      form.UserName,
-		Email:     form.Email,
-		Passwd:    form.Password,
-		LoginType: auth.Plain,
+		Name:         form.UserName,
+		Email:        form.Email,
+		Passwd:       form.Password,
+		LoginType:    auth.Plain,
+		Subscription: form.Subscription,
 	}
 
 	overwriteDefault := &user_model.CreateUserOverwriteOptions{
@@ -268,6 +273,7 @@ func ViewUser(ctx *context.Context) {
 	ctx.Data["DisableRegularOrgCreation"] = setting.Admin.DisableRegularOrgCreation
 	ctx.Data["DisableMigrations"] = setting.Repository.DisableMigrations
 	ctx.Data["AllowedUserVisibilityModes"] = setting.Service.AllowedUserVisibilityModesSlice.ToVisibleTypeSlice()
+	ctx.Data["SubscriptionModes"] = structs.SubscriptionModes
 
 	u := prepareUserInfo(ctx)
 	if ctx.Written() {
@@ -320,6 +326,7 @@ func editUserCommon(ctx *context.Context) {
 	ctx.Data["DisableMigrations"] = setting.Repository.DisableMigrations
 	ctx.Data["AllowedUserVisibilityModes"] = setting.Service.AllowedUserVisibilityModesSlice.ToVisibleTypeSlice()
 	ctx.Data["DisableGravatar"] = setting.Config().Picture.DisableGravatar.Value(ctx)
+	ctx.Data["SubscriptionModes"] = structs.SubscriptionModes
 }
 
 // EditUser show editing user page
@@ -443,6 +450,7 @@ func EditUserPost(ctx *context.Context) {
 		IsRestricted:            optional.Some(form.Restricted),
 		Visibility:              optional.Some(form.Visibility),
 		Language:                optional.Some(form.Language),
+		Subscription:            optional.Some(form.Subscription),
 	}
 
 	if err := user_service.UpdateUser(ctx, u, opts); err != nil {

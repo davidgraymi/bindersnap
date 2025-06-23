@@ -27,6 +27,7 @@ type UpdateOptions struct {
 	MaxRepoCreation              optional.Option[int]
 	IsRestricted                 optional.Option[bool]
 	Visibility                   optional.Option[structs.VisibleType]
+	Subscription                 optional.Option[structs.SubscriptionType]
 	KeepActivityPrivate          optional.Option[bool]
 	Language                     optional.Option[string]
 	Theme                        optional.Option[string]
@@ -119,6 +120,13 @@ func UpdateUser(ctx context.Context, u *user_model.User, opts *UpdateOptions) er
 		u.IsAdmin = opts.IsAdmin.Value()
 
 		cols = append(cols, "is_admin")
+	}
+
+	if opts.Subscription.Has() {
+		// TODO: Error handling
+		u.Subscription = opts.Subscription.Value()
+
+		cols = append(cols, "subscription")
 	}
 
 	if opts.Visibility.Has() {

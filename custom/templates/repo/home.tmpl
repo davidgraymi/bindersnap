@@ -44,7 +44,7 @@
 							"AllowCreateNewRef" .CanCreateBranch
 							"ShowViewAllRefsEntry" true
 						}}
-						{{if and .IsAdmin .CanCompareOrPull .IsViewBranch (not .Repository.IsArchived)}}
+						{{if and .CanCompareOrPull .IsViewBranch (not .Repository.IsArchived)}}
 							{{$cmpBranch := ""}}
 							{{if ne .Repository.ID .BaseRepo.ID}}
 								{{$cmpBranch = printf "%s/%s:" (.Repository.OwnerName|PathEscape) (.Repository.Name|PathEscape)}}
