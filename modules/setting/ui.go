@@ -135,9 +135,9 @@ var UI = struct {
 		Description string
 		Keywords    string
 	}{
-		Author:      "Gitea - Git with a cup of tea",
-		Description: "Gitea (Git with a cup of tea) is a painless self-hosted Git service written in Go",
-		Keywords:    "go,git,self-hosted,gitea",
+		Author:      "Bindersnap - Document management reinvented",
+		Description: "Bindersnap, the headache free, all-in-one document management platform",
+		Keywords:    "bindersnap,version,control,shared,drive,document,management",
 	},
 }
 
