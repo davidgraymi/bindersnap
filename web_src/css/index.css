@@ -85,6 +85,7 @@
 @import "./search.css";
 @import "./tiptap.css";
 @import "./snapdiff/base.css";
+@import "./pricing.css";
 
 @tailwind utilities;
 

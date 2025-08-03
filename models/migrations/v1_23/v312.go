@@ -1,5 +1,5 @@
-// Copyright 2024 The Gitea Authors. All rights reserved.
-// SPDX-License-Identifier: MIT
+// Copyright 2025 The Bindersnap Authors. All rights reserved.
+// SPDX-License-Identifier: LicenseRef-License
 
 package v1_23 //nolint
 

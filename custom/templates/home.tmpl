@@ -1,5 +1,5 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr " dashboard"}}{{else}}{{ctx.Locale.Tr "home" }}{{end}}"
+<div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home" }}{{end}}"
   class="home">
   <div class="landing-intro"></div>
   <div class="ui center aligned container hero">
@@ -25,7 +25,7 @@
         </p>
       </div>
       <div class="landing-benefits-right">
-        <img src="{{AssetUrlPrefix}}/img/commits_laptop.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
+        <img src="{{AssetUrlPrefix}}/img/commits_laptop.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
       </div>
     </div>
     <div class="landing-benefits-item item-2">
@@ -34,7 +34,7 @@
         <p>Access and edit documents from any browser. No installs, no compatibility issues, no excuses.</p>
       </div>
       <div class="landing-benefits-right">
-        <img src="{{AssetUrlPrefix}}/img/iphone_review.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
+        <img src="{{AssetUrlPrefix}}/img/iphone_review.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
       </div>
     </div>
     <div class="landing-benefits-item item-3">
@@ -44,7 +44,7 @@
           context.</p>
       </div>
       <div class="landing-benefits-right">
-        <img src="{{AssetUrlPrefix}}/img/collab_laptop.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
+        <img src="{{AssetUrlPrefix}}/img/collab_laptop.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
       </div>
     </div>
     <div class="landing-benefits-item item-4">
@@ -53,7 +53,7 @@
         <p>Enforce approvals, catch issues early, and eliminate bottlenecks — without endless back-and-forth emails.</p>
       </div>
       <div class="landing-benefits-right">
-        <img src="{{AssetUrlPrefix}}/img/approval_laptop.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
+        <img src="{{AssetUrlPrefix}}/img/approval_laptop.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
       </div>
     </div>
     <div class="landing-benefits-item item-5">
@@ -62,62 +62,12 @@
         <p>Create issues, assign tasks, resolve blockers and never lose sight of your goals with projects.</p>
       </div>
       <div class="landing-benefits-right">
-        <img src="{{AssetUrlPrefix}}/img/project_laptop.png" alt="{{ctx.Locale.Tr " logo"}}" aria-hidden="true">
+        <img src="{{AssetUrlPrefix}}/img/project_laptop.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
       </div>
     </div>
   </div>
 
-  <div class="landing-price">
-    <h1>Find the right plan for your business.</h1>
-    <h2>Choose the Bindersnap plan that best fits your business.</h2>
-    <div class="landing-price-tiers">
-      <div class="tier-container-free">
-        <h3>Free</h3>
-        <div class="landing-price-row">
-          <div class="landing-price-bold-text">$0</div>
-          <div class="landing-price-info-text">per user/month</div>
-        </div>
-        <div class="tier-spacer"></div>
-        <div class="landing-price-feature-label">Features include:</div>
-        <div class="landing-price-feature">5 public/private repositories</div>
-        <div class="landing-price-feature">issues and milestones</div>
-        <div class="landing-price-feature">50MB of storage per repo</div>
-      </div>
-      <div class="tier-container-premium">
-        <h3>Premium</h3>
-        <div class="landing-price-row">
-          <div class="landing-inner-price-row">
-            <span class="landing-price-bold-old-text">$15</span>
-            <span class="landing-price-bold-text">$5</span>
-          </div>
-          <div class="landing-price-info-text">per user / month,<br />billed annually</div>
-        </div>
-        <div class="tier-spacer"></div>
-        <div class="landing-price-feature-label">Everything from Free, plus:</div>
-        <div class="landing-price-feature">unlimited repositories</div>
-        <div class="landing-price-feature">project management</div>
-        <div class="landing-price-feature">multiple reviewers</div>
-        <div class="landing-price-feature">required reviewers</div>
-        <div class="landing-price-feature">draft change requests</div>
-        <div class="landing-price-feature">protected branches</div>
-        <div class="landing-price-feature">wikis</div>
-        <div class="landing-price-feature">5GiB of storage per repo</div>
-      </div>
-      <div class="tier-container-ultimate">
-        <h3>Ultimate</h3>
-        <div class="landing-price-row-pad">
-          <div class="landing-price-talk-text">Talk to sales for pricing</div>
-        </div>
-        <div class="tier-spacer"></div>
-        <div class="landing-price-feature-label">Everything from Premium, plus:</div>
-        <div class="landing-price-feature">data residence</div>
-        <div class="landing-price-feature">enterprise managed users</div>
-        <div class="landing-price-feature">user provisioning through SCIM</div>
-        <div class="landing-price-feature">SAML single sign-on </div>
-        <div class="landing-price-feature">white glove onboarding</div>
-      </div>
-    </div>
-  </div>
+  {{template "pay/pricing" .}}
 
   <div class="outro">
     <div class="ui center aligned container alternative-cta">

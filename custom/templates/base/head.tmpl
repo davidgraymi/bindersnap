@@ -37,7 +37,7 @@
 
 		{{template "custom/body_inner_pre" .}}
 
-		{{if not .PageIsInstall}}
+		{{if and (not .PageIsInstall) (not .PageIsSales)}}
 			{{template "base/head_navbar" .}}
 		{{end}}
 

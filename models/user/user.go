@@ -121,6 +121,8 @@ type User struct {
 	IsRestricted bool `xorm:"NOT NULL DEFAULT false"`
 
 	Subscription structs.SubscriptionType `xorm:"NOT NULL DEFAULT 0"`
+	// Stripe customer ID
+	StripeID string `xorm:"VARCHAR(255) UNIQUE NULL"`
 
 	AllowGitHook            bool
 	AllowImportLocal        bool // Allow migrate repository by local path
@@ -364,6 +366,11 @@ func (u *User) NewGitSig() *git.Signature {
 		Email: u.GetEmail(),
 		When:  time.Now(),
 	}
+}
+
+func (u *User) SetUserSubscription(ctx context.Context, subscription structs.SubscriptionType) error {
+	u.Subscription = subscription
+	return UpdateUserCols(ctx, u, "subscription")
 }
 
 // SetPassword hashes a password using the algorithm defined in the config value of PASSWORD_HASH_ALGO
@@ -948,6 +955,18 @@ func GetUserByIDs(ctx context.Context, ids []int64) ([]*User, error) {
 		Table("user").
 		Find(&users)
 	return users, err
+}
+
+// GetUserByStripeID returns the user object by given StripeID if exists.
+func GetUserByStripeID(ctx context.Context, id string) (*User, error) {
+	u := &User{StripeID: id}
+	has, err := db.GetEngine(ctx).Get(u)
+	if err != nil {
+		return nil, err
+	} else if !has {
+		return nil, ErrStripeUserNotExist{StripeID: id}
+	}
+	return u, nil
 }
 
 // GetPossibleUserByID returns the user if id > 0 or return system usrs if id < 0

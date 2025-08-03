@@ -109,12 +109,6 @@
   .landing-benefits-right {
     display: none;
   }
-
-  .landing-price-tiers {
-    display: flex;
-    flex-direction: column;
-    gap: 30px
-  }
 }
 
 /* @media (min-width: 768px) and (max-width: 991.98px) {
@@ -239,14 +233,6 @@
     align-content: center;
     flex: 1 1 50%;
     max-width: 50%;
-  }
-
-  .landing-price-tiers {
-    display: flex;
-    flex-direction: row;
-    width: calc(100% - 2em);
-    max-width: 1156px;
-    gap: 30px
   }
 }
 
@@ -447,134 +433,6 @@
   left: 3em;
   height: 100%;
   width: auto;
-}
-
-.home .landing-price {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 8em;
-}
-
-.home .landing-price h1 {
-  font-size: 4.1em;
-  line-height: 1.15em;
-  letter-spacing: -0.25px;
-  text-align: center;
-}
-
-.home .landing-price h2 {
-  font-size: 1.4em;
-  line-height: 1.6em;
-  margin-bottom: 2.5em;
-  text-align: center;
-}
-
-.tier-container-free,
-.tier-container-premium,
-.tier-container-ultimate {
-  flex: 1;
-  padding: 20px;
-  overflow: hidden;
-  border-radius: 24px;
-  box-shadow: 0 1px 3px #0000001e,
-    0 4px 8px 3px #0000000f;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  height: fit-content;
-  background-color: var(--color-white);
-  color: #080707;
-}
-
-.tier-container-free h3,
-.tier-container-premium h3,
-.tier-container-ultimate h3 {
-  font-size: 3.2em;
-  line-height: 52px;
-  margin-bottom: 0;
-}
-
-.tier-container-free {
-  border: 1px solid #e2e2e2;
-}
-
-.tier-container-premium {
-  border: 1px solid #2188ff;
-}
-
-.tier-container-ultimate {
-  box-shadow: 0 4px 8px #0000001e;
-  background: linear-gradient(white, white) padding-box,
-    linear-gradient(141deg, #8179f8 31%, #c05696 61%, #ff3333) border-box;
-
-  border: 1px solid transparent;
-}
-
-.landing-price-row {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  align-items: center;
-  height: fit-content;
-}
-
-.landing-inner-price-row {
-  display: flex;
-  flex-direction: row;
-}
-
-.landing-price-row-pad {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  align-items: center;
-  height: 58px;
-}
-
-.landing-price-bold-text,
-.landing-price-bold-old-text {
-  font-size: 3.3em;
-  line-height: 120%;
-  letter-spacing: -2%;
-  font-weight: 700;
-}
-
-.landing-price-bold-old-text {
-  color: #808080;
-  /* text-decoration: line-through; */
-  text-decoration-line: line-through;
-  text-decoration-thickness: 5px;
-}
-
-.landing-price-info-text {
-  font-size: 1.4em;
-  line-height: 120%;
-}
-
-.landing-price-talk-text {
-  font-size: 24px;
-  line-height: 120%;
-  letter-spacing: -2%;
-  font-weight: 600;
-}
-
-.tier-spacer {
-  height: 1px;
-  width: 100%;
-  background-color: #d9d9d9;
-}
-
-.landing-price-feature-label {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 140%;
-}
-
-.landing-price-feature {
-  font-size: 20px;
-  line-height: 120%;
-  font-weight: 400;
 }
 
 .home .outro {

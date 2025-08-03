@@ -34,6 +34,7 @@ import (
 	"code.gitea.io/gitea/routers/web/misc"
 	"code.gitea.io/gitea/routers/web/org"
 	org_setting "code.gitea.io/gitea/routers/web/org/setting"
+	"code.gitea.io/gitea/routers/web/pay"
 	"code.gitea.io/gitea/routers/web/repo"
 	"code.gitea.io/gitea/routers/web/repo/actions"
 	repo_setting "code.gitea.io/gitea/routers/web/repo/setting"
@@ -485,6 +486,14 @@ func registerWebRoutes(m *web.Router) {
 		m.Get("/passkey-endpoints", passkeyEndpoints)
 		m.Methods("GET, HEAD", "/*", public.FileHandlerFunc())
 	}, optionsCorsHandler())
+
+	m.Group("/pay", func() {
+		m.Get("/subscribe", pay.Subscribe)
+		m.Post("/create-checkout-session", pay.CreateCheckoutSession)
+		m.Post("/create-portal-session", pay.CreatePortalSession)
+	}, reqSignIn)
+
+	m.Post("/pay/webhook", reqSignOut, pay.HandleWebhook)
 
 	m.Post("/-/markup", reqSignIn, web.Bind(structs.MarkupOption{}), misc.Markup)
 
