@@ -369,6 +369,9 @@ func prepareMigrationTasks() []*migration {
 		newMigration(309, "Improve Notification table indices", v1_23.ImproveNotificationTableIndices),
 		newMigration(310, "Add Priority to ProtectedBranch", v1_23.AddPriorityToProtectedBranch),
 		newMigration(311, "Add TimeEstimate to Issue table", v1_23.AddTimeEstimateColumnToIssueTable),
+		newMigration(312, "Add Subscription to User table", v1_23.AddSubscriptionToUser),
+		newMigration(313, "Add Stripe ID to User table", v1_23.AddStripeIdToUser),
+		newMigration(314, "Add UnreconciledSubscription table", v1_23.AddUserUnreconciledSubscriptionTable),
 	}
 	return preparedMigrations
 }

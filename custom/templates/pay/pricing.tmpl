@@ -1,0 +1,58 @@
+<section class="landing-price">
+  <h1>Find the right plan for your business.</h1>
+  <h2>Choose the Bindersnap plan that best fits your business.</h2>
+  <div class="landing-price-tiers">
+    <form action="{{if .IsSigned}}/{{else}}/user/sign_up{{end}}" method="GET">
+      <button type="submit" class="tier-container-free">
+        <h3>Free</h3>
+        <div class="landing-price-row">
+          <div class="landing-price-bold-text">$0</div>
+          <div class="landing-price-info-text">per user/month</div>
+        </div>
+        <div class="tier-spacer"></div>
+        <div class="landing-price-feature-label">Features include:</div>
+        <div class="landing-price-feature">5 public/private repositories</div>
+        <div class="landing-price-feature">issues and milestones</div>
+        <div class="landing-price-feature">50MB of storage per repo</div>
+      </button>
+    </form>
+    <form action="{{if .IsSigned}}/pay/create-checkout-session{{else}}/user/sign_up{{end}}" method="{{if .IsSigned}}POST{{else}}GET{{end}}">
+      {{.CsrfTokenHtml}}
+      <button type="submit" class="tier-container-premium">
+        <h3>Premium</h3>
+        <div class="landing-price-row">
+          <div class="landing-inner-price-row">
+            <span class="landing-price-bold-old-text">$15</span>
+            <span class="landing-price-bold-text">$5</span>
+          </div>
+          <div class="landing-price-info-text">per user / month,<br />billed annually</div>
+        </div>
+        <div class="tier-spacer"></div>
+        <div class="landing-price-feature-label">Everything from Free, plus:</div>
+        <div class="landing-price-feature">unlimited repositories</div>
+        <div class="landing-price-feature">project management</div>
+        <div class="landing-price-feature">multiple reviewers</div>
+        <div class="landing-price-feature">required reviewers</div>
+        <div class="landing-price-feature">draft change requests</div>
+        <div class="landing-price-feature">protected branches</div>
+        <div class="landing-price-feature">wikis</div>
+        <div class="landing-price-feature">5GiB of storage per repo</div>
+      </button>
+    </form>
+    <form action="mailto:sales@bindersnap.com?subject=I%20want%20the%20Ultimate%20tier&body=Hi%20Bindersnap%2C%0D%0A%0D%0AI%E2%80%99m%20interested%20in%20signing%20up%20for%20the%20Ultimate%20tier.%20Please%20let%20me%20know%20how%20to%20get%20started.%0D%0A%0D%0AThanks!" method="POST" enctype="text/plain">
+      <button type="submit" class="tier-container-ultimate">
+        <h3>Ultimate</h3>
+        <div class="landing-price-row-pad">
+          <div class="landing-price-talk-text">Talk to sales for pricing</div>
+        </div>
+        <div class="tier-spacer"></div>
+        <div class="landing-price-feature-label">Everything from Premium, plus:</div>
+        <div class="landing-price-feature">data residence</div>
+        <div class="landing-price-feature">enterprise managed users</div>
+        <div class="landing-price-feature">user provisioning through SCIM</div>
+        <div class="landing-price-feature">SAML single sign-on </div>
+        <div class="landing-price-feature">white glove onboarding</div>
+      </button>
+    </form>
+  </div>
+</section>

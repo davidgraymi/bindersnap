@@ -35,6 +35,16 @@ type ErrUserNotExist struct {
 	Name string
 }
 
+// ErrStripeUserNotExist represents a "StripeUserNotExist" kind of error.
+type ErrStripeUserNotExist struct {
+	StripeID string
+	Name     string
+}
+
+func (err ErrStripeUserNotExist) Error() string {
+	return fmt.Sprintf("stripe user does not exist [stripeid: %s, name: %s]", err.StripeID, err.Name)
+}
+
 // IsErrUserNotExist checks if an error is a ErrUserNotExist.
 func IsErrUserNotExist(err error) bool {
 	_, ok := err.(ErrUserNotExist)
