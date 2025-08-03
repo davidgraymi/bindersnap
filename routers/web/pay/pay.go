@@ -4,23 +4,23 @@
 package pay
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 
-	"github.com/stripe/stripe-go/v82"
-	stripe_pb_session "github.com/stripe/stripe-go/v82/billingportal/session"
-	stripe_ck_session "github.com/stripe/stripe-go/v82/checkout/session"
-	"github.com/stripe/stripe-go/v82/webhook"
-
 	user_model "code.gitea.io/gitea/models/user"
 	"code.gitea.io/gitea/modules/base"
+	"code.gitea.io/gitea/modules/json"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/structs"
 	"code.gitea.io/gitea/services/context"
+
+	"github.com/stripe/stripe-go/v82"
+	stripe_pb_session "github.com/stripe/stripe-go/v82/billingportal/session"
+	stripe_ck_session "github.com/stripe/stripe-go/v82/checkout/session"
+	"github.com/stripe/stripe-go/v82/webhook"
 )
 
 const (
@@ -155,15 +155,15 @@ func checkoutSessionCompleted(ctx *context.Context, event stripe.Event) {
 
 	// Reconcile the subscription
 	if session.Subscription != nil {
-		unrec_sub, err := user_model.GetSubscriptionByStripeID(ctx, session.Subscription.ID)
+		unrecSub, err := user_model.GetSubscriptionByStripeID(ctx, session.Subscription.ID)
 		if err != nil {
 			log.Warn("Failed to reconcile subscription: %v", err)
 			ctx.Status(http.StatusOK)
 			return
 		}
 
-		updateSubscription(ctx, user, string(unrec_sub.Status), unrec_sub.ProductID)
-		err = unrec_sub.Delete(ctx)
+		updateSubscription(ctx, user, unrecSub.Status, unrecSub.ProductID)
+		err = unrecSub.Delete(ctx)
 		if err != nil {
 			log.Error("Did not delete reconciled subscription: %s", err)
 		}
@@ -224,7 +224,7 @@ func customerSubscriptionUpdated(ctx *context.Context, event stripe.Event) {
 	user, err := user_model.GetUserByStripeID(ctx, sub.Customer.ID)
 	if err != nil {
 		// If the user does not exist, we need to insert an unreconciled subscription
-		unrec_sub := &user_model.UnreconciledSubscription{
+		unrecSub := &user_model.UnreconciledSubscription{
 			StripeID:   sub.ID,
 			CustomerID: sub.Customer.ID,
 			PriceID:    sub.Items.Data[0].Price.ID,
@@ -232,15 +232,14 @@ func customerSubscriptionUpdated(ctx *context.Context, event stripe.Event) {
 			Status:     string(sub.Status),
 		}
 
-		_, err = user_model.InsertUnreconciledSubscription(ctx, unrec_sub)
+		_, err = user_model.InsertUnreconciledSubscription(ctx, unrecSub)
 		if err != nil {
 			log.Error("Failed to insert unreconciled subscription: %v", err)
 			ctx.Error(http.StatusInternalServerError, "Failed to record subscription")
 			return
-		} else {
-			log.Info("Inserted unreconciled subscription for customer %s with Stripe ID %s",
-				sub.Customer.ID, sub.ID)
 		}
+		log.Info("Inserted unreconciled subscription for customer %s with Stripe ID %s",
+			sub.Customer.ID, sub.ID)
 	} else {
 		updateSubscription(ctx, user, string(sub.Status), sub.Items.Data[0].Price.Product.ID)
 	}
@@ -254,29 +253,27 @@ func unhandledEvent(ctx *context.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-func updateSubscription(ctx *context.Context, user *user_model.User, Status string, ProductID string) {
-	if Status != string(stripe.SubscriptionStatusActive) {
+func updateSubscription(ctx *context.Context, user *user_model.User, status, productID string) {
+	if status != string(stripe.SubscriptionStatusActive) {
 		if err := user.SetUserSubscription(ctx, structs.SubscriptionTypeFree); err != nil {
 			if user_model.IsErrUserNotExist(err) {
 				ctx.NotFound("UpdateUserCols", err)
 				return
-			} else {
-				ctx.ServerError("UpdateUser", err)
-				return
 			}
+			ctx.ServerError("UpdateUser", err)
+			return
 		}
-		log.Info("User %d - %s subscription set to free due to %s status", user.ID, user.Name, Status)
+		log.Info("User %d - %s subscription set to free due to %s status", user.ID, user.Name, status)
 	} else {
-		switch ProductID {
+		switch productID {
 		case setting.Stripe.PremiumProductID:
 			if err := user.SetUserSubscription(ctx, structs.SubscriptionTypePremium); err != nil {
 				if user_model.IsErrUserNotExist(err) {
 					ctx.NotFound("UpdateUserCols", err)
 					return
-				} else {
-					ctx.ServerError("UpdateUser", err)
-					return
 				}
+				ctx.ServerError("UpdateUser", err)
+				return
 			}
 			log.Info("User %d - %s subscription set to %s", user.ID, user.Name, structs.SubscriptionTypePremium)
 		case setting.Stripe.UltimateProductID:
@@ -284,14 +281,13 @@ func updateSubscription(ctx *context.Context, user *user_model.User, Status stri
 				if user_model.IsErrUserNotExist(err) {
 					ctx.NotFound("UpdateUserCols", err)
 					return
-				} else {
-					ctx.ServerError("UpdateUser", err)
-					return
 				}
+				ctx.ServerError("UpdateUser", err)
+				return
 			}
 			log.Info("User %d - %s subscription set to %s", user.ID, user.Name, structs.SubscriptionTypeUltimate)
 		default:
-			log.Error("Unknown product: %s", ProductID)
+			log.Error("Unknown product: %s", productID)
 			return
 		}
 	}

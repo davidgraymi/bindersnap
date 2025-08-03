@@ -7,7 +7,7 @@ import (
 	"xorm.io/xorm"
 )
 
-func AddStripeIdToUser(x *xorm.Engine) error {
+func AddStripeIDToUser(x *xorm.Engine) error {
 	type User struct {
 		StripeID string `xorm:"VARCHAR(255) UNIQUE NULL"`
 	}

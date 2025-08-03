@@ -5,6 +5,7 @@ package setting
 
 import (
 	"code.gitea.io/gitea/modules/log"
+
 	"github.com/stripe/stripe-go/v82"
 )
 
