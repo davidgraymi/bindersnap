@@ -276,16 +276,17 @@ func updateSubscription(ctx *context.Context, user *user_model.User, status, pro
 				return
 			}
 			log.Info("User %d - %s subscription set to %s", user.ID, user.Name, structs.SubscriptionTypePremium)
-		case setting.Stripe.UltimateProductID:
-			if err := user.SetUserSubscription(ctx, structs.SubscriptionTypeUltimate); err != nil {
-				if user_model.IsErrUserNotExist(err) {
-					ctx.NotFound("UpdateUserCols", err)
-					return
-				}
-				ctx.ServerError("UpdateUser", err)
-				return
-			}
-			log.Info("User %d - %s subscription set to %s", user.ID, user.Name, structs.SubscriptionTypeUltimate)
+		// TODO!: handle ultiamte tier
+		// case setting.Stripe.UltimateProductID:
+		// 	if err := user.SetUserSubscription(ctx, structs.SubscriptionTypeUltimate); err != nil {
+		// 		if user_model.IsErrUserNotExist(err) {
+		// 			ctx.NotFound("UpdateUserCols", err)
+		// 			return
+		// 		}
+		// 		ctx.ServerError("UpdateUser", err)
+		// 		return
+		// 	}
+		// 	log.Info("User %d - %s subscription set to %s", user.ID, user.Name, structs.SubscriptionTypeUltimate)
 		default:
 			log.Error("Unknown product: %s", productID)
 			return
