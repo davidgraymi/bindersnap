@@ -810,7 +810,7 @@ func handleAccountActivation(ctx *context.Context, user *user_model.User) {
 		return
 	}
 
-	ctx.Redirect(setting.AppSubURL + "/")
+	ctx.Redirect(setting.AppSubURL + "/pay/subscribe")
 }
 
 // ActivateEmail render the activate email page

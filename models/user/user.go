@@ -122,7 +122,7 @@ type User struct {
 
 	Subscription structs.SubscriptionType `xorm:"NOT NULL DEFAULT 0"`
 	// Stripe customer ID
-	StripeID string `xorm:"VARCHAR(255) UNIQUE NULL"`
+	StripeID *string `xorm:"VARCHAR(255) UNIQUE NULL"`
 
 	AllowGitHook            bool
 	AllowImportLocal        bool // Allow migrate repository by local path
@@ -959,7 +959,7 @@ func GetUserByIDs(ctx context.Context, ids []int64) ([]*User, error) {
 
 // GetUserByStripeID returns the user object by given StripeID if exists.
 func GetUserByStripeID(ctx context.Context, id string) (*User, error) {
-	u := &User{StripeID: id}
+	u := &User{StripeID: &id}
 	has, err := db.GetEngine(ctx).Get(u)
 	if err != nil {
 		return nil, err
