@@ -88,6 +88,7 @@ import {
   initGlobalFormDirtyLeaveConfirm,
 } from './features/common-form.ts';
 import {initSearch} from './search.ts';
+import {initSubscriptionModal} from './features/subscription-modal.ts';
 
 initGiteaFomantic();
 initDirAuto();
@@ -98,7 +99,7 @@ function callInitFunctions(functions: (() => any)[]) {
   // It is a quick check, no side effect so no need to do slow URL parsing.
   const initStart = performance.now();
   if (window.location.search.includes('_ui_performance_trace=1')) {
-    let results: {name: string, dur: number}[] = [];
+    let results: { name: string, dur: number }[] = [];
     for (const func of functions) {
       const start = performance.now();
       func();
@@ -220,5 +221,6 @@ onDomReady(() => {
     initOAuth2SettingsDisableCheckbox,
 
     initSearch,
+    initSubscriptionModal,
   ]);
 });

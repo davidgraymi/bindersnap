@@ -244,7 +244,9 @@ func (u *User) IsOAuth2() bool {
 
 // MaxCreationLimit returns the number of repositories a user is allowed to create
 func (u *User) MaxCreationLimit() int {
-	if u.MaxRepoCreation <= -1 {
+	if u.Subscription.IsFree() {
+		return setting.Repository.MaxCreationLimitFree
+	} else if u.MaxRepoCreation <= -1 {
 		return setting.Repository.MaxCreationLimit
 	}
 	return u.MaxRepoCreation
@@ -255,6 +257,9 @@ func (u *User) MaxCreationLimit() int {
 func (u *User) CanCreateRepo() bool {
 	if u.IsAdmin {
 		return true
+	}
+	if u.Subscription.IsFree() && u.NumRepos >= setting.Repository.MaxCreationLimitFree {
+		return false
 	}
 	if u.MaxRepoCreation <= -1 {
 		if setting.Repository.MaxCreationLimit <= -1 {
