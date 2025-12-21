@@ -12,7 +12,7 @@
 		</div>
 		<div class="tw-text-right">
 			{{if $.Repository.Owner.Subscription.IsFree}}
-				<a class="ui small primary button" href="#" data-modal="upgrade-subscription-modal" data-modal-header="Upgrade Subscription">{{ctx.Locale.Tr "repo.projects.new"}}</a>
+				<a class="ui small primary button show-modal" href="#" data-modal="#upgrade-subscription-modal">{{ctx.Locale.Tr "repo.projects.new"}}</a>
 			{{else}}
 				<a class="ui small primary button" href="{{$.Link}}/new">{{ctx.Locale.Tr "repo.projects.new"}}</a>
 			{{end}}

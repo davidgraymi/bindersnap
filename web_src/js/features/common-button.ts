@@ -1,7 +1,7 @@
-import {POST} from '../modules/fetch.ts';
-import {addDelegatedEventListener, hideElem, queryElems, showElem, toggleElem} from '../utils/dom.ts';
-import {fomanticQuery} from '../modules/fomantic/base.ts';
-import {camelize} from 'vue';
+import { POST } from '../modules/fetch.ts';
+import { addDelegatedEventListener, hideElem, queryElems, showElem, toggleElem } from '../utils/dom.ts';
+import { fomanticQuery } from '../modules/fomantic/base.ts';
+import { camelize } from 'vue';
 
 export function initGlobalButtonClickOnEnter(): void {
   addDelegatedEventListener(document, 'keypress', 'div.ui.button, span.ui.button', (el, e: KeyboardEvent) => {
@@ -62,7 +62,7 @@ export function initGlobalDeleteButton(): void {
             }
           }
 
-          const response = await POST(btn.getAttribute('data-url'), {data: postData});
+          const response = await POST(btn.getAttribute('data-url'), { data: postData });
           if (response.ok) {
             const data = await response.json();
             window.location.href = data.redirect;
@@ -103,7 +103,7 @@ function onHidePanelClick(e) {
   throw new Error('no panel to hide'); // should never happen, otherwise there is a bug in code
 }
 
-function onShowModalClick(e) {
+function onShowModalClick(el, e) {
   // A ".show-modal" button will show a modal dialog defined by its "data-modal" attribute.
   // Each "data-modal-{target}" attribute will be filled to target element's value or text-content.
   // * First, try to query '#target'
@@ -111,7 +111,6 @@ function onShowModalClick(e) {
   // * Then, try to query '.target'
   // * Then, try to query 'target' as HTML tag
   // If there is a ".{attr}" part like "data-modal-form.action", then the form's "action" attribute will be set.
-  const el = e.currentTarget;
   e.preventDefault();
   const modalSelector = el.getAttribute('data-modal');
   const elModal = document.querySelector(modalSelector);
@@ -161,5 +160,5 @@ export function initGlobalButtons(): void {
 
   queryElems(document, '.show-panel', (el) => el.addEventListener('click', onShowPanelClick));
   queryElems(document, '.hide-panel', (el) => el.addEventListener('click', onHidePanelClick));
-  queryElems(document, '.show-modal', (el) => el.addEventListener('click', onShowModalClick));
+  addDelegatedEventListener(document, 'click', '.show-modal', onShowModalClick);
 }

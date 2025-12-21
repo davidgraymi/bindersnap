@@ -70,6 +70,7 @@ const sfc = {
 
       organizations: [],
       isOrganization: true,
+      canUpsellCreateOrganization: true,
       canCreateOrganization: false,
       organizationsTotalCount: 0,
       organizationId: 0,
@@ -471,7 +472,7 @@ export default sfc; // activate the IDE's Vue plugin
           {{ textMyOrgs }}
           <span class="ui grey label tw-ml-2">{{ organizationsTotalCount }}</span>
         </div>
-        <a class="tw-flex tw-items-center muted" v-if="canCreateOrganization" :href="subUrl + '/org/create'" :data-tooltip-content="textNewOrg">
+        <a class="tw-flex tw-items-center muted" v-if="canCreateOrganization || canUpsellCreateOrganization" :href="canUpsellCreateOrganization ? '#' : subUrl + '/org/create'" :class="{'show-modal': canUpsellCreateOrganization}" :data-modal="canUpsellCreateOrganization ? '#upgrade-subscription-modal' : null" :data-tooltip-content="textNewOrg">
           <svg-icon name="octicon-plus"/>
         </a>
       </h4>

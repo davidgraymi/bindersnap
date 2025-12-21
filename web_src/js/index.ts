@@ -88,7 +88,6 @@ import {
   initGlobalFormDirtyLeaveConfirm,
 } from './features/common-form.ts';
 import {initSearch} from './search.ts';
-import {initSubscriptionModal} from './features/subscription-modal.ts';
 
 initGiteaFomantic();
 initDirAuto();
@@ -221,6 +220,5 @@ onDomReady(() => {
     initOAuth2SettingsDisableCheckbox,
 
     initSearch,
-    initSubscriptionModal,
   ]);
 });

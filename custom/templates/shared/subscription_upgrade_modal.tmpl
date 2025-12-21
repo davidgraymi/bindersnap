@@ -1,6 +1,8 @@
 <div class="ui modal" id="upgrade-subscription-modal">
 	<!-- The header text will be overwritten by the 'data-modal-header' attribute. -->
-	<div class="header">Upgrade For Access</div>
+	<div class="header">
+		<span id="actions-modal-header">Upgrade Subscription For Access</span>
+	</div>
 	<div class="content">
 		<div class="landing-price-tiers">
 			<form action="{{if .IsSigned}}/pay/create-checkout-session{{else}}/user/sign_up{{end}}" method="{{if .IsSigned}}POST{{else}}GET{{end}}">

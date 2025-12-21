@@ -272,7 +272,12 @@ func (u *User) CanCreateRepo() bool {
 
 // CanCreateOrganization returns true if user can create organisation.
 func (u *User) CanCreateOrganization() bool {
-	return u.IsAdmin || (u.AllowCreateOrganization && !setting.Admin.DisableRegularOrgCreation)
+	return u.IsAdmin || (!u.Subscription.IsFree() && u.AllowCreateOrganization && !setting.Admin.DisableRegularOrgCreation)
+}
+
+// CanUpsellCreateOrganization returns true if the user would be able to create an organization after upgrading their subscription.
+func (u *User) CanUpsellCreateOrganization() bool {
+	return u.Subscription.IsFree() && u.AllowCreateOrganization && !setting.Admin.DisableRegularOrgCreation
 }
 
 // CanEditGitHook returns true if user can edit Git hooks.
