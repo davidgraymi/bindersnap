@@ -33,6 +33,7 @@ var (
 		DefaultPushCreatePrivate                bool
 		MaxCreationLimit                        int
 		MaxCreationLimitFree                    int
+		MaxFreeRepoSize                         int64
 		PreferredLicenses                       []string
 		DisableHTTPGit                          bool
 		AccessControlAllowOrigin                string
@@ -286,6 +287,7 @@ func loadRepositoryFrom(rootCfg ConfigProvider) {
 	Repository.GoGetCloneURLProtocol = sec.Key("GO_GET_CLONE_URL_PROTOCOL").MustString("https")
 	Repository.MaxCreationLimit = sec.Key("MAX_CREATION_LIMIT").MustInt(-1)
 	Repository.MaxCreationLimitFree = sec.Key("MAX_CREATION_LIMIT_FREE").MustInt(5)
+	Repository.MaxFreeRepoSize = sec.Key("MAX_SIZE_LIMIT_FREE").MustInt64(-1) * 1024 * 1024
 	Repository.DefaultBranch = sec.Key("DEFAULT_BRANCH").MustString(Repository.DefaultBranch)
 	RepoRootPath = sec.Key("ROOT").MustString(path.Join(AppDataPath, "gitea-repositories"))
 	if !filepath.IsAbs(RepoRootPath) {

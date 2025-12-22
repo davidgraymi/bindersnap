@@ -359,16 +359,23 @@ func editFilePost(ctx *context.Context, form forms.EditRepoFileForm, isNewFile b
 			if len(errPushRej.Message) == 0 {
 				ctx.RenderWithErr(ctx.Tr("repo.editor.push_rejected_no_message"), tplEditFile, &form)
 			} else {
-				flashError, err := ctx.RenderToHTML(tplAlertDetails, map[string]any{
-					"Message": ctx.Tr("repo.editor.push_rejected"),
-					"Summary": ctx.Tr("repo.editor.push_rejected_summary"),
-					"Details": utils.SanitizeFlashErrorString(errPushRej.Message),
-				})
-				if err != nil {
-					ctx.ServerError("editFilePost.HTMLString", err)
-					return
+				// Check if this is a repository size limit error
+				if strings.Contains(errPushRej.Message, "Repository size limit exceeded") {
+					ctx.Data["ShowSubscriptionModal"] = true
+					ctx.Data["SubscriptionModalTitle"] = "Repository size limit exceeded"
+					ctx.RenderWithErr("Repository size limit exceeded. Upgrade your subscription for more storage.", tplEditFile, &form)
+				} else {
+					flashError, err := ctx.RenderToHTML(tplAlertDetails, map[string]any{
+						"Message": ctx.Tr("repo.editor.push_rejected"),
+						"Summary": ctx.Tr("repo.editor.push_rejected_summary"),
+						"Details": utils.SanitizeFlashErrorString(errPushRej.Message),
+					})
+					if err != nil {
+						ctx.ServerError("editFilePost.HTMLString", err)
+						return
+					}
+					ctx.RenderWithErr(flashError, tplEditFile, &form)
 				}
-				ctx.RenderWithErr(flashError, tplEditFile, &form)
 			}
 		} else {
 			flashError, err := ctx.RenderToHTML(tplAlertDetails, map[string]any{

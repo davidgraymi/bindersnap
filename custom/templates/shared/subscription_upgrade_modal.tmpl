@@ -1,7 +1,9 @@
 <div class="ui modal" id="upgrade-subscription-modal">
 	<!-- The header text will be overwritten by the 'data-modal-header' attribute. -->
 	<div class="header">
-		<span id="actions-modal-header">Upgrade Subscription For Access</span>
+		<span id="actions-modal-header">
+			{{if .ShowSubscriptionModal}}{{.SubscriptionModalTitle}}{{else}}Upgrade subscription{{end}}
+		</span>
 	</div>
 	<div class="content">
 		<div class="landing-price-tiers">
@@ -50,3 +52,13 @@
 		</div>
 	</div>
 </div>
+{{if .ShowSubscriptionModal}}
+<script>
+	window.addEventListener('load', function() {
+		const modal = document.getElementById('upgrade-subscription-modal');
+		if (modal) {
+			$(modal).modal('show');
+		}
+	});
+</script>
+{{end}}

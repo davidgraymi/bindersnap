@@ -24,8 +24,8 @@ import (
 
 const notRegularFileMode = os.ModeSymlink | os.ModeNamedPipe | os.ModeSocket | os.ModeDevice | os.ModeCharDevice | os.ModeIrregular
 
-// getDirectorySize returns the disk consumption for a given path
-func getDirectorySize(path string) (int64, error) {
+// GetDirectorySize returns the disk consumption for a given path
+func GetDirectorySize(path string) (int64, error) {
 	var size int64
 	err := filepath.WalkDir(path, func(_ string, entry os.DirEntry, err error) error {
 		if os.IsNotExist(err) { // ignore the error because some files (like temp/lock file) may be deleted during traversing.
@@ -52,7 +52,7 @@ func getDirectorySize(path string) (int64, error) {
 
 // UpdateRepoSize updates the repository size, calculating it using getDirectorySize
 func UpdateRepoSize(ctx context.Context, repo *repo_model.Repository) error {
-	size, err := getDirectorySize(repo.RepoPath())
+	size, err := GetDirectorySize(repo.RepoPath())
 	if err != nil {
 		return fmt.Errorf("updateSize: %w", err)
 	}
