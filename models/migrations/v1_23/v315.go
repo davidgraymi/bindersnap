@@ -7,9 +7,9 @@ import (
 	"xorm.io/xorm"
 )
 
-func AddStripeIDToUser(x *xorm.Engine) error {
+func ChangeStripeIDToPointer(x *xorm.Engine) error {
 	type User struct {
-		StripeID string `xorm:"VARCHAR(255) UNIQUE NULL"`
+		StripeID *string `xorm:"VARCHAR(255) UNIQUE NULL"`
 	}
 
 	return x.Sync(new(User))
