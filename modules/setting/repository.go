@@ -157,6 +157,7 @@ var (
 		DefaultPushCreatePrivate:                true,
 		MaxCreationLimit:                        -1,
 		MaxCreationLimitFree:                    5,
+		MaxFreeRepoSize:                         -1,
 		PreferredLicenses:                       []string{"Apache License 2.0", "MIT License"},
 		DisableHTTPGit:                          false,
 		AccessControlAllowOrigin:                "",

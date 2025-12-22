@@ -1,7 +1,7 @@
-import { POST } from '../modules/fetch.ts';
-import { addDelegatedEventListener, hideElem, queryElems, showElem, toggleElem } from '../utils/dom.ts';
-import { fomanticQuery } from '../modules/fomantic/base.ts';
-import { camelize } from 'vue';
+import {POST} from '../modules/fetch.ts';
+import {addDelegatedEventListener, hideElem, queryElems, showElem, toggleElem} from '../utils/dom.ts';
+import {fomanticQuery} from '../modules/fomantic/base.ts';
+import {camelize} from 'vue';
 
 export function initGlobalButtonClickOnEnter(): void {
   addDelegatedEventListener(document, 'keypress', 'div.ui.button, span.ui.button', (el, e: KeyboardEvent) => {
@@ -62,7 +62,7 @@ export function initGlobalDeleteButton(): void {
             }
           }
 
-          const response = await POST(btn.getAttribute('data-url'), { data: postData });
+          const response = await POST(btn.getAttribute('data-url'), {data: postData});
           if (response.ok) {
             const data = await response.json();
             window.location.href = data.redirect;

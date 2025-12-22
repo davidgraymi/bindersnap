@@ -204,11 +204,11 @@
 					{{end}}
 
 					{{if .Permission.CanRead ctx.Consts.RepoUnitTypeWiki}}
-                        {{if .Repository.Owner.Subscription.IsFree}}
-                            <a class="item show-modal" href="#" data-modal="#upgrade-subscription-modal">
-                                {{svg "octicon-book"}} {{ctx.Locale.Tr "repo.wiki"}}
-                            </a>
-                        {{else}}
+						{{if .Repository.Owner.Subscription.IsFree}}
+							<a class="item show-modal" href="#" data-modal="#upgrade-subscription-modal">
+								{{svg "octicon-book"}} {{ctx.Locale.Tr "repo.wiki"}}
+							</a>
+						{{else}}
 							<a class="{{if .PageIsWiki}}active {{end}}item" href="{{.RepoLink}}/wiki">
 								{{svg "octicon-book"}} {{ctx.Locale.Tr "repo.wiki"}}
 							</a>
