@@ -454,6 +454,11 @@ func SettingsPost(ctx *context.Context) {
 			deleteUnitTypes = append(deleteUnitTypes, unit_model.TypeCode)
 		}
 
+		if ctx.Repo.Owner.Subscription.IsFree() {
+			form.EnableWiki = false
+			form.EnableExternalWiki = false
+		}
+
 		if form.EnableWiki && form.EnableExternalWiki && !unit_model.TypeExternalWiki.UnitGlobalDisabled() {
 			if !validation.IsValidExternalURL(form.ExternalWikiURL) {
 				ctx.Flash.Error(ctx.Tr("repo.settings.external_wiki_url_error"))

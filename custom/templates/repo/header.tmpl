@@ -204,9 +204,15 @@
 					{{end}}
 
 					{{if .Permission.CanRead ctx.Consts.RepoUnitTypeWiki}}
-						<a class="{{if .PageIsWiki}}active {{end}}item" href="{{.RepoLink}}/wiki">
-							{{svg "octicon-book"}} {{ctx.Locale.Tr "repo.wiki"}}
-						</a>
+                        {{if .Repository.Owner.Subscription.IsFree}}
+                            <a class="item show-modal" href="#" data-modal="#upgrade-subscription-modal">
+                                {{svg "octicon-book"}} {{ctx.Locale.Tr "repo.wiki"}}
+                            </a>
+                        {{else}}
+							<a class="{{if .PageIsWiki}}active {{end}}item" href="{{.RepoLink}}/wiki">
+								{{svg "octicon-book"}} {{ctx.Locale.Tr "repo.wiki"}}
+							</a>
+                        {{end}}
 					{{end}}
 
 					{{if .Permission.CanRead ctx.Consts.RepoUnitTypeExternalWiki}}
