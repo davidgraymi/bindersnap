@@ -127,6 +127,8 @@ func Fork(ctx *context.Context) {
 		maxCreationLimit := ctx.Doer.MaxCreationLimit()
 		msg := ctx.TrN(maxCreationLimit, "repo.form.reach_limit_of_creation_1", "repo.form.reach_limit_of_creation_n", maxCreationLimit)
 		ctx.Flash.Error(msg, true)
+		ctx.Data["ShowSubscriptionModal"] = true
+		ctx.Data["SubscriptionModalTitle"] = "Repository limit exceeded"
 	}
 
 	getForkRepository(ctx)

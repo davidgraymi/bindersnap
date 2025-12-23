@@ -102,7 +102,6 @@
                     </div>
                 </a>
 
-                {{if .IsAdmin}}
                 <div class="ui dropdown jump item tw-mx-0 tw-pr-2" data-tooltip-content="{{ctx.Locale.Tr "create_new"}}">
                     <span class="text">
                         {{svg "octicon-plus"}}
@@ -129,7 +128,6 @@
                         {{end}}
                     </div><!-- end content create new menu -->
                 </div><!-- end dropdown menu create new -->
-                {{end}}
 
                 <div class="ui dropdown jump item tw-mx-0 tw-pr-2" data-tooltip-content="{{ctx.Locale.Tr "user_profile_and_more"}}">
                     <span class="text tw-flex tw-items-center">
