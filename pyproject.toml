@@ -1,5 +1,9 @@
 [tool.poetry]
 package-mode = false
+packages = [{ include = "tools/*.py" }]
+
+[tool.poetry.scripts]
+pr = "tools.open_pr:open_pr_preview"
 
 [tool.poetry.dependencies]
 python = "^3.10"
