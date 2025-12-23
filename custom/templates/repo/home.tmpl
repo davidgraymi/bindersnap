@@ -24,16 +24,19 @@
 				{{template "repo/sub_menu" .}}
 				<div class="repo-button-row">
 					<div class="repo-button-row-left">
-						{{$branchDropdownCurrentRefType := "branch"}}
-						{{$branchDropdownCurrentRefShortName := .BranchName}}
-						{{if .IsViewTag}}
-							{{$branchDropdownCurrentRefType = "tag"}}
-							{{$branchDropdownCurrentRefShortName = .TagName}}
-            {{else if .IsViewCommit}}
-              {{$branchDropdownCurrentRefType = "commit"}}
-              {{$branchDropdownCurrentRefShortName = .CommitID}}
-						{{end}}
-						{{template "repo/branch_dropdown" dict
+						{{- /* for repo home (default branch) and /owner/repo/src/branch/the-name */ -}}
+						{{- $branchDropdownCurrentRefType := "branch" -}}
+						{{- $branchDropdownCurrentRefShortName := .BranchName -}}
+						{{- if .IsViewTag -}}
+							{{- /* for /owner/repo/src/tag/the-name */ -}}
+							{{- $branchDropdownCurrentRefType = "tag" -}}
+							{{- $branchDropdownCurrentRefShortName = .TagName -}}
+						{{- else if .IsViewCommit -}}
+							{{- /* for /owner/repo/src/commit/000000 */ -}}
+							{{- $branchDropdownCurrentRefType = "commit" -}}
+							{{- $branchDropdownCurrentRefShortName = ShortSha .CommitID -}}
+						{{- end -}}
+						{{- template "repo/branch_dropdown" dict
 							"Repository" .Repository
 							"ShowTabBranches" true
 							"ShowTabTags" true
@@ -43,7 +46,7 @@
 							"RefLinkTemplate" "{RepoLink}/src/{RefType}/{RefShortName}/{TreePath}"
 							"AllowCreateNewRef" .CanCreateBranch
 							"ShowViewAllRefsEntry" true
-						}}
+						-}}
 						{{if and .CanCompareOrPull .IsViewBranch (not .Repository.IsArchived)}}
 							{{$cmpBranch := ""}}
 							{{if ne .Repository.ID .BaseRepo.ID}}
@@ -88,10 +91,10 @@
 					<div class="repo-button-row-right">
 						<!-- Only show add panel in repository home page -->
 						{{if and .CanWriteCode .IsViewBranch (not .Repository.IsMirror) (not .Repository.IsArchived) (not .IsViewFile)}}
-              <a class="ui button" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}/{{.TreePath | PathEscapeSegments}}">
+							{{template "repo/add_panel" .}}
+							<a class="ui button" href="{{.RepoLink}}/commits/{{.BranchNameSubURL}}/{{.TreePath | PathEscapeSegments}}">
 								{{svg "octicon-history" 16 "tw-mr-2"}}{{ctx.Locale.Tr "repo.file_history"}}
 							</a>
-							{{template "repo/add_panel" .}}
 						{{end}}
 					</div>
 				</div>

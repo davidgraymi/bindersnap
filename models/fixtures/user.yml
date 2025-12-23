@@ -19,6 +19,7 @@
   is_active: true
   is_admin: true
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -56,6 +57,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 2
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -94,6 +96,7 @@
   is_active: false
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -131,6 +134,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -168,6 +172,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: false
@@ -205,6 +210,7 @@
   is_active: false
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -242,6 +248,7 @@
   is_active: false
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -279,6 +286,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -316,6 +324,7 @@
   is_active: false
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -354,6 +363,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -391,6 +401,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -428,6 +439,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -465,6 +477,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -502,6 +515,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -539,6 +553,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -576,6 +591,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -613,6 +629,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -650,6 +667,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -687,6 +705,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -724,6 +743,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -761,6 +781,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -798,6 +819,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -835,6 +857,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -872,6 +895,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -909,6 +933,7 @@
   is_active: false
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -946,6 +971,7 @@
   is_active: false
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -983,6 +1009,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1020,6 +1047,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1057,6 +1085,7 @@
   is_active: true
   is_admin: false
   is_restricted: true
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1094,6 +1123,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1131,6 +1161,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1168,6 +1199,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1205,6 +1237,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1243,6 +1276,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: false
@@ -1280,6 +1314,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1317,6 +1352,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1354,6 +1390,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1391,6 +1428,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1428,6 +1466,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1465,6 +1504,7 @@
   is_active: true
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1502,6 +1542,7 @@
   is_active: false
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1539,6 +1580,7 @@
   is_active: false
   is_admin: false
   is_restricted: false
+  subscription: 0
   allow_git_hook: false
   allow_import_local: false
   allow_create_organization: true
@@ -1556,3 +1598,5 @@
   repo_admin_change_team_access: false
   theme: ""
   keep_activity_private: false
+
+# TODO!: Add users for each subscription tier
