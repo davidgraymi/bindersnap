@@ -19,6 +19,8 @@ import (
 	"code.gitea.io/gitea/modules/git"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/private"
+	"code.gitea.io/gitea/modules/repository"
+	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/web"
 	gitea_context "code.gitea.io/gitea/services/context"
 	pull_service "code.gitea.io/gitea/services/pull"
@@ -109,6 +111,36 @@ func HookPreReceive(ctx *gitea_context.PrivateContext) {
 		PrivateContext: ctx,
 		env:            generateGitEnv(opts), // Generate git environment for checking commits
 		opts:           opts,
+	}
+
+	if err := ctx.Repo.Repository.LoadOwner(ctx); err != nil {
+		log.Error("Unable to load owner: %v", err)
+		ctx.JSON(http.StatusInternalServerError, private.Response{
+			Err: fmt.Sprintf("Unable to load owner: %v", err),
+		})
+		return
+	}
+
+	if ctx.Repo.Repository.Owner.Subscription.IsFree() && setting.Repository.MaxFreeRepoSize >= 0 {
+		var quarantineSize int64
+		quarantineSize, err := repository.GetDirectorySize(opts.GitQuarantinePath)
+		if err != nil {
+			log.Error("Unable to get directory size: %v", err)
+			ctx.JSON(http.StatusInternalServerError, private.Response{
+				Err: fmt.Sprintf("Unable to get directory size: %v", err),
+			})
+			return
+		}
+
+		if ctx.Repo.Repository.Size+quarantineSize > setting.Repository.MaxFreeRepoSize {
+			upgradeURL := setting.AppURL + "pay/subscribe"
+			sizeInMB := setting.Repository.MaxFreeRepoSize / (1024 * 1024)
+
+			ctx.JSON(http.StatusForbidden, private.Response{
+				UserMsg: fmt.Sprintf("Repository size limit exceeded (%d MB). Upgrade for more storage: %s", sizeInMB, upgradeURL),
+			})
+			return
+		}
 	}
 
 	// Iterate across the provided old commit IDs

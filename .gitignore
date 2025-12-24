@@ -120,5 +120,8 @@ prime/
 # Environment variables
 .env
 
+# Python
+__pycache__
+
 # Gitpolicy local
 /gitpolicy

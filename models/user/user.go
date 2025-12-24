@@ -122,7 +122,7 @@ type User struct {
 
 	Subscription structs.SubscriptionType `xorm:"NOT NULL DEFAULT 0"`
 	// Stripe customer ID
-	StripeID string `xorm:"VARCHAR(255) UNIQUE NULL"`
+	StripeID *string `xorm:"VARCHAR(255) UNIQUE NULL"`
 
 	AllowGitHook            bool
 	AllowImportLocal        bool // Allow migrate repository by local path
@@ -244,7 +244,9 @@ func (u *User) IsOAuth2() bool {
 
 // MaxCreationLimit returns the number of repositories a user is allowed to create
 func (u *User) MaxCreationLimit() int {
-	if u.MaxRepoCreation <= -1 {
+	if u.Subscription.IsFree() {
+		return setting.Repository.MaxCreationLimitFree
+	} else if u.MaxRepoCreation <= -1 {
 		return setting.Repository.MaxCreationLimit
 	}
 	return u.MaxRepoCreation
@@ -255,6 +257,9 @@ func (u *User) MaxCreationLimit() int {
 func (u *User) CanCreateRepo() bool {
 	if u.IsAdmin {
 		return true
+	}
+	if u.Subscription.IsFree() && u.NumRepos >= setting.Repository.MaxCreationLimitFree {
+		return false
 	}
 	if u.MaxRepoCreation <= -1 {
 		if setting.Repository.MaxCreationLimit <= -1 {
@@ -267,7 +272,12 @@ func (u *User) CanCreateRepo() bool {
 
 // CanCreateOrganization returns true if user can create organisation.
 func (u *User) CanCreateOrganization() bool {
-	return u.IsAdmin || (u.AllowCreateOrganization && !setting.Admin.DisableRegularOrgCreation)
+	return u.IsAdmin || (!u.Subscription.IsFree() && u.AllowCreateOrganization && !setting.Admin.DisableRegularOrgCreation)
+}
+
+// CanUpsellCreateOrganization returns true if the user would be able to create an organization after upgrading their subscription.
+func (u *User) CanUpsellCreateOrganization() bool {
+	return u.Subscription.IsFree() && u.AllowCreateOrganization && !setting.Admin.DisableRegularOrgCreation
 }
 
 // CanEditGitHook returns true if user can edit Git hooks.
@@ -959,7 +969,7 @@ func GetUserByIDs(ctx context.Context, ids []int64) ([]*User, error) {
 
 // GetUserByStripeID returns the user object by given StripeID if exists.
 func GetUserByStripeID(ctx context.Context, id string) (*User, error) {
-	u := &User{StripeID: id}
+	u := &User{StripeID: &id}
 	has, err := db.GetEngine(ctx).Get(u)
 	if err != nil {
 		return nil, err

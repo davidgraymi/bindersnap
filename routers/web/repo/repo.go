@@ -178,7 +178,12 @@ func Create(ctx *context.Context) {
 		}
 	}
 
-	ctx.Data["CanCreateRepo"] = ctx.Doer.CanCreateRepo()
+	canCreateRepo := ctx.Doer.CanCreateRepo()
+	ctx.Data["CanCreateRepo"] = canCreateRepo
+	if !canCreateRepo {
+		ctx.Data["ShowSubscriptionModal"] = true
+		ctx.Data["SubscriptionModalTitle"] = "Repository limit exceeded"
+	}
 	ctx.Data["MaxCreationLimit"] = ctx.Doer.MaxCreationLimit()
 	ctx.Data["SupportedObjectFormats"] = git.DefaultFeatures().SupportedObjectFormats
 	ctx.Data["DefaultObjectFormat"] = git.Sha1ObjectFormat

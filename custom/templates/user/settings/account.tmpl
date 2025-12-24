@@ -7,10 +7,10 @@
 		<div class="content">You are currently subscribed to our <strong>{{.SignedUser.Subscription}}</strong> tier.</div>
 	</div>
 	<div class="ui bottom attached segment">
-		<form class="ui form" action="/pay/create-portal-session" method="POST">
+		<form class="ui form" action="{{if .SignedUser.Subscription.IsFree}}/pay/subscribe{{else}}/pay/create-portal-session{{end}}" method="{{if .SignedUser.Subscription.IsFree}}GET{{else}}POST{{end}}">
 			{{.CsrfTokenHtml}}
 			<div class="field">
-				<button class="ui primary button" type="submit">Manage Subscription</button>
+				<button class="ui primary button" type="submit">{{if .SignedUser.Subscription.IsFree}}Upgrade Now{{else}}Manage Subscription{{end}}</button>
 			</div>
 		</form>
 	</div>

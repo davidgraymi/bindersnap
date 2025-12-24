@@ -65,7 +65,8 @@ func GenerateProtectedBranch(ctx context.Context, templateRepo, generateRepo *re
 func GenerateRepository(ctx context.Context, doer, owner *user_model.User, templateRepo *repo_model.Repository, opts GenerateRepoOptions) (_ *repo_model.Repository, err error) {
 	if !doer.IsAdmin && !owner.CanCreateRepo() {
 		return nil, repo_model.ErrReachLimitOfRepo{
-			Limit: owner.MaxRepoCreation,
+			Amount: owner.NumRepos,
+			Limit:  owner.MaxRepoCreation,
 		}
 	}
 

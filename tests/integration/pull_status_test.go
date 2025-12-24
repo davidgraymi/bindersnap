@@ -140,7 +140,7 @@ func TestPullCreate_EmptyChangesWithDifferentCommits(t *testing.T) {
 		doc := NewHTMLParser(t, resp.Body)
 
 		text := strings.TrimSpace(doc.doc.Find(".merge-section").Text())
-		assert.Contains(t, text, "This pull request can be merged automatically.")
+		assert.Contains(t, text, "This change request can be published automatically.")
 	})
 }
 
@@ -162,6 +162,6 @@ func TestPullCreate_EmptyChangesWithSameCommits(t *testing.T) {
 		doc := NewHTMLParser(t, resp.Body)
 
 		text := strings.TrimSpace(doc.doc.Find(".merge-section").Text())
-		assert.Contains(t, text, "This branch is already included in the target branch. There is nothing to merge.")
+		assert.Contains(t, text, "This branch is already included in the target branch. There is nothing to publish.")
 	})
 }

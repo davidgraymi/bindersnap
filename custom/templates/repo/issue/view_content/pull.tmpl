@@ -77,7 +77,7 @@
 					<li>{{.}}</li>
 					{{end}}
 				</ul>
-        {{template "repo/issue/view_content/update_branch_by_merge" $}}
+				{{template "repo/issue/view_content/update_branch_by_merge" $}}
 			{{else if .IsPullRequestBroken}}
 				<div class="item">
 					{{svg "octicon-x"}}
@@ -206,7 +206,7 @@
 					{{$prUnit := .Repository.MustGetUnit ctx ctx.Consts.RepoUnitTypePullRequests}}
 					{{if or $prUnit.PullRequestsConfig.AllowMerge $prUnit.PullRequestsConfig.AllowRebase $prUnit.PullRequestsConfig.AllowRebaseMerge $prUnit.PullRequestsConfig.AllowSquash $prUnit.PullRequestsConfig.AllowFastForwardOnly}}
 						{{$hasPendingPullRequestMergeTip := ""}}
-            {{$isTargetingDefaultBranch := eq .BaseRepo.DefaultBranch .BaseBranch}}
+            			{{$isTargetingDefaultBranch := eq .BaseRepo.DefaultBranch .BaseBranch}}
 						{{if .HasPendingPullRequestMerge}}
 							{{$createdPRMergeStr := DateUtils.TimeSince .PendingPullRequestMerge.CreatedUnix}}
 							{{$hasPendingPullRequestMergeTip = ctx.Locale.Tr "repo.pulls.auto_merge_has_pending_schedule" .PendingPullRequestMerge.Doer.Name $createdPRMergeStr}}
@@ -240,8 +240,8 @@
 
 								'hasPendingPullRequestMerge': {{.HasPendingPullRequestMerge}},
 								'hasPendingPullRequestMergeTip': {{$hasPendingPullRequestMergeTip}},
-                'isTargetingDefaultBranch': {{$isTargetingDefaultBranch}},
-                'targetingDefaultBranchTextDoMerge': {{ctx.Locale.Tr "repo.pulls.merge_pr_default_branch"}},
+								'isTargetingDefaultBranch': {{$isTargetingDefaultBranch}},
+								'targetingDefaultBranchTextDoMerge': {{ctx.Locale.Tr "repo.pulls.merge_pr_default_branch"}},
 							};
 
 							const generalHideAutoMerge = mergeForm.canMergeNow && mergeForm.allOverridableChecksOk; // if this pr can be merged now, then hide the auto merge
@@ -371,7 +371,8 @@
 				{{end}}
 			{{end}}{{/* end if: pull request status */}}
 
-			{{/* Manually Merged is not a well-known feature, it is used to mark a non-mergeable PR (already merged, conflicted) as merged
+			{{/*
+			Manually Merged is not a well-known feature, it is used to mark a non-mergeable PR (already merged, conflicted) as merged
 			To test it:
 			* Enable "Manually Merged" feature in the Repository Settings
 			* Create a pull request, either:

@@ -99,8 +99,8 @@ func TestPullCompare_EnableAllowEditsFromMaintainer(t *testing.T) {
 		htmlDoc := NewHTMLParser(t, resp.Body)
 		nodes := htmlDoc.doc.Find(".diff-file-box[data-new-filename=\"README.md\"] .diff-file-header-actions .tippy-target a")
 		if assert.Equal(t, 1, nodes.Length()) {
-			// there is only "View File" button, no "Edit File" button
-			assert.Equal(t, "View File", nodes.First().Text())
+			// there is only "View Document" button, no "Edit Document" button
+			assert.Equal(t, "View Document", nodes.First().Text())
 			viewFileLink, exists := nodes.First().Attr("href")
 			if assert.True(t, exists) {
 				user2Session.MakeRequest(t, NewRequest(t, "GET", viewFileLink), http.StatusOK)
@@ -123,14 +123,14 @@ func TestPullCompare_EnableAllowEditsFromMaintainer(t *testing.T) {
 		htmlDoc = NewHTMLParser(t, resp.Body)
 		nodes = htmlDoc.doc.Find(".diff-file-box[data-new-filename=\"README.md\"] .diff-file-header-actions .tippy-target a")
 		if assert.Equal(t, 2, nodes.Length()) {
-			// there are "View File" button and "Edit File" button
-			assert.Equal(t, "View File", nodes.First().Text())
+			// there are "View Document" button and "Edit Document" button
+			assert.Equal(t, "View Document", nodes.First().Text())
 			viewFileLink, exists := nodes.First().Attr("href")
 			if assert.True(t, exists) {
 				user2Session.MakeRequest(t, NewRequest(t, "GET", viewFileLink), http.StatusOK)
 			}
 
-			assert.Equal(t, "Edit File", nodes.Last().Text())
+			assert.Equal(t, "Edit Document", nodes.Last().Text())
 			editFileLink, exists := nodes.Last().Attr("href")
 			if assert.True(t, exists) {
 				// edit the file

@@ -153,7 +153,7 @@ func TestSignupEmailActive(t *testing.T) {
 		"password": "password1",
 	})
 	resp = session.MakeRequest(t, req, http.StatusSeeOther)
-	assert.Equal(t, "/", test.RedirectURL(resp))
+	assert.Equal(t, "/pay/subscribe", test.RedirectURL(resp))
 	user = unittest.AssertExistsAndLoadBean(t, &user_model.User{Name: "Test-User-1"})
 	assert.True(t, user.IsActive)
 }

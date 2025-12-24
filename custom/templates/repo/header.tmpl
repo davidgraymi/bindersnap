@@ -71,7 +71,7 @@
 					{{if not $.DisableStars}}
 					{{template "repo/star_unstar" $}}
 					{{end}}
-					{{if and $.IsAdmin (not .IsEmpty)}}
+					{{if and (not .IsEmpty) ($.Permission.CanRead ctx.Consts.RepoUnitTypeCode)}}
 						<div class="ui labeled button
 							{{if or (not $.IsSigned) (and (not $.CanSignedUserFork) (not $.UserAndOrgForks))}}
 								disabled
@@ -169,7 +169,7 @@
 						</a>
 					{{end}}
 
-					{{if and .EnableActions (.Permission.CanRead ctx.Consts.RepoUnitTypeActions)}}
+					{{if and .EnableActions (.Permission.CanRead ctx.Consts.RepoUnitTypeActions) (not .IsEmptyRepo)}}
 						<a class="{{if .PageIsActions}}active {{end}}item" href="{{.RepoLink}}/actions">
 							{{svg "octicon-play"}} {{ctx.Locale.Tr "actions.actions"}}
 							{{if .Repository.NumOpenActionRuns}}
@@ -204,9 +204,15 @@
 					{{end}}
 
 					{{if .Permission.CanRead ctx.Consts.RepoUnitTypeWiki}}
-						<a class="{{if .PageIsWiki}}active {{end}}item" href="{{.RepoLink}}/wiki">
-							{{svg "octicon-book"}} {{ctx.Locale.Tr "repo.wiki"}}
-						</a>
+						{{if .Repository.Owner.Subscription.IsFree}}
+							<a class="item show-modal" href="#" data-modal="#upgrade-subscription-modal">
+								{{svg "octicon-book"}} {{ctx.Locale.Tr "repo.wiki"}}
+							</a>
+						{{else}}
+							<a class="{{if .PageIsWiki}}active {{end}}item" href="{{.RepoLink}}/wiki">
+								{{svg "octicon-book"}} {{ctx.Locale.Tr "repo.wiki"}}
+							</a>
+                        {{end}}
 					{{end}}
 
 					{{if .Permission.CanRead ctx.Consts.RepoUnitTypeExternalWiki}}

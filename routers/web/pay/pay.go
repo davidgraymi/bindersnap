@@ -30,6 +30,7 @@ const (
 // Subscribe renders the subscription page
 func Subscribe(ctx *context.Context) {
 	ctx.Data["PageIsSales"] = true
+	// TODO!: Add a success message if the user just signed up
 	ctx.HTML(http.StatusOK, tplSubscribe)
 }
 
@@ -48,8 +49,8 @@ func CreateCheckoutSession(ctx *context.Context) {
 		ClientReferenceID: stripe.String(fmt.Sprintf("%d", ctx.Doer.ID)),
 	}
 
-	if ctx.Doer.StripeID != "" {
-		checkoutParams.Customer = stripe.String(ctx.Doer.StripeID)
+	if ctx.Doer.StripeID != nil {
+		checkoutParams.Customer = stripe.String(*ctx.Doer.StripeID)
 	} else {
 		checkoutParams.CustomerEmail = stripe.String(ctx.Doer.Email)
 	}
@@ -69,8 +70,8 @@ func CreatePortalSession(ctx *context.Context) {
 		ReturnURL: stripe.String(setting.AppURL + "user/settings/account"),
 	}
 
-	if ctx.Doer.StripeID != "" {
-		params.Customer = stripe.String(ctx.Doer.StripeID)
+	if ctx.Doer.StripeID != nil {
+		params.Customer = stripe.String(*ctx.Doer.StripeID)
 	}
 
 	ps, err := stripe_pb_session.New(params)
@@ -140,8 +141,8 @@ func checkoutSessionCompleted(ctx *context.Context, event stripe.Event) {
 	}
 
 	// Update the user's Stripe ID if it is not already set
-	if user.StripeID == "" {
-		user.StripeID = session.Customer.ID
+	if user.StripeID == nil {
+		user.StripeID = &session.Customer.ID
 		if err := user_model.UpdateUserCols(ctx, user, "stripe_id"); err != nil {
 			if user_model.IsErrUserNotExist(err) {
 				ctx.NotFound("UpdateUserCols", err)
@@ -276,16 +277,17 @@ func updateSubscription(ctx *context.Context, user *user_model.User, status, pro
 				return
 			}
 			log.Info("User %d - %s subscription set to %s", user.ID, user.Name, structs.SubscriptionTypePremium)
-		case setting.Stripe.UltimateProductID:
-			if err := user.SetUserSubscription(ctx, structs.SubscriptionTypeUltimate); err != nil {
-				if user_model.IsErrUserNotExist(err) {
-					ctx.NotFound("UpdateUserCols", err)
-					return
-				}
-				ctx.ServerError("UpdateUser", err)
-				return
-			}
-			log.Info("User %d - %s subscription set to %s", user.ID, user.Name, structs.SubscriptionTypeUltimate)
+		// TODO!: handle ultimate tier
+		// case setting.Stripe.UltimateProductID:
+		// 	if err := user.SetUserSubscription(ctx, structs.SubscriptionTypeUltimate); err != nil {
+		// 		if user_model.IsErrUserNotExist(err) {
+		// 			ctx.NotFound("UpdateUserCols", err)
+		// 			return
+		// 		}
+		// 		ctx.ServerError("UpdateUser", err)
+		// 		return
+		// 	}
+		// 	log.Info("User %d - %s subscription set to %s", user.ID, user.Name, structs.SubscriptionTypeUltimate)
 		default:
 			log.Error("Unknown product: %s", productID)
 			return

@@ -54,7 +54,8 @@ func UpdateRepositoryColsNoAutoTime(ctx context.Context, repo *Repository, cols 
 
 // ErrReachLimitOfRepo represents a "ReachLimitOfRepo" kind of error.
 type ErrReachLimitOfRepo struct {
-	Limit int
+	Amount int
+	Limit  int
 }
 
 // IsErrReachLimitOfRepo checks if an error is a ErrReachLimitOfRepo.
@@ -64,7 +65,7 @@ func IsErrReachLimitOfRepo(err error) bool {
 }
 
 func (err ErrReachLimitOfRepo) Error() string {
-	return fmt.Sprintf("user has reached maximum limit of repositories [limit: %d]", err.Limit)
+	return fmt.Sprintf("user has reached maximum limit of repositories [%d/%d]", err.Amount, err.Limit)
 }
 
 func (err ErrReachLimitOfRepo) Unwrap() error {
@@ -114,7 +115,7 @@ func (err ErrRepoFilesAlreadyExist) Unwrap() error {
 // CheckCreateRepository check if could created a repository
 func CheckCreateRepository(ctx context.Context, doer, u *user_model.User, name string, overwriteOrAdopt bool) error {
 	if !doer.CanCreateRepo() {
-		return ErrReachLimitOfRepo{u.MaxRepoCreation}
+		return ErrReachLimitOfRepo{Amount: u.NumRepos, Limit: u.MaxRepoCreation}
 	}
 
 	if err := IsUsableRepoName(name); err != nil {

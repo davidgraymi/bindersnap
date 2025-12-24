@@ -250,6 +250,7 @@ help:
 	@echo " - tidy                             run go mod tidy"
 	@echo " - test[\#TestSpecificName]    	    run unit test"
 	@echo " - test-sqlite[\#TestSpecificName]  run integration test for sqlite"
+	@echo " - pr                               open a pull request from your current branch"
 
 .PHONY: go-check
 go-check:
@@ -985,6 +986,10 @@ generate-manpage:
 docker:
 	docker build --disable-content-trust=false -t $(DOCKER_REF) .
 # support also build args docker build --build-arg GITEA_VERSION=v1.2.3 --build-arg TAGS="bindata sqlite sqlite_unlock_notify"  .
+
+.PHONY: pr
+pr:
+	@poetry run pr
 
 # This endif closes the if at the top of the file
 endif

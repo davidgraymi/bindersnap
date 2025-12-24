@@ -46,6 +46,11 @@ const (
 
 // MustEnableWiki check if wiki is enabled, if external then redirect
 func MustEnableWiki(ctx *context.Context) {
+	if ctx.Repo.Owner.Subscription.IsFree() {
+		ctx.NotFound("MustEnableWiki", nil)
+		return
+	}
+
 	if !ctx.Repo.CanRead(unit.TypeWiki) &&
 		!ctx.Repo.CanRead(unit.TypeExternalWiki) {
 		if log.IsTrace() {

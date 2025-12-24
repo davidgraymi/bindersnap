@@ -17,7 +17,11 @@
       </button>
     </form>
     <form action="{{if .IsSigned}}/pay/create-checkout-session{{else}}/user/sign_up{{end}}" method="{{if .IsSigned}}POST{{else}}GET{{end}}">
-      {{.CsrfTokenHtml}}
+      {{if .IsSigned}}
+        {{.CsrfTokenHtml}}
+      {{else}}
+        <input type="hidden" name="redirect_to" value="/pay/subscribe">
+      {{end}}
       <button type="submit" class="tier-container-premium">
         <h3>Premium</h3>
         <div class="landing-price-row">

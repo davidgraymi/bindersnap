@@ -27,6 +27,8 @@ TYPE = immediate
 
 [repository]
 ROOT = {{REPO_TEST_DIR}}tests/{{TEST_TYPE}}/gitea-{{TEST_TYPE}}-sqlite/gitea-repositories
+MAX_CREATION_LIMIT_FREE = 30
+MAX_SIZE_LIMIT_FREE = 5120
 
 [repository.local]
 LOCAL_COPY_PATH = tests/{{TEST_TYPE}}/gitea-{{TEST_TYPE}}-sqlite/tmp/local-repo

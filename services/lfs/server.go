@@ -186,6 +186,26 @@ func BatchHandler(ctx *context.Context) {
 		return
 	}
 
+	// TODO!: verify UI associated
+	if isUpload {
+		if err := repository.LoadOwner(ctx); err != nil {
+			log.Error("Unable to load owner: %v", err)
+			writeStatus(ctx, http.StatusInternalServerError)
+			return
+		}
+
+		if repository.Owner.Subscription.IsFree() && setting.Repository.MaxFreeRepoSize >= 0 {
+			var totalUploadSize int64
+			for _, p := range br.Objects {
+				totalUploadSize += p.Size
+			}
+			if repository.Size+totalUploadSize > setting.Repository.MaxFreeRepoSize {
+				writeStatusMessage(ctx, http.StatusForbidden, "Repository size limit exceeded for free plan. Upgrade to upload more.")
+				return
+			}
+		}
+	}
+
 	contentStore := lfs_module.NewContentStore()
 
 	var responseObjects []*lfs_module.ObjectResponse

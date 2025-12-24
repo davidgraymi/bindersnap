@@ -32,7 +32,8 @@ import (
 func AdoptRepository(ctx context.Context, doer, u *user_model.User, opts CreateRepoOptions) (*repo_model.Repository, error) {
 	if !doer.IsAdmin && !u.CanCreateRepo() {
 		return nil, repo_model.ErrReachLimitOfRepo{
-			Limit: u.MaxRepoCreation,
+			Amount: u.NumRepos,
+			Limit:  u.MaxRepoCreation,
 		}
 	}
 

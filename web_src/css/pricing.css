@@ -64,6 +64,17 @@
   box-shadow: 0 12px 28px var(--color-secondary-dark-1);
 }
 
+.tier-container-free:focus,
+.tier-container-premium:focus,
+.tier-container-ultimate:focus {
+  outline: none;
+
+  /* For older Firefox versions */
+  ::-moz-focus-inner {
+    border: 0;
+  }
+}
+
 .tier-container-free h3,
 .tier-container-premium h3,
 .tier-container-ultimate h3 {
