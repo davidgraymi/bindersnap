@@ -15,6 +15,12 @@
     gap: 30px;
     justify-content: center;
   }
+
+  .landing-price-tiers form {
+    flex: 1;
+    display: flex;
+    min-width: 0;
+  }
 }
 
 .landing-price {
@@ -31,7 +37,7 @@
   text-align: center;
 }
 
-.home .landing-price h2 {
+.landing-price h2 {
   font-size: 1.4em;
   line-height: 1.6em;
   margin-bottom: 2.5em;
@@ -55,6 +61,7 @@
   background-color: var(--color-white);
   color: #080707;
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  text-align: left;
 }
 
 .tier-container-free:hover,
