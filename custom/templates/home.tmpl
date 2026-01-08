@@ -2,15 +2,15 @@
 <div role="main" aria-label="{{if .IsSigned}}{{ctx.Locale.Tr "dashboard"}}{{else}}{{ctx.Locale.Tr "home"}}{{end}}" class="home">
   <div class="landing-intro"></div>
   <div class="ui center aligned container hero">
-    <h1 class="ui header">Replace shared drives with a single, collaborative platform.</h1>
-    <h2>Join the headache free, all-in-one document management platform.</h2>
+    <h1 class="ui header">{{ctx.Locale.Tr "home.landing.heading"}}</h1>
+    <h2>{{ctx.Locale.Tr "home.landing.subheading"}}</h2>
     <form action="{{AppSubUrl}}/user/sign_up">
       <div class="landing-cta-container">
         <div class="landing-cta-input-container">
           <input class="landing-email" type="email" id="email" name="user_email" size="50" placeholder="Enter your email" />
-          <button class="ui button cta"><span>Sign up for Bindersnap</span></button>
+          <button class="ui button cta"><span>{{ctx.Locale.Tr "home.landing.cta_button"}}</span></button>
         </div>
-        <a href="#learn" class="landing-secondary-cta">Learn more{{svg "octicon-chevron-right"}}</a>
+        <a href="#learn" class="landing-secondary-cta">{{ctx.Locale.Tr "home.landing.secondary_cta"}}{{svg "octicon-chevron-right"}}</a>
       </div>
     </form>
   </div>
@@ -18,10 +18,8 @@
   <div class="landing-benefits">
     <div class="landing-benefits-item item-1">
       <div class="landing-benefits-left">
-        <h3>Securely store your documents</h3>
-        <p>Every document is tracked, creating a tamper-proof audit trail to support legal compliance and protect your
-          work.
-        </p>
+        <h3>{{ctx.Locale.Tr "home.landing.benefits_item_1.title"}}</h3>
+        <p>{{ctx.Locale.Tr "home.landing.benefits_item_1.body"}}</p>
       </div>
       <div class="landing-benefits-right">
         <img src="{{AssetUrlPrefix}}/img/commits_laptop.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
@@ -29,8 +27,8 @@
     </div>
     <div class="landing-benefits-item item-2">
       <div class="landing-benefits-left">
-        <h3>Work from anywhere</h3>
-        <p>Access and edit documents from any browser. No installs, no compatibility issues, no excuses.</p>
+        <h3>{{ctx.Locale.Tr "home.landing.benefits_item_2.title"}}</h3>
+        <p>{{ctx.Locale.Tr "home.landing.benefits_item_2.body"}}</p>
       </div>
       <div class="landing-benefits-right">
         <img src="{{AssetUrlPrefix}}/img/iphone_review.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
@@ -38,9 +36,8 @@
     </div>
     <div class="landing-benefits-item item-3">
       <div class="landing-benefits-left">
-        <h3>Collaborate effortlessly</h3>
-        <p>Discuss changes, ask questions, and make decisions without leaving the platform — no extra tools or lost
-          context.</p>
+        <h3>{{ctx.Locale.Tr "home.landing.benefits_item_3.title"}}</h3>
+        <p>{{ctx.Locale.Tr "home.landing.benefits_item_3.body"}}</p>
       </div>
       <div class="landing-benefits-right">
         <img src="{{AssetUrlPrefix}}/img/collab_laptop.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
@@ -48,8 +45,8 @@
     </div>
     <div class="landing-benefits-item item-4">
       <div class="landing-benefits-left">
-        <h3>Streamline reviews</h3>
-        <p>Enforce approvals, catch issues early, and eliminate bottlenecks — without endless back-and-forth emails.</p>
+        <h3>{{ctx.Locale.Tr "home.landing.benefits_item_4.title"}}</h3>
+        <p>{{ctx.Locale.Tr "home.landing.benefits_item_4.body"}}</p>
       </div>
       <div class="landing-benefits-right">
         <img src="{{AssetUrlPrefix}}/img/approval_laptop.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
@@ -57,8 +54,8 @@
     </div>
     <div class="landing-benefits-item item-5">
       <div class="landing-benefits-left">
-        <h3>Meet deadlines</h3>
-        <p>Create issues, assign tasks, resolve blockers and never lose sight of your goals with projects.</p>
+        <h3>{{ctx.Locale.Tr "home.landing.benefits_item_5.title"}}</h3>
+        <p>{{ctx.Locale.Tr "home.landing.benefits_item_5.body"}}</p>
       </div>
       <div class="landing-benefits-right">
         <img src="{{AssetUrlPrefix}}/img/project_laptop.jpg" alt="{{ctx.Locale.Tr "logo"}}" aria-hidden="true" loading="lazy">
@@ -70,13 +67,13 @@
 
   <div class="outro">
     <div class="ui center aligned container alternative-cta">
-      <h1 class="ui header">Deliver better work, without the chaos.</h1>
-      <h2>See what your team can do with the intelligent document platform.</h2>
+      <h1 class="ui header">{{ctx.Locale.Tr "home.landing.footer.heading"}}</h1>
+      <h2>{{ctx.Locale.Tr "home.landing.footer.subheading"}}</h2>
       <form action="{{AppSubUrl}}/user/sign_up">
         <div class="landing-cta-container">
           <div class="landing-cta-input-container">
             <input class="landing-email" type="email" id="email" name="user_email" size="50" placeholder="Enter your email" />
-            <button class="ui button cta"><span>Sign up for Bindersnap</span></button>
+            <button class="ui button cta"><span>{{ctx.Locale.Tr "home.landing.footer.cta_button"}}</span></button>
           </div>
         </div>
       </form>
