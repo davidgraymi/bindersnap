@@ -60,7 +60,7 @@
 
             {{if not .IsSigned}}
                 <!-- TODO!: change to our own help documents -->
-                <a class="item" target="_blank" rel="noopener noreferrer" href="https://docs.gitea.com">{{ctx.Locale.Tr "help"}}</a>
+                <a class="item tw-hidden" target="_blank" rel="noopener noreferrer" href="https://docs.gitea.com">{{ctx.Locale.Tr "help"}}</a>
             {{end}}
         </div>
 
@@ -159,7 +159,8 @@
                             {{svg "octicon-tools"}}
                             {{ctx.Locale.Tr "your_settings"}}
                         </a>
-                        <a class="item" target="_blank" rel="noopener noreferrer" href="https://docs.gitea.com">
+                        <!-- TODO!: change to our own help documents -->
+                        <a class="item tw-hidden" target="_blank" rel="noopener noreferrer" href="https://docs.gitea.com">
                             {{svg "octicon-question"}}
                             {{ctx.Locale.Tr "help"}}
                         </a>
