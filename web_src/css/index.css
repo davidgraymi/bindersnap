@@ -53,6 +53,7 @@
 @import "./font_i18n.css";
 @import "./base.css";
 @import "./home.css";
+@import "./pricing.css";
 @import "./install.css";
 @import "./form.css";
 
@@ -85,7 +86,6 @@
 @import "./search.css";
 @import "./tiptap.css";
 @import "./snapdiff/base.css";
-@import "./pricing.css";
 
 @tailwind utilities;
 
