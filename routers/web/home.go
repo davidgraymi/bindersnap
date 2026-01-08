@@ -26,7 +26,21 @@ import (
 const (
 	// tplHome home page template
 	tplHome base.TplName = "home"
+	// tplAbout about page template
+	tplAbout base.TplName = "about"
 )
+
+// About render about page
+func About(ctx *context.Context) {
+	if ctx.IsSigned {
+		ctx.Redirect(setting.AppSubURL + "/")
+		return
+	}
+
+	ctx.Data["Title"] = ctx.Tr("about_us")
+	ctx.Data["PageIsAbout"] = true
+	ctx.HTML(http.StatusOK, tplAbout)
+}
 
 // Home render home page
 func Home(ctx *context.Context) {

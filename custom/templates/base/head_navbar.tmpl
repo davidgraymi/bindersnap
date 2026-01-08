@@ -59,6 +59,7 @@
             {{template "custom/extra_links" .}}
 
             {{if not .IsSigned}}
+                <a class="item{{if .PageIsAbout}} active{{end}}" href="{{AppSubUrl}}/about">{{ctx.Locale.Tr "about_us"}}</a>
                 <!-- TODO!: change to our own help documents -->
                 <a class="item tw-hidden" target="_blank" rel="noopener noreferrer" href="https://docs.gitea.com">{{ctx.Locale.Tr "help"}}</a>
             {{end}}

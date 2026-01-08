@@ -1,0 +1,37 @@
+{{template "base/head" .}}
+<div role="main" aria-label="{{ctx.Locale.Tr "about_us"}}" class="page-content">
+	<div class="ui container">
+		<div class="ui grid">
+			<div class="column">
+				<h1 class="ui header">{{ctx.Locale.Tr "about.heading"}}</h1>
+				<h2 class="ui header">{{ctx.Locale.Tr "about.subheading"}}</h2>
+
+				<div class="ui segment">
+					<h2 class="ui header">{{ctx.Locale.Tr "about.section_1_heading"}}</h2>
+					{{ctx.Locale.Tr "about.section_1_content"}}
+				</div>
+
+				<div class="ui segment">
+					<h2 class="ui header">{{ctx.Locale.Tr "about.section_2_heading"}}</h2>
+					{{ctx.Locale.Tr "about.section_2_content"}}
+				</div>
+
+				<div class="ui segment">
+					<h2 class="ui header">{{ctx.Locale.Tr "about.section_3_heading"}}</h2>
+					{{ctx.Locale.Tr "about.section_3_content"}}
+				</div>
+
+				<div class="ui segment">
+					<h2 class="ui header">{{ctx.Locale.Tr "about.section_4_heading"}}</h2>
+					{{ctx.Locale.Tr "about.section_4_content"}}
+				</div>
+
+				<div class="ui segment">
+					<h2 class="ui header">{{ctx.Locale.Tr "about.section_5_heading"}}</h2>
+					{{ctx.Locale.Tr "about.section_5_content"}}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}
