@@ -1,73 +1,67 @@
-/* Enterprise SaaS About Page Styles */
+/* Enterprise SaaS About Page Styles (Fomantic UI Optimized) */
 
 .about-page {
     background-color: var(--color-white);
     padding-bottom: 0;
-    /* Let footer/future section handle spacing */
 }
 
-/* 1. Hero Section (Split Layout) */
+/* 1. Hero Section */
 .about-hero {
-    display: flex;
-    flex-direction: column;
-    padding: 80px 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    align-items: center;
-    gap: 40px;
+    padding: 80px 0;
+    /* Start tall */
+    position: relative;
+    z-index: 1;
 }
 
-@media (min-width: 992px) {
-    .about-hero {
-        flex-direction: row;
-        justify-content: space-between;
-        text-align: left;
-        padding: 100px 20px;
-    }
-}
-
-.about-hero-content {
-    flex: 1;
-    max-width: 600px;
-}
-
-.about-hero h1 {
+.about-hero h1.ui.header {
     font-size: 3rem;
     font-weight: 800;
     line-height: 1.2;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
     color: #080707;
     letter-spacing: -0.02em;
 }
 
+.about-hero h2.ui.sub.header {
+    font-size: 1.5rem;
+    /* Ensure subtitle is large enough */
+    line-height: 1.5;
+    color: #666;
+    margin-top: 0;
+}
+
 .about-hero-graphic {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    /* display: flex; */
+    /* justify-content: center;
+    align-items: center; */
+    height: fit-content;
+    padding: 20px;
 }
 
-.about-hero-graphic svg {
-    max-width: 100%;
+.about-hero-graphic img {
+    border-radius: 16px;
     height: auto;
-    /* subtle drop shadow for graphic */
-    filter: drop-shadow(0 10px 20px rgba(75, 107, 236, 0.2));
+    width: 100%;
+    display: block;
+    box-shadow: 0 10px 20px rgba(75, 107, 236, 0.2);
 }
 
 
-/* 2. Narrative Section (The Story) */
+/* 2. Narrative Section */
 .about-story {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 60px 20px;
+    padding: 60px 0;
 }
 
 .about-story p {
     font-size: 1.25rem;
-    /* ~20px slightly larger */
     line-height: 1.8;
     color: #333;
     margin-bottom: 2em;
+}
+
+.about-story h2.ui.header {
+    font-size: 1.75rem;
+    margin-top: 2rem;
 }
 
 .about-pull-quote {
@@ -75,7 +69,6 @@
     font-weight: 700;
     line-height: 1.4;
     color: #4b6bec;
-    /* Indigo/brand blue */
     font-style: italic;
     margin: 40px 0;
     padding-left: 20px;
@@ -86,15 +79,10 @@
 }
 
 
-/* 3. Grid Section (Git for Everyone) */
+/* 3. Grid Section */
 .about-grid-section {
     background-color: #ffffff;
-    padding: 80px 20px;
-}
-
-.about-grid-container {
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 80px 0;
 }
 
 .about-grid-header {
@@ -102,38 +90,26 @@
     margin-bottom: 60px;
 }
 
-.about-grid-header h2 {
+.about-grid-header h2.ui.header {
     font-size: 2.5rem;
     font-weight: 700;
-    margin-bottom: 1rem;
-}
-
-.about-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 30px;
-}
-
-@media (min-width: 768px) {
-    .about-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
 }
 
 .about-grid-card {
     background: white;
     border: 1px solid #e2e8f0;
-    /* Subtle slate border */
     border-radius: 8px;
     padding: 40px 30px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     text-align: center;
+    /* Center content in cards */
+    height: 100%;
+    /* Match height in grid */
 }
 
 .about-grid-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    /* Soft lift */
     border-color: #cbd5e1;
 }
 
@@ -143,7 +119,7 @@
     display: inline-block;
 }
 
-.about-grid-card h3 {
+.about-grid-card h3.ui.header {
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 16px;
@@ -159,15 +135,11 @@
 
 /* 4. Founder Section */
 .about-founder-section {
-    padding: 80px 20px;
-    background-color: var(--color-white);
+    padding: 80px 0;
 }
 
 .about-founder-card {
-    max-width: 900px;
-    margin: 0 auto;
     background-color: #f8fafc;
-    /* Soft gray */
     border-radius: 16px;
     padding: 40px;
     display: flex;
@@ -193,14 +165,12 @@
     width: 180px;
     height: 180px;
     border-radius: 12px;
-    /* Slightly rounded */
     object-fit: cover;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     background-color: #e2e8f0;
-    /* Placeholder color */
 }
 
-.about-founder-content h2 {
+.about-founder-content h2.ui.header {
     font-size: 1.25rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -212,7 +182,6 @@
     font-size: 2rem;
     font-weight: 800;
     color: #4b6bec;
-    /* Indigo */
     margin-bottom: 20px;
     display: block;
 }
@@ -232,9 +201,7 @@
 
 .about-education-badge {
     background-color: #e0e7ff;
-    /* Light indigo bg */
     color: #4338ca;
-    /* Dark indigo text */
     padding: 6px 12px;
     border-radius: 9999px;
     font-size: 0.875rem;
@@ -242,21 +209,15 @@
 }
 
 
-/* 5. Future Section (Gradient) */
+/* 5. Future Section */
 .about-future-section {
     background: linear-gradient(135deg, #4b6bec 0%, #1e1b4b 100%);
-    /* Indigo to Deep Blue */
-    padding: 100px 20px;
+    padding: 100px 0;
     text-align: center;
     color: white;
 }
 
-.about-future-content {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.about-future-section h2 {
+.about-future-section h2.ui.header {
     font-size: 2.5rem;
     font-weight: 800;
     margin-bottom: 24px;
