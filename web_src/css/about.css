@@ -1,0 +1,270 @@
+/* Enterprise SaaS About Page Styles */
+
+.about-page {
+    background-color: var(--color-white);
+    padding-bottom: 0;
+    /* Let footer/future section handle spacing */
+}
+
+/* 1. Hero Section (Split Layout) */
+.about-hero {
+    display: flex;
+    flex-direction: column;
+    padding: 80px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: center;
+    gap: 40px;
+}
+
+@media (min-width: 992px) {
+    .about-hero {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+        padding: 100px 20px;
+    }
+}
+
+.about-hero-content {
+    flex: 1;
+    max-width: 600px;
+}
+
+.about-hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    color: #080707;
+    letter-spacing: -0.02em;
+}
+
+.about-hero-graphic {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.about-hero-graphic svg {
+    max-width: 100%;
+    height: auto;
+    /* subtle drop shadow for graphic */
+    filter: drop-shadow(0 10px 20px rgba(75, 107, 236, 0.2));
+}
+
+
+/* 2. Narrative Section (The Story) */
+.about-story {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.about-story p {
+    font-size: 1.25rem;
+    /* ~20px slightly larger */
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 2em;
+}
+
+.about-pull-quote {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #4b6bec;
+    /* Indigo/brand blue */
+    font-style: italic;
+    margin: 40px 0;
+    padding-left: 20px;
+    border-left: 4px solid #4b6bec;
+    background: linear-gradient(to right, #4b6bec10, transparent);
+    padding: 20px;
+    border-radius: 4px;
+}
+
+
+/* 3. Grid Section (Git for Everyone) */
+.about-grid-section {
+    background-color: #ffffff;
+    padding: 80px 20px;
+}
+
+.about-grid-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.about-grid-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.about-grid-header h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+}
+
+@media (min-width: 768px) {
+    .about-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.about-grid-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    /* Subtle slate border */
+    border-radius: 8px;
+    padding: 40px 30px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-align: center;
+}
+
+.about-grid-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    /* Soft lift */
+    border-color: #cbd5e1;
+}
+
+.about-grid-icon {
+    color: #4b6bec;
+    margin-bottom: 24px;
+    display: inline-block;
+}
+
+.about-grid-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #1e293b;
+}
+
+.about-grid-card p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #475569;
+}
+
+
+/* 4. Founder Section */
+.about-founder-section {
+    padding: 80px 20px;
+    background-color: var(--color-white);
+}
+
+.about-founder-card {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: #f8fafc;
+    /* Soft gray */
+    border-radius: 16px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+    .about-founder-card {
+        flex-direction: row;
+        align-items: flex-start;
+        text-align: left;
+    }
+}
+
+.about-founder-image {
+    flex-shrink: 0;
+}
+
+.about-founder-headshot {
+    width: 180px;
+    height: 180px;
+    border-radius: 12px;
+    /* Slightly rounded */
+    object-fit: cover;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background-color: #e2e8f0;
+    /* Placeholder color */
+}
+
+.about-founder-content h2 {
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin-bottom: 10px;
+}
+
+.about-founder-name {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #4b6bec;
+    /* Indigo */
+    margin-bottom: 20px;
+    display: block;
+}
+
+.about-founder-bio {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #334155;
+    margin-bottom: 24px;
+}
+
+.about-founder-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.about-education-badge {
+    background-color: #e0e7ff;
+    /* Light indigo bg */
+    color: #4338ca;
+    /* Dark indigo text */
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+
+/* 5. Future Section (Gradient) */
+.about-future-section {
+    background: linear-gradient(135deg, #4b6bec 0%, #1e1b4b 100%);
+    /* Indigo to Deep Blue */
+    padding: 100px 20px;
+    text-align: center;
+    color: white;
+}
+
+.about-future-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.about-future-section h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: white;
+}
+
+.about-future-section p {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    opacity: 0.9;
+}

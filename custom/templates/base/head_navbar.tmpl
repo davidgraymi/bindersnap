@@ -3,7 +3,7 @@
     {{$notificationUnreadCount = call .NotificationUnreadCount}}
 {{end}}
 
-<div class="{{if not .IsSigned}}landing{{end}}">
+<div class="{{if .PageIsLanding}}landing{{end}}">
     <nav id="navbar" aria-label="{{ctx.Locale.Tr "aria.navbar"}}">
         <div class="navbar-left">
             <!-- the logo -->

@@ -1,37 +1,105 @@
 {{template "base/head" .}}
-<div role="main" aria-label="{{ctx.Locale.Tr "about_us"}}" class="page-content">
-	<div class="ui container">
-		<div class="ui grid">
-			<div class="column">
-				<h1 class="ui header">{{ctx.Locale.Tr "about.heading"}}</h1>
-				<h2 class="ui header">{{ctx.Locale.Tr "about.subheading"}}</h2>
+<div role="main" aria-label="{{ctx.Locale.Tr "about.heading"}}" class="about-page">
+	
+	<!-- 1. Hero Section (Split) -->
+	<header class="about-hero">
+		<div class="about-hero-content">
+			<h1>{{ctx.Locale.Tr "about.heading"}}</h1>
+			<h2>{{ctx.Locale.Tr "about.subheading"}}</h2>
+		</div>
+		<div class="about-hero-graphic">
+			<!-- Abstract "Clean Audit Trail" Graphic -->
+			<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{ctx.Locale.Tr "about.hero_graphic_alt"}}">
+				<rect opacity="0.1" x="50" y="50" width="300" height="200" rx="4" fill="#4B6BEC"/>
+				<rect x="70" y="70" width="260" height="40" rx="2" fill="white" stroke="#4B6BEC" stroke-width="2"/>
+				<rect x="70" y="120" width="260" height="10" rx="2" fill="#E2E8F0"/>
+				<rect x="70" y="140" width="200" height="10" rx="2" fill="#E2E8F0"/>
+				<rect x="70" y="160" width="240" height="10" rx="2" fill="#E2E8F0"/>
+				<!-- Glowing Line -->
+				<path d="M50 200 L120 180 L200 220 L350 100" stroke="#4B6BEC" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+				<circle cx="120" cy="180" r="6" fill="#4B6BEC"/>
+				<circle cx="200" cy="220" r="6" fill="#4B6BEC"/>
+				<circle cx="350" cy="100" r="6" fill="#4B6BEC"/>
+			</svg>
+		</div>
+	</header>
 
-				<div class="ui segment">
-					<h2 class="ui header">{{ctx.Locale.Tr "about.section_1_heading"}}</h2>
-					{{ctx.Locale.Tr "about.section_1_content"}}
+	<!-- 2. Narrative Section -->
+	<section class="about-story">
+		<h2>{{ctx.Locale.Tr "about.section_1_heading"}}</h2>
+		<div>{{ctx.Locale.Tr "about.section_1_content"}}</div>
+		
+		<div class="about-pull-quote">
+			"{{ctx.Locale.Tr "about.quote"}}"
+		</div>
+
+		<div>{{ctx.Locale.Tr "about.section_1_content_rest"}}</div>
+
+		<h2>{{ctx.Locale.Tr "about.section_2_heading"}}</h2>
+		<div>{{ctx.Locale.Tr "about.section_2_content"}}</div>
+	</section>
+
+	<!-- 3. Grid Section (Git for Everyone) -->
+	<section class="about-grid-section">
+		<div class="about-grid-container">
+			<div class="about-grid-header">
+				<h2>{{ctx.Locale.Tr "about.section_3_heading"}}</h2>
+			</div>
+			<div class="about-grid">
+				<!-- Card 1: Branching -->
+				<div class="about-grid-card">
+					<div class="about-grid-icon">
+						{{svg "octicon-git-branch" 48}}
+					</div>
+					<h3>{{ctx.Locale.Tr "about.section_3_col_1_heading"}}</h3>
+					<p>{{ctx.Locale.Tr "about.section_3_col_1_content"}}</p>
 				</div>
-
-				<div class="ui segment">
-					<h2 class="ui header">{{ctx.Locale.Tr "about.section_2_heading"}}</h2>
-					{{ctx.Locale.Tr "about.section_2_content"}}
+				<!-- Card 2: Browser -->
+				<div class="about-grid-card">
+					<div class="about-grid-icon">
+						{{svg "octicon-browser" 48}}
+					</div>
+					<h3>{{ctx.Locale.Tr "about.section_3_col_2_heading"}}</h3>
+					<p>{{ctx.Locale.Tr "about.section_3_col_2_content"}}</p>
 				</div>
-
-				<div class="ui segment">
-					<h2 class="ui header">{{ctx.Locale.Tr "about.section_3_heading"}}</h2>
-					{{ctx.Locale.Tr "about.section_3_content"}}
-				</div>
-
-				<div class="ui segment">
-					<h2 class="ui header">{{ctx.Locale.Tr "about.section_4_heading"}}</h2>
-					{{ctx.Locale.Tr "about.section_4_content"}}
-				</div>
-
-				<div class="ui segment">
-					<h2 class="ui header">{{ctx.Locale.Tr "about.section_5_heading"}}</h2>
-					{{ctx.Locale.Tr "about.section_5_content"}}
+				<!-- Card 3: Shield -->
+				<div class="about-grid-card">
+					<div class="about-grid-icon">
+						{{svg "octicon-shield-check" 48}}
+					</div>
+					<h3>{{ctx.Locale.Tr "about.section_3_col_3_heading"}}</h3>
+					<p>{{ctx.Locale.Tr "about.section_3_col_3_content"}}</p>
 				</div>
 			</div>
 		</div>
-	</div>
+	</section>
+
+	<!-- 4. Founder Section -->
+	<section class="about-founder-section">
+		<div class="about-founder-card">
+			<div class="about-founder-image">
+				<!-- Placeholder Headshot -->
+				<img class="about-founder-headshot" src="{{AssetUrlPrefix}}/img/avatar_default.png" alt="David Gray">
+			</div>
+			<div class="about-founder-content">
+				<h2>{{ctx.Locale.Tr "about.section_5_heading"}}</h2>
+				<span class="about-founder-name">{{ctx.Locale.Tr "about.section_5_content"}}</span>
+				<p class="about-founder-bio">{{ctx.Locale.Tr "about.section_5_bio"}}</p>
+				<div class="about-founder-badges">
+					<span class="about-education-badge">{{ctx.Locale.Tr "about.education_bs"}}</span>
+					<span class="about-education-badge">{{ctx.Locale.Tr "about.education_ms_candidate"}}</span>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- 5. Future Section -->
+	<section class="about-future-section">
+		<div class="about-future-content">
+			<h2>{{ctx.Locale.Tr "about.future_heading"}}</h2>
+			<p>{{ctx.Locale.Tr "about.future_content"}}</p>
+		</div>
+	</section>
+
 </div>
 {{template "base/footer" .}}

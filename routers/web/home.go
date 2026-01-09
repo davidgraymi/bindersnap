@@ -63,6 +63,7 @@ func Home(ctx *context.Context) {
 		return
 		// Check non-logged users landing page.
 	} else if setting.LandingPageURL != setting.LandingPageHome {
+		ctx.Data["PageIsLanding"] = true
 		ctx.Redirect(setting.AppSubURL + string(setting.LandingPageURL))
 		return
 	}

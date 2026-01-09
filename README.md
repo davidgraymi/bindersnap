@@ -41,6 +41,10 @@ or if SQLite support is required:
 
     TAGS="bindata sqlite sqlite_unlock_notify" make build
 
+or if you want to build continuously:
+
+    TAGS="sqlite sqlite_unlock_notify" make watch
+
 The `build` target is split into two sub-targets:
 
 - `make backend` which requires [Go Stable](https://go.dev/dl/), the required version is defined in [go.mod](/go.mod).
