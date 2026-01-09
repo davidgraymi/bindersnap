@@ -31,15 +31,12 @@
 }
 
 .about-hero-graphic {
-    /* display: flex; */
-    /* justify-content: center;
-    align-items: center; */
     height: fit-content;
     padding: 20px;
 }
 
 .about-hero-graphic img {
-    border-radius: 16px;
+    border-radius: 8px;
     height: auto;
     width: 100%;
     display: block;
