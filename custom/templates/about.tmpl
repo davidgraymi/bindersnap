@@ -5,7 +5,7 @@
 	<header class="about-hero">
 		<div class="ui container">
 			<div class="ui stackable middle aligned grid">
-				<div class="eight wide column about-hero-content">
+				<div class="eight wide column">
 					<h1 class="ui header">{{ctx.Locale.Tr "about.heading"}}</h1>
 					<h2 class="ui sub header">{{ctx.Locale.Tr "about.subheading"}}</h2>
 				</div>
@@ -18,24 +18,17 @@
 
 	<!-- 2. Narrative Section -->
 	<section class="about-story ui text container">
-		<h2 class="ui header">{{ctx.Locale.Tr "about.section_1_heading"}}</h2>
+		<h1 class="ui header">{{ctx.Locale.Tr "about.section_1_heading"}}</h1>
 		<div>{{ctx.Locale.Tr "about.section_1_content"}}</div>
-		
-		<div class="about-pull-quote">
-			"{{ctx.Locale.Tr "about.quote"}}"
-		</div>
-
-		<div>{{ctx.Locale.Tr "about.section_1_content_rest"}}</div>
-
-		<h2 class="ui header">{{ctx.Locale.Tr "about.section_2_heading"}}</h2>
+		<h1 class="ui header">{{ctx.Locale.Tr "about.section_2_heading"}}</h1>
 		<div>{{ctx.Locale.Tr "about.section_2_content"}}</div>
 	</section>
 
-	<!-- 3. Grid Section (Git for Everyone) -->
+	<!-- 3. Grid Section -->
 	<section class="about-grid-section">
 		<div class="ui container">
 			<div class="about-grid-header">
-				<h2 class="ui header centered">{{ctx.Locale.Tr "about.section_3_heading"}}</h2>
+				<h2 class="ui header centered">{{ctx.Locale.Tr "about.grid_heading"}}</h2>
 			</div>
 			<div class="ui stackable three column grid">
 				<!-- Card 1: Branching -->
@@ -44,8 +37,8 @@
 						<div class="about-grid-icon">
 							{{svg "octicon-git-branch" 48}}
 						</div>
-						<h3 class="ui header">{{ctx.Locale.Tr "about.section_3_col_1_heading"}}</h3>
-						<p>{{ctx.Locale.Tr "about.section_3_col_1_content"}}</p>
+						<h3 class="ui header">{{ctx.Locale.Tr "about.grid_1_heading"}}</h3>
+						<p>{{ctx.Locale.Tr "about.grid_1_content"}}</p>
 					</div>
 				</div>
 				<!-- Card 2: Browser -->
@@ -54,8 +47,8 @@
 						<div class="about-grid-icon">
 							{{svg "octicon-browser" 48}}
 						</div>
-						<h3 class="ui header">{{ctx.Locale.Tr "about.section_3_col_2_heading"}}</h3>
-						<p>{{ctx.Locale.Tr "about.section_3_col_2_content"}}</p>
+						<h3 class="ui header">{{ctx.Locale.Tr "about.grid_2_heading"}}</h3>
+						<p>{{ctx.Locale.Tr "about.grid_2_content"}}</p>
 					</div>
 				</div>
 				<!-- Card 3: Shield -->
@@ -64,8 +57,8 @@
 						<div class="about-grid-icon">
 							{{svg "octicon-shield-check" 48}}
 						</div>
-						<h3 class="ui header">{{ctx.Locale.Tr "about.section_3_col_3_heading"}}</h3>
-						<p>{{ctx.Locale.Tr "about.section_3_col_3_content"}}</p>
+						<h3 class="ui header">{{ctx.Locale.Tr "about.grid_3_heading"}}</h3>
+						<p>{{ctx.Locale.Tr "about.grid_3_content"}}</p>
 					</div>
 				</div>
 			</div>
@@ -78,7 +71,7 @@
 			<div class="about-founder-card">
 				<div class="about-founder-image">
 					<!-- Placeholder Headshot -->
-					<img class="about-founder-headshot" src="{{AssetUrlPrefix}}/img/avatar_default.png" alt="David Gray">
+					<img class="about-founder-headshot" src="{{AssetUrlPrefix}}/img/davidgray.webp" alt="David Gray">
 				</div>
 				<div class="about-founder-content">
 					<h2 class="ui header">{{ctx.Locale.Tr "about.section_5_heading"}}</h2>
