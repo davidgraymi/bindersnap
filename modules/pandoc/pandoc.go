@@ -4,6 +4,7 @@
 package pandoc
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -55,29 +56,40 @@ func InitSimple(ctx context.Context) error {
 }
 
 func ConvertDocxToBsDoc(ctx context.Context, in io.Reader, out io.Writer) error {
-	var cmd *Command
-	var stderr io.Writer
-	cmd = NewCommand(ctx).AddArguments("-f", "docx", "-t", "html")
+	var stderr bytes.Buffer
+	cmd := NewCommand(ctx).AddArguments("-f", "docx", "-t", "html")
 	if err := cmd.Run(&RunOpts{
 		Stdout: out,
-		Stderr: stderr,
+		Stderr: &stderr,
 		Stdin:  in,
 	}); err != nil {
-		return fmt.Errorf("Run: %w - %s", err, stderr)
+		return fmt.Errorf("Run: %w - %s", err, stderr.String())
+	}
+	return nil
+}
+
+func ConvertBsDocToDocx(ctx context.Context, in io.Reader, out io.Writer) error {
+	var stderr bytes.Buffer
+	cmd := NewCommand(ctx).AddArguments("-f", "html", "-t", "docx")
+	if err := cmd.Run(&RunOpts{
+		Stdout: out,
+		Stderr: &stderr,
+		Stdin:  in,
+	}); err != nil {
+		return fmt.Errorf("Run: %w - %s", err, stderr.String())
 	}
 	return nil
 }
 
 func ConvertDocToBsDoc(ctx context.Context, in io.Reader, out io.Writer) error {
-	var cmd *Command
-	var stderr io.Writer
-	cmd = NewCommand(ctx).AddArguments("-f", "doc", "-t", "html")
+	var stderr bytes.Buffer
+	cmd := NewCommand(ctx).AddArguments("-f", "doc", "-t", "html")
 	if err := cmd.Run(&RunOpts{
 		Stdout: out,
-		Stderr: stderr,
+		Stderr: &stderr,
 		Stdin:  in,
 	}); err != nil {
-		return fmt.Errorf("Run: %w - %s", err, stderr)
+		return fmt.Errorf("Run: %w - %s", err, stderr.String())
 	}
 	return nil
 }
