@@ -45,7 +45,6 @@ type CreateRepoForm struct {
 	ProtectedBranch bool
 
 	ForkSingleBranch string
-	ObjectFormatName string
 }
 
 // Validate validates the fields
