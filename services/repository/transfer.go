@@ -306,22 +306,24 @@ func transferOwnership(ctx context.Context, doer *user_model.User, newOwnerName 
 }
 
 // changeRepositoryName changes all corresponding setting from old repository name to new one.
-func changeRepositoryName(ctx context.Context, repo *repo_model.Repository, newRepoName string) (err error) {
+func changeRepositoryName(ctx context.Context, repo *repo_model.Repository, newRepoName string) (string, error) {
 	oldRepoName := repo.Name
 	newRepoName = strings.ToLower(newRepoName)
+	newRepoName = strings.ReplaceAll(newRepoName, " ", "_")
+	var err error
 	if err = repo_model.IsUsableRepoName(newRepoName); err != nil {
-		return err
+		return "", err
 	}
 
 	if err := repo.LoadOwner(ctx); err != nil {
-		return err
+		return "", err
 	}
 
 	has, err := repo_model.IsRepositoryModelOrDirExist(ctx, repo.Owner, newRepoName)
 	if err != nil {
-		return fmt.Errorf("IsRepositoryExist: %w", err)
+		return "", fmt.Errorf("IsRepositoryExist: %w", err)
 	} else if has {
-		return repo_model.ErrRepoAlreadyExist{
+		return "", repo_model.ErrRepoAlreadyExist{
 			Uname: repo.Owner.Name,
 			Name:  newRepoName,
 		}
@@ -329,32 +331,38 @@ func changeRepositoryName(ctx context.Context, repo *repo_model.Repository, newR
 
 	newRepoPath := repo_model.RepoPath(repo.Owner.Name, newRepoName)
 	if err = util.Rename(repo.RepoPath(), newRepoPath); err != nil {
-		return fmt.Errorf("rename repository directory: %w", err)
+		return "", fmt.Errorf("rename repository directory: %w", err)
 	}
 
 	wikiPath := repo.WikiPath()
 	isExist, err := util.IsExist(wikiPath)
 	if err != nil {
 		log.Error("Unable to check if %s exists. Error: %v", wikiPath, err)
-		return err
+		return "", err
 	}
 	if isExist {
 		if err = util.Rename(wikiPath, repo_model.WikiPath(repo.Owner.Name, newRepoName)); err != nil {
-			return fmt.Errorf("rename repository wiki: %w", err)
+			return "", fmt.Errorf("rename repository wiki: %w", err)
 		}
 	}
 
 	ctx, committer, err := db.TxContext(ctx)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer committer.Close()
 
 	if err := repo_model.NewRedirect(ctx, repo.Owner.ID, repo.ID, oldRepoName, newRepoName); err != nil {
-		return err
+		return "", err
 	}
 
-	return committer.Commit()
+	repo.Name = newRepoName
+	repo.LowerName = strings.ToLower(newRepoName)
+	if _, err := db.GetEngine(ctx).ID(repo.ID).Cols("name", "lower_name").Update(repo); err != nil {
+		return "", err
+	}
+
+	return newRepoName, committer.Commit()
 }
 
 // ChangeRepositoryName changes all corresponding setting from old repository name to new one.
@@ -374,7 +382,7 @@ func ChangeRepositoryName(ctx context.Context, doer *user_model.User, repo *repo
 	}
 	defer releaser()
 
-	if err := changeRepositoryName(ctx, repo, newRepoName); err != nil {
+	if newRepoName, err = changeRepositoryName(ctx, repo, newRepoName); err != nil {
 		return err
 	}
 	releaser()
