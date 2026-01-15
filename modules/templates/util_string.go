@@ -64,3 +64,7 @@ func (su *StringUtils) ToUpper(s string) string {
 func (su *StringUtils) TrimPrefix(s, prefix string) string {
 	return strings.TrimPrefix(s, prefix)
 }
+
+func (su *StringUtils) UnderscoreToSpace(s string) string {
+	return strings.ReplaceAll(s, "_", " ")
+}

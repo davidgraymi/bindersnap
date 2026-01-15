@@ -224,6 +224,8 @@ func CreateRepositoryDirectly(ctx context.Context, doer, u *user_model.User, opt
 		opts.ObjectFormatName = git.Sha1ObjectFormat.Name()
 	}
 
+	opts.Name = strings.ReplaceAll(opts.Name, " ", "_")
+
 	repo := &repo_model.Repository{
 		OwnerID:                         u.ID,
 		Owner:                           u,
