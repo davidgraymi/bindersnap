@@ -1,6 +1,6 @@
 # Guidelines for Backend Development
 
-## Background
+## Backend Technology Stack
 
 Bindersnap uses Golang as the backend programming language. It uses many third-party packages and also write some itself. For example, Bindersnap uses Chi as basic web framework. Xorm is an ORM framework that is used to interact with the database. So it's very important to manage these packages. Please take the below guidelines before you start to write backend code.
 
@@ -83,11 +83,11 @@ If a type implements `io.Closer`, calling `Close` multiple times must not fail o
 ### Important Gotchas
 
 - Never write `x.Update(exemplar)` without an explicit `WHERE` clause:
-    - This will cause all rows in the table to be updated with the non-zero values of the exemplar - including IDs.
-    - You should usually write `x.ID(id).Update(exemplar)`.
+  - This will cause all rows in the table to be updated with the non-zero values of the exemplar - including IDs.
+  - You should usually write `x.ID(id).Update(exemplar)`.
 - If during a migration you are inserting into a table using `x.Insert(exemplar)` where the ID is preset:
-    - You will need to `SET IDENTITY_INSERT \`table\` ON` for the MSSQL variant (the migration will fail otherwise)
-    - However, you will also need to update the id sequence for postgres - the migration will silently pass here but later insertions will fail: `SELECT setval('table_name_id_seq', COALESCE((SELECT MAX(id)+1 FROM \`table_name\`), 1), false)`
+  - You will need to `SET IDENTITY_INSERT \`table\` ON` for the MSSQL variant (the migration will fail otherwise)
+  - However, you will also need to update the id sequence for postgres - the migration will silently pass here but later insertions will fail: `SELECT setval('table_name_id_seq', COALESCE((SELECT MAX(id)+1 FROM \`table_name\`), 1), false)`
 
 ### Future Tasks
 
@@ -99,7 +99,7 @@ Currently, we are creating some refactors to do the following things:
 
 # Guidelines for Frontend Development
 
-## Background
+## Frontend Background
 
 Bindersnap uses Fomantic-UI (based on jQuery) and Vue3 for its frontend.
 
