@@ -1,250 +1,288 @@
 <script setup lang="ts">
 import type {Editor} from '@tiptap/vue-3';
-import '@tiptap/starter-kit';
-import '@tiptap/extension-underline';
-import '@tiptap/extension-link';
-import '@tiptap/extension-text-align';
-import '@tiptap/extension-task-item';
-import '@tiptap/extension-task-list';
+import {ref, computed, onMounted, onBeforeUnmount} from 'vue';
 import {SvgIcon} from '../svg.ts';
-import {ref} from 'vue';
+
+// Tiptap UI Components
+import BlockquoteButton from './tiptap-ui/blockquote-button/BlockquoteButton.vue';
+import BulletListButton from './tiptap-ui/bullet-list-button/BulletListButton.vue';
+import CodeBlockButton from './tiptap-ui/code-block-button/CodeBlockButton.vue';
+import HeadingButton from './tiptap-ui/heading-button/HeadingButton.vue';
+import ImageButton from './tiptap-ui/image-button/ImageButton.vue';
+import LinkButton from './tiptap-ui/link-button/LinkButton.vue';
+import MarkButton from './tiptap-ui/mark-button/MarkButton.vue';
+import OrderedListButton from './tiptap-ui/ordered-list-button/OrderedListButton.vue';
+import TaskListButton from './tiptap-ui/task-list-button/TaskListButton.vue';
+import TextAlignDropdown from './tiptap-ui/text-align-dropdown/TextAlignDropdown.vue';
+import UndoRedoButton from './tiptap-ui/undo-redo-button/UndoRedoButton.vue';
 
 const props = defineProps<{
   editor: Editor,
-  enableLink: boolean,
-  enableUnderline: boolean,
-  enableCheckList: boolean,
-  enableTextAlign: boolean,
 }>();
 
-const isOpen = ref(false);
+// Toolbar ref for click outside detection
+const toolbarRef = ref<HTMLElement | null>(null);
 
-function toggleLink() {
-  const previousUrl = props.editor.getAttributes('link').href;
-  const url = window.prompt('URL', previousUrl);
-  // canceled
-  if (url === null) {
-    return;
-  }
-  // empty
-  if (url === '') {
-    props.editor
-      .chain()
-      .focus()
-      .extendMarkRange('link')
-      .unsetLink()
-      .run();
+// Dropdown state
+const headingDropdownOpen = ref(false);
+const listDropdownOpen = ref(false);
+const textAlignDropdownOpen = ref(false);
 
-    return;
+// Theme state
+const isDarkMode = ref(document.documentElement.classList.contains('gitea-dark'));
+
+// Heading levels configuration
+const headingLevels = [1, 2, 3, 4, 5, 6] as const;
+
+// Get current heading level for button display
+const currentHeadingLevel = computed(() => {
+  for (const level of headingLevels) {
+    if (props.editor?.isActive('heading', {level})) {
+      return level;
+    }
   }
-  // update link
-  props.editor
-    .chain()
-    .focus()
-    .extendMarkRange('link')
-    .setLink({href: url})
-    .run();
+  return null;
+});
+
+// Theme toggle function
+function toggleTheme() {
+  isDarkMode.value = !isDarkMode.value;
+  document.documentElement.setAttribute('data-theme', isDarkMode.value ? 'gitea-dark' : 'gitea-light');
 }
+
+// Close dropdowns when clicking outside
+function closeDropdowns() {
+  headingDropdownOpen.value = false;
+  listDropdownOpen.value = false;
+  textAlignDropdownOpen.value = false;
+}
+
+// Global click handler to close dropdowns when clicking outside
+function handleClickOutside(event: MouseEvent) {
+  if (toolbarRef.value && !toolbarRef.value.contains(event.target as Node)) {
+    closeDropdowns();
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 </script>
+
 <template>
-  <div v-if="props.editor" class="container">
-    <div class="control-group">
-      <div class="button-group tw-shadow-md">
-        <!-- TODO: make a heading dropdown for all levels -->
+  <div v-if="props.editor" ref="toolbarRef" class="toolbar" @click.self="closeDropdowns">
+    <!-- History Group -->
+    <div class="toolbar-group">
+      <UndoRedoButton :editor="editor" action="undo"/>
+      <UndoRedoButton :editor="editor" action="redo"/>
+    </div>
+
+    <div class="toolbar-separator"/>
+
+    <!-- Block Group: Heading, Lists, Blockquote, Code Block -->
+    <div class="toolbar-group">
+      <!-- Heading Dropdown -->
+      <div class="dropdown-container">
         <button
-          type="button"
-          @click="editor.chain().focus().toggleHeading({level: 1}).run()"
-          :disabled="!editor.can().chain().focus().toggleHeading({level: 1}).run()"
-          :class="{'is-active': editor.isActive('heading', {level: 1})}"
+          type="button" class="toolbar-button dropdown-trigger"
+          :class="{'is-active': currentHeadingLevel !== null}" data-tooltip-content="Heading"
+          @click.stop="headingDropdownOpen = !headingDropdownOpen; listDropdownOpen = false; textAlignDropdownOpen = false"
         >
           <svg-icon name="octicon-heading"/>
+          <svg-icon name="octicon-chevron-down" :size="12"/>
         </button>
-        <button
-          type="button"
-          @click="editor.chain().focus().toggleBold().run()"
-          :disabled="!editor.can().chain().focus().toggleBold().run()"
-          :class="{'is-active': editor.isActive('bold')}"
-        >
-          <svg-icon name="octicon-bold"/>
-        </button>
-        <button
-          type="button"
-          @click="editor.chain().focus().toggleItalic().run()"
-          :disabled="!editor.can().chain().focus().toggleItalic().run()"
-          :class="{'is-active': editor.isActive('italic')}"
-        >
-          <svg-icon name="octicon-italic"/>
-        </button>
-        <button
-          v-if="props.enableUnderline"
-          type="button"
-          @click="editor.chain().focus().toggleUnderline().run()"
-          :disabled="!editor.can().chain().focus().toggleUnderline().run()"
-          :class="{'is-active': editor.isActive('underline')}"
-        >
-          underline
-        </button>
-        <button
-          type="button"
-          @click="editor.chain().focus().toggleStrike().run()"
-          :disabled="!editor.can().chain().focus().toggleStrike().run()"
-          :class="{'is-active': editor.isActive('strike')}"
-        >
-          <svg-icon name="octicon-strikethrough"/>
-        </button>
-        <button
-          v-if="props.enableLink"
-          type="button"
-          @click="toggleLink"
-          :disabled="!editor.can().chain().focus().toggleLink({href:''}).run()"
-          :class="{'is-active': editor.isActive('link')}"
-        >
-          <svg-icon name="octicon-link"/>
-        </button>
-        <button
-          type="button"
-          @click="editor.chain().focus().toggleBulletList().run()"
-          :disabled="!editor.can().chain().focus().toggleBulletList().run()"
-          :class="{'is-active': editor.isActive('bullet-list')}"
-        >
-          <svg-icon name="octicon-list-unordered"/>
-        </button>
-        <button
-          type="button"
-          @click="editor.chain().focus().toggleOrderedList().run()"
-          :disabled="!editor.can().chain().focus().toggleOrderedList().run()"
-          :class="{'is-active': editor.isActive('ordered-list')}"
-        >
-          <svg-icon name="octicon-list-ordered"/>
-        </button>
-        <button
-          v-if="props.enableCheckList"
-          type="button"
-          @click="editor.chain().focus().toggleTaskList().run()"
-          :disabled="!editor.can().chain().focus().toggleTaskList().run()"
-          :class="{'is-active': editor.isActive('taskList')}"
-        >
-          <svg-icon name="remix-list-check-3"/>
-        </button>
-        <button
-          type="button"
-          @click="editor.chain().focus().toggleBlockquote().run()"
-          :disabled="!editor.can().chain().focus().toggleBlockquote().run()"
-          :class="{'is-active': editor.isActive('block-quote')}"
-        >
-          <svg-icon name="octicon-quote"/>
-        </button>
-        <button
-          type="button"
-          @click="editor.chain().focus().setHorizontalRule().run()"
-          :disabled="!editor.can().chain().focus().setHorizontalRule().run()"
-          :class="{'is-active': editor.isActive('horizontal-rule')}"
-        >
-          <svg-icon name="octicon-horizontal-rule"/>
-        </button>
-        <div v-if="props.enableTextAlign" class="button-menu">
-          <button
-            type="button"
-            tabindex="0"
-            @click="isOpen = true"
-            @blur="isOpen = false"
-          >
-            <svg-icon name="remix-align-left"/>
-          </button>
-          <div v-if="isOpen" class="dropdown-menu tw-flex tw-flex-row tw-shadow-md">
-            <button
-              type="button"
-              @click="editor.chain().focus().setTextAlign('left').run()"
-              :class="{'is-active': editor.isActive({ textAlign: 'left' })}"
-            >
-              <svg-icon name="remix-align-left"/>
-            </button>
-            <button
-              type="button"
-              @click="editor.chain().focus().setTextAlign('center').run()"
-              :class="{'is-active': editor.isActive({ textAlign: 'center' })}"
-            >
-              <svg-icon name="remix-align-center"/>
-            </button>
-            <button
-              type="button"
-              @click="editor.chain().focus().setTextAlign('right').run()"
-              :class="{'is-active': editor.isActive({ textAlign: 'right' })}"
-            >
-              <svg-icon name="remix-align-right"/>
-            </button>
-            <button
-              type="button"
-              @click="editor.chain().focus().setTextAlign('justify').run()"
-              :class="{'is-active': editor.isActive({ textAlign: 'justify' })}"
-            >
-              <svg-icon name="remix-align-justify"/>
-            </button>
-          </div>
+        <div v-if="headingDropdownOpen" class="dropdown-menu dropdown-vertical">
+          <HeadingButton
+            v-for="level in headingLevels" :key="level" :editor="editor" :level="level"
+            :data-tooltip-content="`Heading ${level}`" @click="headingDropdownOpen = false"
+          />
         </div>
       </div>
+
+      <!-- List Dropdown -->
+      <div class="dropdown-container">
+        <button
+          type="button" class="toolbar-button dropdown-trigger"
+          :class="{'is-active': editor.isActive('bulletList') || editor.isActive('orderedList') || editor.isActive('taskList')}"
+          data-tooltip-content="List"
+          @click.stop="listDropdownOpen = !listDropdownOpen; headingDropdownOpen = false; textAlignDropdownOpen = false"
+        >
+          <svg-icon name="octicon-list-unordered"/>
+          <svg-icon name="octicon-chevron-down" :size="12"/>
+        </button>
+        <div v-if="listDropdownOpen" class="dropdown-menu dropdown-vertical">
+          <BulletListButton :editor="editor" @click="listDropdownOpen = false"/>
+          <OrderedListButton :editor="editor" @click="listDropdownOpen = false"/>
+          <TaskListButton :editor="editor" @click="listDropdownOpen = false"/>
+        </div>
+      </div>
+
+      <!-- Blockquote -->
+      <BlockquoteButton :editor="editor"/>
+
+      <!-- Code Block -->
+      <CodeBlockButton :editor="editor"/>
+    </div>
+
+    <div class="toolbar-separator"/>
+
+    <!-- Inline Formatting Group -->
+    <div class="toolbar-group">
+      <MarkButton :editor="editor" type="bold"/>
+      <MarkButton :editor="editor" type="italic"/>
+      <MarkButton :editor="editor" type="strike"/>
+      <MarkButton :editor="editor" type="underline"/>
+      <LinkButton :editor="editor"/>
+      <MarkButton :editor="editor" type="superscript"/>
+      <MarkButton :editor="editor" type="subscript"/>
+      <MarkButton :editor="editor" type="code"/>
+    </div>
+
+    <div class="toolbar-separator"/>
+
+    <!-- Alignment Group -->
+    <div class="toolbar-group">
+      <TextAlignDropdown
+        :editor="editor" :is-open="textAlignDropdownOpen"
+        @toggle="textAlignDropdownOpen = !textAlignDropdownOpen; headingDropdownOpen = false; listDropdownOpen = false"
+        @close="textAlignDropdownOpen = false"
+      />
+    </div>
+
+    <div class="toolbar-separator"/>
+
+    <!-- Actions Group -->
+    <div class="toolbar-group">
+      <ImageButton :editor="editor" class="toolbar-button add-button"/>
+
+      <button
+        type="button" class="toolbar-button" @click="toggleTheme"
+        :data-tooltip-content="isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+      >
+        <svg-icon :name="isDarkMode ? 'octicon-sun' : 'octicon-moon'"/>
+      </button>
     </div>
   </div>
 </template>
+
 <style scoped>
-button {
-  background: transparent;
-  border-radius: 5px;
-  margin-left: 1px;
-  margin-right: 1px;
-}
-button:hover {
-  background: var(--color-hover);
-}
-/* .control-group {
-    background: transparent;
-    padding: 6px;
-    display: flex;
-} */
-.button-group {
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
   background: var(--color-box-header);
   border-radius: 25px;
-  padding: 5px 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
 }
-.is-active {
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--color-secondary-alpha-40);
+  margin: 0 4px;
+}
+
+.toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: inherit;
+  font-size: 14px;
+  min-width: 32px;
+  height: 32px;
+}
+
+.toolbar-button:hover:not(:disabled) {
+  background: var(--color-hover);
+}
+
+.toolbar-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolbar-button.is-active {
   background: var(--color-active);
 }
-button .is-active:hover {
-  background: var(--color-active);
+
+.dropdown-container {
+  position: relative;
 }
+
+.dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .dropdown-menu {
   position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
   background: var(--color-body);
-  /* border: 1px solid var(--color-secondary); */
-  z-index: 1;
-  border-radius: 5px;
-  padding: 6px;
+  border: 1px solid var(--color-secondary-alpha-40);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  min-width: 47px;
 }
-.button-menu {
-  display: inline-block;
+
+.dropdown-vertical {
+  display: flex;
+  flex-direction: column;
 }
-/* Task list specific styles */
-/* ul[data-type="taskList"] {
-  list-style: none;
-  margin-left: 0;
-  padding: 0;
-  li {
-    align-items: flex-start;
-    display: flex;
-    > label {
-      flex: 0 0 auto;
-      margin-right: 0.5rem;
-      user-select: none;
-    }
-    > div {
-      flex: 1 1 auto;
-    }
-  }
-  input[type="checkbox"] {
-    cursor: pointer;
-  }
-  ul[data-type="taskList"] {
-    margin: 0;
-  }
-} */
+
+/* Style tiptap-ui components to match toolbar buttons */
+:deep(.tiptap-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: inherit;
+  font-size: 14px;
+  min-width: 32px;
+  height: 32px;
+}
+
+:deep(.tiptap-button:hover:not(:disabled)) {
+  background: var(--color-hover);
+}
+
+:deep(.tiptap-button:disabled) {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+:deep(.tiptap-button[data-active-state="on"]) {
+  background: var(--color-active);
+}
+
+:deep(.tiptap-button-icon) {
+  width: 16px;
+  height: 16px;
+}
 </style>

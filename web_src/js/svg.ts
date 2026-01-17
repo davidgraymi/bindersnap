@@ -14,8 +14,10 @@ import octiconCheckCircleFill from '../../public/assets/img/svg/octicon-check-ci
 import octiconChevronDown from '../../public/assets/img/svg/octicon-chevron-down.svg';
 import octiconChevronLeft from '../../public/assets/img/svg/octicon-chevron-left.svg';
 import octiconChevronRight from '../../public/assets/img/svg/octicon-chevron-right.svg';
+import octiconChevronUp from '../../public/assets/img/svg/octicon-chevron-up.svg';
 import octiconClock from '../../public/assets/img/svg/octicon-clock.svg';
 import octiconCode from '../../public/assets/img/svg/octicon-code.svg';
+import octiconCodeSquare from '../../public/assets/img/svg/octicon-code-square.svg';
 import octiconColumns from '../../public/assets/img/svg/octicon-columns.svg';
 import octiconCopy from '../../public/assets/img/svg/octicon-copy.svg';
 import octiconDiffAdded from '../../public/assets/img/svg/octicon-diff-added.svg';
@@ -51,11 +53,13 @@ import octiconLock from '../../public/assets/img/svg/octicon-lock.svg';
 import octiconMeter from '../../public/assets/img/svg/octicon-meter.svg';
 import octiconMilestone from '../../public/assets/img/svg/octicon-milestone.svg';
 import octiconMirror from '../../public/assets/img/svg/octicon-mirror.svg';
+import octiconMoon from '../../public/assets/img/svg/octicon-moon.svg';
 import octiconOrganization from '../../public/assets/img/svg/octicon-organization.svg';
 import octiconPlay from '../../public/assets/img/svg/octicon-play.svg';
 import octiconPlus from '../../public/assets/img/svg/octicon-plus.svg';
 import octiconProject from '../../public/assets/img/svg/octicon-project.svg';
 import octiconQuote from '../../public/assets/img/svg/octicon-quote.svg';
+import octiconRedo from '../../public/assets/img/svg/octicon-redo.svg';
 import octiconRepo from '../../public/assets/img/svg/octicon-repo.svg';
 import octiconRepoForked from '../../public/assets/img/svg/octicon-repo-forked.svg';
 import octiconRepoTemplate from '../../public/assets/img/svg/octicon-repo-template.svg';
@@ -68,18 +72,31 @@ import octiconSkip from '../../public/assets/img/svg/octicon-skip.svg';
 import octiconStar from '../../public/assets/img/svg/octicon-star.svg';
 import octiconStop from '../../public/assets/img/svg/octicon-stop.svg';
 import octiconStrikethrough from '../../public/assets/img/svg/octicon-strikethrough.svg';
+import octiconSun from '../../public/assets/img/svg/octicon-sun.svg';
 import octiconSync from '../../public/assets/img/svg/octicon-sync.svg';
 import octiconTable from '../../public/assets/img/svg/octicon-table.svg';
 import octiconTag from '../../public/assets/img/svg/octicon-tag.svg';
+import octiconTasklist from '../../public/assets/img/svg/octicon-tasklist.svg';
 import octiconTrash from '../../public/assets/img/svg/octicon-trash.svg';
 import octiconTriangleDown from '../../public/assets/img/svg/octicon-triangle-down.svg';
+import octiconTypography from '../../public/assets/img/svg/octicon-typography.svg';
+import octiconUndo from '../../public/assets/img/svg/octicon-undo.svg';
 import octiconX from '../../public/assets/img/svg/octicon-x.svg';
 import octiconXCircleFill from '../../public/assets/img/svg/octicon-x-circle-fill.svg';
 import remixAlignLeft from '../../public/assets/img/svg/remix-align-left.svg';
 import remixAlignCenter from '../../public/assets/img/svg/remix-align-center.svg';
 import remixAlignRight from '../../public/assets/img/svg/remix-align-right.svg';
 import remixAlignJustify from '../../public/assets/img/svg/remix-align-justify.svg';
+import remixH1 from '../../public/assets/img/svg/remix-h-1.svg';
+import remixH2 from '../../public/assets/img/svg/remix-h-2.svg';
+import remixH3 from '../../public/assets/img/svg/remix-h-3.svg';
+import remixH4 from '../../public/assets/img/svg/remix-h-4.svg';
+import remixH5 from '../../public/assets/img/svg/remix-h-5.svg';
+import remixH6 from '../../public/assets/img/svg/remix-h-6.svg';
 import remixListCheck3 from '../../public/assets/img/svg/remix-list-check-3.svg';
+import remixSubscript2 from '../../public/assets/img/svg/remix-subscript-2.svg';
+import remixSuperscript2 from '../../public/assets/img/svg/remix-superscript-2.svg';
+import remixUnderline from '../../public/assets/img/svg/remix-underline.svg';
 
 const svgs = {
   'gitea-double-chevron-left': giteaDoubleChevronLeft,
@@ -96,8 +113,10 @@ const svgs = {
   'octicon-chevron-down': octiconChevronDown,
   'octicon-chevron-left': octiconChevronLeft,
   'octicon-chevron-right': octiconChevronRight,
+  'octicon-chevron-up': octiconChevronUp,
   'octicon-clock': octiconClock,
   'octicon-code': octiconCode,
+  'octicon-code-square': octiconCodeSquare,
   'octicon-columns': octiconColumns,
   'octicon-copy': octiconCopy,
   'octicon-diff-added': octiconDiffAdded,
@@ -133,11 +152,13 @@ const svgs = {
   'octicon-meter': octiconMeter,
   'octicon-milestone': octiconMilestone,
   'octicon-mirror': octiconMirror,
+  'octicon-moon': octiconMoon,
   'octicon-organization': octiconOrganization,
   'octicon-play': octiconPlay,
   'octicon-plus': octiconPlus,
   'octicon-project': octiconProject,
   'octicon-quote': octiconQuote,
+  'octicon-redo': octiconRedo,
   'octicon-repo': octiconRepo,
   'octicon-repo-forked': octiconRepoForked,
   'octicon-repo-template': octiconRepoTemplate,
@@ -150,18 +171,31 @@ const svgs = {
   'octicon-star': octiconStar,
   'octicon-stop': octiconStop,
   'octicon-strikethrough': octiconStrikethrough,
+  'octicon-sun': octiconSun,
   'octicon-sync': octiconSync,
   'octicon-table': octiconTable,
   'octicon-tag': octiconTag,
+  'octicon-tasklist': octiconTasklist,
   'octicon-trash': octiconTrash,
   'octicon-triangle-down': octiconTriangleDown,
+  'octicon-typography': octiconTypography,
+  'octicon-undo': octiconUndo,
   'octicon-x': octiconX,
   'octicon-x-circle-fill': octiconXCircleFill,
   'remix-align-left': remixAlignLeft,
   'remix-align-center': remixAlignCenter,
   'remix-align-right': remixAlignRight,
   'remix-align-justify': remixAlignJustify,
+  'remix-h-1': remixH1,
+  'remix-h-2': remixH2,
+  'remix-h-3': remixH3,
+  'remix-h-4': remixH4,
+  'remix-h-5': remixH5,
+  'remix-h-6': remixH6,
   'remix-list-check-3': remixListCheck3,
+  'remix-subscript-2': remixSubscript2,
+  'remix-superscript-2': remixSuperscript2,
+  'remix-underline': remixUnderline,
 };
 
 export type SvgName = keyof typeof svgs;

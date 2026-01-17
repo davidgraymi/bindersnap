@@ -34,6 +34,9 @@ export default {
     {
       files: ['**/*.vue'],
       customSyntax: 'postcss-html',
+      rules: {
+        'selector-pseudo-class-no-unknown': [true, {ignorePseudoClasses: ['deep', 'global']}],
+      },
     },
   ],
   rules: {
