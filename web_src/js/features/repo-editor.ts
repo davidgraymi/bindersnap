@@ -12,11 +12,15 @@ import RichTextEditorFixedMenu from '../components/RichTextEditorFixedMenu.vue';
 import {createApp} from 'vue';
 import {Editor} from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
+import Image from '@tiptap/extension-image';
+import Typography from '@tiptap/extension-typography';
+import Highlight from '@tiptap/extension-highlight';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
+import {Selection} from '@tiptap/extensions';
 import beautify from 'js-beautify';
 
 function initEditPreviewTab(elForm: HTMLFormElement) {
@@ -57,35 +61,42 @@ export function initRepoEditor() {
   const fixedMenu = document.querySelector<HTMLTextAreaElement>('.page-content.repository.editor #rich-text-editor-fixed-menu');
   if (!fixedMenu) return;
 
+  // TODO!: add support for using `cmd+k` to insert a link. It currently doesn't open a modal.
   const editor = new Editor({
     element: richTextEditorMount,
     content: editArea.value,
     extensions: [
-      StarterKit,
-      Link.configure({
-        openOnClick: false,
-        linkOnPaste: true,
-        defaultProtocol: 'https',
+      StarterKit.configure({
+        link: {
+          linkOnPaste: true,
+          defaultProtocol: 'https',
+        },
       }),
-      Underline,
       TextAlign.configure({
-        alignments: ['left', 'center', 'right', 'justify'],
+        defaultAlignment: 'left',
         types: ['heading', 'paragraph'],
       }),
       TaskItem.configure({
         nested: true,
       }),
       TaskList,
+      Highlight.configure({multicolor: true}),
+      Image,
+      Typography,
+      Superscript,
+      Subscript,
+      Selection,
     ],
     editable: true,
+    editorProps: {
+      attributes: {
+        'aria-label': 'Main content area, start typing to enter text.',
+      },
+    },
   });
 
   createApp(RichTextEditorFixedMenu, {
     editor,
-    enableLink: true,
-    enableUnderline: true,
-    enableCheckList: false,
-    enableTextAlign: true,
   }).mount(fixedMenu);
 
   const onUpdate = () => {
