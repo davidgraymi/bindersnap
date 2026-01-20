@@ -1061,8 +1061,14 @@ func MergePullRequest(ctx *context.Context) {
 			ctx.JSONError(ctx.Tr("repo.pulls.has_merged"))
 		case errors.Is(err, pull_service.ErrIsWorkInProgress):
 			ctx.JSONError(ctx.Tr("repo.pulls.no_merge_wip"))
+		case errors.Is(err, pull_service.ErrIsChecking):
+			ctx.JSONError(ctx.Tr("repo.pulls.is_checking"))
 		case errors.Is(err, pull_service.ErrNotMergeableState):
-			ctx.JSONError(ctx.Tr("repo.pulls.no_merge_not_ready"))
+			if pr.IsChecking() {
+				ctx.JSONError(ctx.Tr("repo.pulls.is_checking"))
+			} else {
+				ctx.JSONError(ctx.Tr("repo.pulls.no_merge_not_ready"))
+			}
 		case models.IsErrDisallowedToMerge(err):
 			ctx.JSONError(ctx.Tr("repo.pulls.no_merge_not_ready"))
 		case asymkey_service.IsErrWontSign(err):

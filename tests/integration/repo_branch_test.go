@@ -8,9 +8,13 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
+	"code.gitea.io/gitea/models/db"
+	issues_model "code.gitea.io/gitea/models/issues"
 	repo_model "code.gitea.io/gitea/models/repo"
 	"code.gitea.io/gitea/models/unittest"
 	"code.gitea.io/gitea/modules/test"
@@ -195,6 +199,18 @@ func testCreatePullToDefaultBranch(t *testing.T, session *TestSession, baseRepo,
 	return elem[4]
 }
 
+func waitForPRMergeable(t *testing.T, prID string) {
+	id, err := strconv.ParseInt(prID, 10, 64)
+	assert.NoError(t, err)
+	assert.Eventually(t, func() bool {
+		pr, err := issues_model.GetPullRequestByID(db.DefaultContext, id)
+		if err != nil {
+			return false
+		}
+		return pr.Status == issues_model.PullRequestStatusMergeable
+	}, 5*time.Minute, 1*time.Second, "PR %s did not become mergeable", prID)
+}
+
 func prepareRepoPR(t *testing.T, baseSession, headSession *TestSession, baseRepo, headRepo *repo_model.Repository) {
 	refSubURL := fmt.Sprintf("branch/%s", headRepo.DefaultBranch)
 	testCreateBranch(t, headSession, headRepo.OwnerName, headRepo.Name, refSubURL, "new-commit", http.StatusSeeOther)
@@ -218,12 +234,14 @@ func prepareRepoPR(t *testing.T, baseSession, headSession *TestSession, baseRepo
 	testCreateBranch(t, headSession, headRepo.OwnerName, headRepo.Name, "branch/new-commit", "merged-pr", http.StatusSeeOther)
 	prID = testCreatePullToDefaultBranch(t, baseSession, baseRepo, headRepo, "merged-pr", "merged pr")
 	testAPINewFile(t, headSession, headRepo.OwnerName, headRepo.Name, "merged-pr", fmt.Sprintf("new-commit-%s.txt", headRepo.Name), "new-commit")
+	waitForPRMergeable(t, prID)
 	testPullMerge(t, baseSession, baseRepo.OwnerName, baseRepo.Name, prID, repo_model.MergeStyleRebaseMerge, false)
 
 	// create merged PR with deleted branch
 	testCreateBranch(t, headSession, headRepo.OwnerName, headRepo.Name, "branch/new-commit", "merged-pr-deleted", http.StatusSeeOther)
 	prID = testCreatePullToDefaultBranch(t, baseSession, baseRepo, headRepo, "merged-pr-deleted", "merged pr with deleted branch")
 	testAPINewFile(t, headSession, headRepo.OwnerName, headRepo.Name, "merged-pr-deleted", fmt.Sprintf("new-commit-%s-2.txt", headRepo.Name), "new-commit")
+	waitForPRMergeable(t, prID)
 	testPullMerge(t, baseSession, baseRepo.OwnerName, baseRepo.Name, prID, repo_model.MergeStyleRebaseMerge, true)
 }
 
