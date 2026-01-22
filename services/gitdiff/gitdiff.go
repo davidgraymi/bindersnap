@@ -356,13 +356,75 @@ var cfg = &htmldiff.Config{
 	CleanTags:    []string{""},
 }
 
+func getIndentation(s string) int {
+	indent := 0
+	for _, r := range s {
+		if r == ' ' {
+			indent++
+		} else if r == '\t' {
+			indent += 4
+		} else {
+			break
+		}
+	}
+	return indent
+}
+
 // GetComputedSectionDiffForSnap computes inline diff for the given section in a snap.
 func (diffSection *DiffSection) GetComputedSectionDiffForSnap(locale translation.Locale) template.HTML {
 	var left bytes.Buffer
 	var right bytes.Buffer
 	var skipList []int
+
+	// Portions logic for HTML: identify lines to keep (changes + structural context)
+	keep := make([]bool, len(diffSection.Lines))
+	indents := make([]int, len(diffSection.Lines))
+
+	for i, line := range diffSection.Lines {
+		content := line.Content
+		if len(content) > 0 && strings.IndexByte(" +-", content[0]) > -1 {
+			content = content[1:]
+		}
+		indents[i] = getIndentation(content)
+
+		if line.Type == DiffLineAdd || line.Type == DiffLineDel {
+			keep[i] = true
+		}
+	}
+
+	// Expand keep set to include ancestors and closers
+	for i := range keep {
+		if keep[i] {
+			// Ancestors
+			currIndent := indents[i]
+			for j := i - 1; j >= 0; j-- {
+				if indents[j] < currIndent {
+					keep[j] = true
+					currIndent = indents[j]
+					if currIndent == 0 {
+						break
+					}
+				}
+			}
+			// Closers
+			currIndent = indents[i]
+			for j := i + 1; j < len(diffSection.Lines); j++ {
+				if indents[j] < currIndent {
+					keep[j] = true
+					currIndent = indents[j]
+					if currIndent == 0 {
+						break
+					}
+				}
+			}
+		}
+	}
+
 outer:
 	for i, diffLine := range diffSection.Lines {
+		if !keep[i] {
+			continue
+		}
 		if slices.Contains(skipList, i) {
 			continue outer
 		}
