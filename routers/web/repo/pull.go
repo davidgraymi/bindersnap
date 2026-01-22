@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -30,6 +31,7 @@ import (
 	"code.gitea.io/gitea/modules/gitrepo"
 	issue_template "code.gitea.io/gitea/modules/issue/template"
 	"code.gitea.io/gitea/modules/log"
+	"code.gitea.io/gitea/modules/optional"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/modules/web"
@@ -757,6 +759,13 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 		diffOptions.BeforeCommitID = startCommitID
 	}
 
+	isFetch := ctx.FormBool("fetch")
+	if isFetch && len(files) == 1 {
+		if strings.HasSuffix(files[0], bsDocExt) || (files[0] != "LICENSE" && filepath.Ext(files[0]) == "") {
+			diffOptions.Context = optional.Some(0)
+		}
+	}
+
 	var methodWithError string
 	var diff *gitdiff.Diff
 
@@ -776,7 +785,6 @@ func viewPullFiles(ctx *context.Context, specifiedStartCommit, specifiedEndCommi
 		return
 	}
 
-	isFetch := ctx.FormBool("fetch")
 	if isFetch {
 		if len(diff.Files) < 1 {
 			ctx.NotFound(fmt.Sprintf("No diff found for %s", files), nil)

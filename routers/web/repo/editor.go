@@ -22,6 +22,7 @@ import (
 	"code.gitea.io/gitea/modules/json"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/markup"
+	"code.gitea.io/gitea/modules/optional"
 	"code.gitea.io/gitea/modules/pandoc"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/typesniffer"
@@ -31,6 +32,7 @@ import (
 	"code.gitea.io/gitea/services/context"
 	"code.gitea.io/gitea/services/context/upload"
 	"code.gitea.io/gitea/services/forms"
+	"code.gitea.io/gitea/services/gitdiff"
 	files_service "code.gitea.io/gitea/services/repository/files"
 )
 
@@ -431,7 +433,14 @@ func DiffPreviewPost(ctx *context.Context) {
 		return
 	}
 
-	diff, err := files_service.GetDiffPreview(ctx, ctx.Repo.Repository, ctx.Repo.BranchName, treePath, form.Content)
+	var opts *gitdiff.DiffOptions
+	if strings.HasSuffix(treePath, bsDocExt) || (treePath != "LICENSE" && filepath.Ext(treePath) == "") {
+		opts = &gitdiff.DiffOptions{
+			Context: optional.Some(0),
+		}
+	}
+
+	diff, err := files_service.GetDiffPreview(ctx, ctx.Repo.Repository, ctx.Repo.BranchName, treePath, form.Content, opts)
 	if err != nil {
 		ctx.Error(http.StatusInternalServerError, "GetDiffPreview: "+err.Error())
 		return

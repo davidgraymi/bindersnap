@@ -1186,6 +1186,7 @@ type DiffOptions struct {
 	WhitespaceBehavior git.TrustedCmdArgs
 	DirectComparison   bool
 	FileOnly           bool
+	Context            optional.Option[int]
 }
 
 // GetDiff builds a Diff between two commits of a repository.
@@ -1209,8 +1210,15 @@ func GetDiff(ctx context.Context, gitRepo *git.Repository, opts *DiffOptions, fi
 		return nil, err
 	}
 
+	diffArgs := []string{"diff", "--src-prefix=\\a/", "--dst-prefix=\\b/", "-M"}
+	if opts.Context.Has() {
+		diffArgs = append(diffArgs, fmt.Sprintf("-U%d", opts.Context.Value()))
+	} else {
+		diffArgs = append(diffArgs, "-W")
+	}
+
 	if (len(opts.BeforeCommitID) == 0 || opts.BeforeCommitID == objectFormat.EmptyObjectID().String()) && commit.ParentCount() == 0 {
-		cmdDiff.AddArguments("diff", "--src-prefix=\\a/", "--dst-prefix=\\b/", "-M", "-W").
+		cmdDiff.AddArguments(git.ToTrustedCmdArgs(diffArgs)...).
 			AddArguments(opts.WhitespaceBehavior...).
 			AddDynamicArguments(objectFormat.EmptyTree().String()).
 			AddDynamicArguments(opts.AfterCommitID)
@@ -1221,7 +1229,7 @@ func GetDiff(ctx context.Context, gitRepo *git.Repository, opts *DiffOptions, fi
 			actualBeforeCommitID = parentCommit.ID.String()
 		}
 
-		cmdDiff.AddArguments("diff", "--src-prefix=\\a/", "--dst-prefix=\\b/", "-M", "-W").
+		cmdDiff.AddArguments(git.ToTrustedCmdArgs(diffArgs)...).
 			AddArguments(opts.WhitespaceBehavior...).
 			AddDynamicArguments(actualBeforeCommitID, opts.AfterCommitID)
 		opts.BeforeCommitID = actualBeforeCommitID

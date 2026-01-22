@@ -620,18 +620,26 @@ func PrepareCompareDiff(
 
 	fileOnly := ctx.FormBool("file-only")
 
-	diff, err := gitdiff.GetDiff(ctx, ci.HeadGitRepo,
-		&gitdiff.DiffOptions{
-			BeforeCommitID:     beforeCommitID,
-			AfterCommitID:      headCommitID,
-			SkipTo:             ctx.FormString("skip-to"),
-			MaxLines:           maxLines,
-			MaxLineCharacters:  setting.Git.MaxGitDiffLineCharacters,
-			MaxFiles:           maxFiles,
-			WhitespaceBehavior: whitespaceBehavior,
-			DirectComparison:   ci.DirectComparison,
-			FileOnly:           fileOnly,
-		}, ctx.FormStrings("files")...)
+	diffOptions := &gitdiff.DiffOptions{
+		BeforeCommitID:     beforeCommitID,
+		AfterCommitID:      headCommitID,
+		SkipTo:             ctx.FormString("skip-to"),
+		MaxLines:           maxLines,
+		MaxLineCharacters:  setting.Git.MaxGitDiffLineCharacters,
+		MaxFiles:           maxFiles,
+		WhitespaceBehavior: whitespaceBehavior,
+		DirectComparison:   ci.DirectComparison,
+		FileOnly:           fileOnly,
+	}
+
+	isFetch := ctx.FormBool("fetch")
+	if isFetch && len(files) == 1 {
+		if strings.HasSuffix(files[0], bsDocExt) || (files[0] != "LICENSE" && filepath.Ext(files[0]) == "") {
+			diffOptions.Context = optional.Some(0)
+		}
+	}
+
+	diff, err := gitdiff.GetDiff(ctx, ci.HeadGitRepo, diffOptions, files...)
 	if err != nil {
 		ctx.ServerError("GetDiffRangeWithWhitespaceBehavior", err)
 		return false
@@ -639,7 +647,6 @@ func PrepareCompareDiff(
 	ctx.Data["Diff"] = diff
 	ctx.Data["DiffNotAvailable"] = diff.NumFiles == 0
 
-	isFetch := ctx.FormBool("fetch")
 	if isFetch {
 		if len(diff.Files) < 1 {
 			ctx.NotFound(fmt.Sprintf("No diff found for %s", files), nil)

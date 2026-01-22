@@ -10,6 +10,7 @@ import (
 	"html/template"
 	"net/http"
 	"path"
+	"path/filepath"
 	"strings"
 
 	asymkey_model "code.gitea.io/gitea/models/asymkey"
@@ -26,6 +27,7 @@ import (
 	"code.gitea.io/gitea/modules/gitrepo"
 	"code.gitea.io/gitea/modules/log"
 	"code.gitea.io/gitea/modules/markup"
+	"code.gitea.io/gitea/modules/optional"
 	"code.gitea.io/gitea/modules/setting"
 	"code.gitea.io/gitea/modules/util"
 	"code.gitea.io/gitea/services/context"
@@ -318,7 +320,7 @@ func Diff(ctx *context.Context) {
 		maxLines, maxFiles = -1, -1
 	}
 
-	diff, err := gitdiff.GetDiff(ctx, gitRepo, &gitdiff.DiffOptions{
+	diffOptions := &gitdiff.DiffOptions{
 		AfterCommitID:      commitID,
 		SkipTo:             ctx.FormString("skip-to"),
 		MaxLines:           maxLines,
@@ -326,13 +328,21 @@ func Diff(ctx *context.Context) {
 		MaxFiles:           maxFiles,
 		WhitespaceBehavior: gitdiff.GetWhitespaceFlag(ctx.Data["WhitespaceBehavior"].(string)),
 		FileOnly:           fileOnly,
-	}, files...)
+	}
+
+	isFetch := ctx.FormBool("fetch")
+	if isFetch && len(files) == 1 {
+		if strings.HasSuffix(files[0], bsDocExt) || (files[0] != "LICENSE" && filepath.Ext(files[0]) == "") {
+			diffOptions.Context = optional.Some(0)
+		}
+	}
+
+	diff, err := gitdiff.GetDiff(ctx, gitRepo, diffOptions, files...)
 	if err != nil {
 		ctx.NotFound("GetDiff", err)
 		return
 	}
 
-	isFetch := ctx.FormBool("fetch")
 	if isFetch {
 		if len(diff.Files) < 1 {
 			ctx.NotFound(fmt.Sprintf("No diff found for %s", files), nil)
