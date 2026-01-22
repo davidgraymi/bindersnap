@@ -336,7 +336,7 @@ func (t *TemporaryUploadRepository) Push(doer *user_model.User, commitHash, bran
 }
 
 // DiffIndex returns a Diff of the current index to the head
-func (t *TemporaryUploadRepository) DiffIndex(opts *gitdiff.DiffOptions) (*gitdiff.Diff, error) {
+func (t *TemporaryUploadRepository) DiffIndex() (*gitdiff.Diff, error) {
 	stdoutReader, stdoutWriter, err := os.Pipe()
 	if err != nil {
 		return nil, fmt.Errorf("unable to open stdout pipe: %w", err)
@@ -345,18 +345,9 @@ func (t *TemporaryUploadRepository) DiffIndex(opts *gitdiff.DiffOptions) (*gitdi
 		_ = stdoutReader.Close()
 		_ = stdoutWriter.Close()
 	}()
-
-	diffArgs := []string{"diff-index", "--src-prefix=\\a/", "--dst-prefix=\\b/"}
-	if opts != nil && opts.Context.Has() {
-		diffArgs = append(diffArgs, fmt.Sprintf("-U%d", opts.Context.Value()))
-	} else {
-		diffArgs = append(diffArgs, "-W")
-	}
-	diffArgs = append(diffArgs, "--cached", "-p", "HEAD")
-
 	stderr := new(bytes.Buffer)
 	var diff *gitdiff.Diff
-	err = git.NewCommand(t.ctx, git.ToTrustedCmdArgs(diffArgs)...).
+	err = git.NewCommand(t.ctx, "diff-index", "--src-prefix=\\a/", "--dst-prefix=\\b/", "-W", "--cached", "-p", "HEAD").
 		Run(&git.RunOpts{
 			Timeout: 30 * time.Second,
 			Dir:     t.basePath,
