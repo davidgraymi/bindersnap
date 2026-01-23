@@ -5,6 +5,9 @@
 package gitdiff
 
 import (
+	"context"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -666,4 +669,181 @@ func TestNoCrashes(t *testing.T) {
 		// It shouldn't crash, so don't care about the output.
 		ParsePatch(db.DefaultContext, setting.Git.MaxGitDiffLines, setting.Git.MaxGitDiffLineCharacters, setting.Git.MaxGitDiffFiles, strings.NewReader(testcase.gitdiff), "")
 	}
+}
+
+func TestBSDocGetDiff(t *testing.T) {
+	// 1. Setup global git config
+	setting.Git.HomePath = t.TempDir()
+
+	ctx := context.Background()
+	// Initialize git module to ensure config is applied
+	err := git.InitSimple(ctx)
+	assert.NoError(t, err)
+	err = git.InitFull(ctx)
+	assert.NoError(t, err)
+
+	// 2. Setup repo
+	repoPath := filepath.Join(t.TempDir(), "bsdoc-getdiff-repo")
+	err = os.MkdirAll(repoPath, 0o755)
+	assert.NoError(t, err)
+
+	_, _, err = git.NewCommand(ctx, "init").RunStdString(&git.RunOpts{Dir: repoPath})
+	assert.NoError(t, err)
+
+	// Add .bsdoc file content
+	// Using user provided content to verify the specific regex behavior
+	bsdocOriginal := `<p>1</p>
+<p>2</p>
+<p>3</p>
+<p>4</p>
+<p>5</p>
+<p>6</p>
+<p>7</p>
+<p>8</p>
+<p>9</p>
+<p>10</p>
+<p>11</p>
+<p>12</p>
+<p>13</p>
+<p>14</p>
+<p>15</p>
+<ol>
+    <li>
+        <p><strong>Bold</strong></p>
+    </li>
+    <li>
+        <p><s>Strikethrough</s></p>
+    </li>
+    <li>
+        <p><em>Italics</em></p>
+    </li>
+    <li>
+        <p><u>Underline</u></p>
+    </li>
+</ol>
+<p>16</p>
+<p>17</p>
+<p>18</p>
+<p>19</p>
+<p>20</p>
+<p>21</p>
+<p>22</p>
+<p>23</p>
+<p>24</p>
+<p>25</p>
+<p>26</p>
+<p>27</p>
+<p>28</p>
+<p>29</p>
+<p>30</p>`
+
+	bsdocModified := `<p>1</p>
+<p>2</p>
+<p>3</p>
+<p>4</p>
+<p>5</p>
+<p>6</p>
+<p>7</p>
+<p>8</p>
+<p>9</p>
+<p>10</p>
+<p>11</p>
+<p>12</p>
+<p>13</p>
+<p>14</p>
+<p>15</p>
+<ol>
+    <li>
+        <p><strong>Bold</strong></p>
+    </li>
+    <li>
+        <p><s>Strikethrough</s></p>
+    </li>
+    <li>
+        <p><em> Italics</em></p>
+    </li>
+    <li>
+        <p><u>Underline</u></p>
+    </li>
+</ol>
+<p>16</p>
+<p>17</p>
+<p>18</p>
+<p>19</p>
+<p>20</p>
+<p>21</p>
+<p>22</p>
+<p>23</p>
+<p>24</p>
+<p>25</p>
+<p>26</p>
+<p>27</p>
+<p>28</p>
+<p>29</p>
+<p>30</p>`
+
+	bsdocFile := filepath.Join(repoPath, "test.bsdoc")
+	err = os.WriteFile(bsdocFile, []byte(bsdocOriginal), 0o644)
+	assert.NoError(t, err)
+
+	_, _, err = git.NewCommand(ctx, "add", "test.bsdoc").RunStdString(&git.RunOpts{Dir: repoPath})
+	assert.NoError(t, err)
+	_, _, err = git.NewCommand(ctx, "commit", "-m", "Initial commit").RunStdString(&git.RunOpts{Dir: repoPath})
+	assert.NoError(t, err)
+
+	// Modify file
+	err = os.WriteFile(bsdocFile, []byte(bsdocModified), 0o644)
+	assert.NoError(t, err)
+	_, _, err = git.NewCommand(ctx, "add", "test.bsdoc").RunStdString(&git.RunOpts{Dir: repoPath})
+	assert.NoError(t, err)
+	_, _, err = git.NewCommand(ctx, "commit", "-m", "Modify bsdoc").RunStdString(&git.RunOpts{Dir: repoPath})
+	assert.NoError(t, err)
+
+	// 3. GetDiff
+	repo, err := git.OpenRepository(ctx, repoPath)
+	assert.NoError(t, err)
+	defer repo.Close()
+
+	headCommit, err := repo.GetCommit("HEAD")
+	assert.NoError(t, err)
+	prevCommit, err := headCommit.Parent(0)
+	assert.NoError(t, err)
+
+	diff, err := GetDiff(ctx, repo, &DiffOptions{
+		AfterCommitID:     headCommit.ID.String(),
+		BeforeCommitID:    prevCommit.ID.String(),
+		MaxLines:          100,
+		MaxLineCharacters: 1000,
+		MaxFiles:          10,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, diff)
+	assert.Len(t, diff.Files, 1)
+
+	fileDiff := diff.Files[0]
+	assert.Equal(t, "test.bsdoc", fileDiff.Name)
+	assert.NotEmpty(t, fileDiff.Sections)
+
+	// Check Section Info (hunk header)
+	// The section info should theoretically contain the custom xfuncname match.
+	// Looking at Gitea's codebase, 'GetDiff' usually parses the diff output.
+	// We need to see if Section struct has a field for the hunk header line.
+	// 'Sections' is []*DiffSection. 'DiffSection' likely has 'Name' or 'Info'?
+	// The fields are not visible in the tool output from earlier step 21 (gitdiff_test.go) but gitdiff.go (step 20/never read fully).
+	// Let's assume there is a way to check it, or just print it.
+	// The 'ParsePatch' test (TestParsePatch_skipTo) didn't inspect Section header text.
+	// I will dump the sections to see what we have.
+
+	var found bool
+	for _, sec := range fileDiff.Sections {
+		for _, line := range sec.Lines {
+			if line.Type == DiffLineSection {
+				t.Logf("Section Line: %s", line.Content)
+				if strings.Contains(line.Content, "<ol>") || strings.Contains(line.Content, "<p>") {
+					found = true
+				}
+			}
+		}
+	}
+	assert.True(t, found, "Expected to find a section with HTML tag in the header info")
 }

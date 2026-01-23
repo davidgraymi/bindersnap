@@ -6,6 +6,7 @@ package git
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
@@ -82,6 +83,23 @@ func syncGitConfig() (err error) {
 	// it is now safe to set "safe.directory=*" for internal usage only.
 	// Although this setting is only supported by some new git versions, it is also tolerated by earlier versions
 	if err := configAddNonExist("safe.directory", "*"); err != nil {
+		return err
+	}
+
+	// custom bsdoc diff driver
+	if err := configSet("diff.html.xfuncname", `^([ \t]{0,2}<[a-zA-Z0-9]+[^>]*>)`); err != nil {
+		return err
+	}
+
+	// set core.attributesFile to internal git home
+	// This ensures that we can set the diff driver for .bsdoc files reliably on any machine
+	attributesFile := filepath.Join(HomeDir(), ".gitattributes")
+	if err := configSet("core.attributesFile", attributesFile); err != nil {
+		return err
+	}
+
+	// ensure .gitattributes exists and has the correct content
+	if err := ensureBSDocAttributes(attributesFile); err != nil {
 		return err
 	}
 
@@ -167,6 +185,43 @@ func configAddNonExist(key, value string) error {
 		return nil
 	}
 	return fmt.Errorf("failed to get git config %s, err: %w", key, err)
+}
+
+func ensureBSDocAttributes(attributesFile string) error {
+	content := "*.bsdoc diff=html\n"
+
+	// check if file exists
+	fileContent, err := os.ReadFile(attributesFile)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to read .gitattributes: %w", err)
+	}
+
+	// if it exists, check if it already contains the rule
+	if err == nil {
+		if strings.Contains(string(fileContent), content) {
+			return nil
+		}
+		// append if not present
+		// check if we need a newline
+		if len(fileContent) > 0 && !strings.HasSuffix(string(fileContent), "\n") {
+			content = "\n" + content
+		}
+		f, err := os.OpenFile(attributesFile, os.O_APPEND|os.O_WRONLY, 0o644)
+		if err != nil {
+			return fmt.Errorf("failed to open .gitattributes for appending: %w", err)
+		}
+		defer f.Close()
+		if _, err := f.WriteString(content); err != nil {
+			return fmt.Errorf("failed to write to .gitattributes: %w", err)
+		}
+		return nil
+	}
+
+	// create if not exists
+	if err := os.WriteFile(attributesFile, []byte(content), 0o644); err != nil {
+		return fmt.Errorf("failed to write .gitattributes: %w", err)
+	}
+	return nil
 }
 
 func configUnsetAll(key, value string) error {
