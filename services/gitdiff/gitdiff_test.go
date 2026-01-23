@@ -5,6 +5,7 @@
 package gitdiff
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"testing"
@@ -666,4 +667,39 @@ func TestNoCrashes(t *testing.T) {
 		// It shouldn't crash, so don't care about the output.
 		ParsePatch(db.DefaultContext, setting.Git.MaxGitDiffLines, setting.Git.MaxGitDiffLineCharacters, setting.Git.MaxGitDiffFiles, strings.NewReader(testcase.gitdiff), "")
 	}
+}
+
+func TestBSDocGetDiff(t *testing.T) {
+	gitRepo, err := git.OpenRepository(git.DefaultContext, "./testdata/academic-module")
+	if !assert.NoError(t, err) {
+		return
+	}
+	defer gitRepo.Close()
+	diff, err := GetDiff(db.DefaultContext, gitRepo,
+		&DiffOptions{
+			AfterCommitID:      "c1e1c63b1a3d582b33f048a451eb281ff08243d0",
+			BeforeCommitID:     "5c5312eb02a1f114cd62c662a642ba741013b767",
+			MaxLines:           setting.Git.MaxGitDiffLines,
+			MaxLineCharacters:  setting.Git.MaxGitDiffLineCharacters,
+			MaxFiles:           setting.Git.MaxGitDiffFiles,
+			WhitespaceBehavior: nil,
+		})
+	assert.NoError(t, err, "Error when diff")
+
+	for _, file := range diff.Files {
+		fmt.Printf("%v\n", file.Name)
+		for _, section := range file.Sections {
+			for _, line := range section.Lines {
+				fmt.Printf("%v\n", line.Content)
+			}
+		}
+	}
+
+	assert.Equal(t, len(diff.Files), 1)
+	assert.Equal(t, "test.bsdoc", diff.Files[0].Name)
+	assert.Equal(t, len(diff.Files[0].Sections), 2)
+	linesAmount := len(diff.Files[0].Sections[0].Lines)
+	assert.Equal(t, linesAmount, 16)
+	assert.Equal(t, " <ol>", diff.Files[0].Sections[0].Lines[1].Content)
+	assert.Equal(t, " </ol>", diff.Files[0].Sections[0].Lines[linesAmount-1].Content)
 }
